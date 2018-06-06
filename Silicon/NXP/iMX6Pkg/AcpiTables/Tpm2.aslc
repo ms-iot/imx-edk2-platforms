@@ -1,0 +1,53 @@
+/** @file
+*
+*  Copyright (c) 2018 Microsoft Corporation. All rights reserved.
+*
+*  This program and the accompanying materials
+*  are licensed and made available under the terms and conditions of the BSD License
+*  which accompanies this distribution.  The full text of the license may be found at
+*  http://opensource.org/licenses/bsd-license.php
+*
+*  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+*
+**/
+
+#include <IndustryStandard/Tpm2Acpi.h>
+
+#include <Library/PcdLib.h>
+
+#include <Platform.h>
+#include "iMX6.h"
+
+// Definition is missing from MdePkg/Include/IndustryStandard/Tpm2Acpi.h
+#ifdef EFI_TPM2_ACPI_TABLE_START_METHOD_COMMAND_RESPONSE_BUFFER_INTERFACE_WITH_TREE
+#error "EFI_TPM2_ACPI_TABLE_START_METHOD_COMMAND_RESPONSE_BUFFER_INTERFACE_WITH_TREE is defined elsewhere."
+#else
+#define EFI_TPM2_ACPI_TABLE_START_METHOD_COMMAND_RESPONSE_BUFFER_INTERFACE_WITH_TREE 9
+#endif
+
+EFI_TPM2_ACPI_TABLE Tpm2Table = {
+  {
+    EFI_ACPI_5_0_TRUSTED_COMPUTING_PLATFORM_2_TABLE_SIGNATURE,
+    sizeof (EFI_TPM2_ACPI_TABLE),
+    EFI_TPM2_ACPI_TABLE_REVISION,
+    0,                          // Checksum will be updated at runtime
+    EFI_ACPI_OEM_ID,            // OEMID is a 6 bytes long field
+    EFI_ACPI_OEM_TABLE_ID,      // OEM table identification(8 bytes long)
+    EFI_ACPI_OEM_REVISION,      // OEM revision number
+    EFI_ACPI_CREATOR_ID,        // Creator vendor ID
+    EFI_ACPI_CREATOR_REVISION,  // Creator revision number
+  },
+  0,                            // Flags
+  FixedPcdGet64 (PcdTpm2AcpiBufferBase),  // Control Area
+  // StartMethod
+  EFI_TPM2_ACPI_TABLE_START_METHOD_COMMAND_RESPONSE_BUFFER_INTERFACE_WITH_TREE,
+};
+
+VOID*
+ReferenceAcpiTable (
+  VOID
+  )
+{
+  return (VOID *)&Tpm2Table;
+}

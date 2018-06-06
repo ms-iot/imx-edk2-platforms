@@ -1,0 +1,407 @@
+/** @file
+*
+*  Copyright (c) 2018 Microsoft Corporation. All rights reserved.
+*
+*  This program and the accompanying materials
+*  are licensed and made available under the terms and conditions of the BSD License
+*  which accompanies this distribution.  The full text of the license may be found at
+*  http://opensource.org/licenses/bsd-license.php
+*
+*  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+*
+**/
+
+#include "../Include/Platform.h"
+#include "../Include/iMX6.h"
+
+#pragma pack(push, iMX6Csrt, 1)
+
+// Timer Resource Group
+// Each timer consumes 4K of address space.
+#define TIMER_ADDRES_SIZE 0x1000
+#define TIMER_CAP_ALWAYS_ON     0x00000001 // Timer is always ON.
+#define TIMER_CAP_UP_COUNTER    0x00000002 // Up counter vs. down counter (0)
+#define TIMER_CAP_READABLE      0x00000004 // Counter has a software interface.
+#define TIMER_CAP_PERIODIC      0x00000008 // Can generate periodic interrupts.
+#define TIMER_CAP_DRIVES_IRQ    0x00000010 // Timer interrupt drives a physical IRQ.
+#define TIMER_CAP_ONE_SHOT      0x00000020 // Counter can generate one-shot interrupts
+
+// Timer source clock codes
+typedef enum {
+  GPT_CLOCK_NONE        = 0,
+  GPT_CLOCK_PERIPHERAL  = 1,
+  GPT_CLOCK_HI_FREQ     = 2,
+  GPT_CLOCK_EXT         = 3,
+  GPT_CLOCK_LOW_FREQ    = 4,
+#if defined(CPU_IMX6DQ) || defined (CPU_IMX6DQP)
+  GPT_CLOCK_OSC_DIV_8   = 5,
+  GPT_CLOCK_OSC         = 7,
+#elif (defined(CPU_IMX6SDL) || defined(CPU_IMX6SX)) || defined(CPU_IMX6ULL)
+  GPT_CLOCK_OSC         = 5,
+#else
+#error iMX6 CPU Type Not Defined (Preprocessor Flag)
+#endif
+} GPT_SOURCE_CLOCK;
+
+// EPIT timer source clock codes
+typedef enum {
+  EPIT_CLOCK_NONE        = 0,
+  EPIT_CLOCK_PERIPHERAL  = 1,
+  EPIT_CLOCK_HI_FREQ     = 2,
+  EPIT_CLOCK_LOW_FREQ    = 3,
+} EPIT_SOURCE_CLOCK;
+
+// Timer descriptor
+typedef struct {
+  EFI_ACPI_5_0_CSRT_RESOURCE_DESCRIPTOR_HEADER Header;
+  UINT32 Capabilities;
+  UINT32 Width;
+  UINT32 Source;
+  UINT32 Frequency;
+  UINT32 FrequencyScale;
+  UINT32 BaseAddress;
+  UINT32 Size;
+  UINT32 Interrupt;
+  UINT32 ChipType;
+} RD_TIMER;
+
+// Resource Group Shared Info
+typedef struct {
+  UINT16 RevMajor;
+  UINT16 RevMinor;
+  UINT32 ChipType;
+} RG_PLATFORM_INFORMATION;
+
+// Timer group descriptor
+typedef struct {
+  EFI_ACPI_5_0_CSRT_RESOURCE_GROUP_HEADER Header;
+  RG_PLATFORM_INFORMATION PlatformInfo;
+#if defined(CPU_IMX6SDL)
+  RD_TIMER Timers[3];
+#else
+  RD_TIMER Timers[4];
+#endif
+} RG_TIMER;
+
+// PL310 L2 Cache Controller Resource Group
+#define CSRT_PL310_MINIMUM_VERSION   1
+#define CSRT_PL310_VERSION_2         2
+#define CSRT_PL310_RAW_PROTOCOL      0
+#define CSRT_PL310_SMC_PROTOCOL      1
+
+#define SMC_CALL_VAL(owner, funcid) \
+    (0x80000000 | (((owner) & 0x3F) << 24) | ((funcid) & 0xffff))
+
+#define SMC_OWNER_SIP                   2
+#define IMX_SMC_PL310_ENABLE            SMC_CALL_VAL(SMC_OWNER_SIP, 1)
+#define IMX_SMC_PL310_DISABLE           SMC_CALL_VAL(SMC_OWNER_SIP, 2)
+#define IMX_SMC_PL310_ENABLE_WRITEBACK  SMC_CALL_VAL(SMC_OWNER_SIP, 3)
+#define IMX_SMC_PL310_DISABLE_WRITEBACK SMC_CALL_VAL(SMC_OWNER_SIP, 4)
+#define IMX_SMC_PL310_ENABLE_WFLZ       SMC_CALL_VAL(SMC_OWNER_SIP, 5)
+
+
+typedef struct {
+  UINT32 Immediate;
+  UINT32 R0;
+  UINT32 R1;
+  UINT32 R2;
+  UINT32 R3;
+  UINT32 R12;
+} CSRT_SMC_INVOCATION_BLOCK;
+
+// L2 cache descriptor
+typedef struct {
+  EFI_ACPI_5_0_CSRT_RESOURCE_DESCRIPTOR_HEADER Header;
+  UINT32 Version;
+  UINT32 ManagementProtocol;
+  UINT64 Address;
+  CSRT_SMC_INVOCATION_BLOCK InvokeEnable;
+  CSRT_SMC_INVOCATION_BLOCK InvokeDisable;
+  CSRT_SMC_INVOCATION_BLOCK InvokeEnableWriteback;
+  CSRT_SMC_INVOCATION_BLOCK InvokeDisableWriteback;
+  CSRT_SMC_INVOCATION_BLOCK InvokeEnableWFLZ;
+} RD_L2_CACHE;
+
+// PL310 L2 cache controller descriptor
+typedef struct {
+  EFI_ACPI_5_0_CSRT_RESOURCE_GROUP_HEADER Header;
+  RD_L2_CACHE L2Cache;
+} RG_L2_CACHE;
+
+// SmartDMA (SDMA) Controller Resource Group
+enum IMX_SDMA_CORE_CLOCK_RATIO {
+  IMX_SDMA_CORE_CLOCK_TWICE_CORE_FREQ = 0,
+  IMX_SDMA_CORE_CLOCK_EQUALS_CORE_FREQ = 1
+};
+
+// SDMA controller descriptor
+typedef struct {
+  EFI_ACPI_5_0_CSRT_RESOURCE_DESCRIPTOR_HEADER Header;
+  UINT32 ChipType; // IMX_CHIP_TYPE
+  UINT64 RegistersBaseAddress;
+  UINT64 IoMuxGPR0Address;
+  UINT32 Interrupt;
+  UINT32 SdmaCoreClockRatio; // IMX_SDMA_CORE_CLOCK_RATIO
+} RD_SDMA;
+
+// SDMA controller group descriptor
+typedef struct {
+  EFI_ACPI_5_0_CSRT_RESOURCE_GROUP_HEADER Header;
+  RD_SDMA Sdma;
+} RG_SDMA;
+
+
+// CSRT structure for this platform
+typedef struct {
+  EFI_ACPI_DESCRIPTION_HEADER CsrtHeader; // Standard ACPI Header
+  RG_TIMER TimerResourceGroup;            // Timer Resource Group
+#ifndef CONFIG_L2CACHE_OFF
+  RG_L2_CACHE L2CacheResourceGroup;       // PL310 L2 Cache Resource Group
+#endif
+  RG_SDMA SdmaResourceGroup;              // SDMA Resource Group
+} EFI_ACPI_CSRT_TABLE;
+
+#pragma pack (pop, iMX6Csrt)
+
+EFI_ACPI_CSRT_TABLE Csrt = {
+  // CSRT Header
+  {
+    EFI_ACPI_5_0_CORE_SYSTEM_RESOURCE_TABLE_SIGNATURE,  // Signature "CSRT"
+    sizeof (EFI_ACPI_DESCRIPTION_HEADER) +              // Length
+    sizeof (RG_TIMER)
+#ifndef CONFIG_L2CACHE_OFF
+    + sizeof (RG_L2_CACHE)
+#endif
+    + sizeof (RG_SDMA),
+    EFI_ACPI_5_0_CSRT_REVISION,                         // Revision
+    0x00,                                               // Checksum calculated at runtime.
+    EFI_ACPI_OEM_ID,                                    // OEMID is a 6 bytes long field.
+    EFI_ACPI_OEM_TABLE_ID,                              // OEM table identification(8 bytes long).
+    EFI_ACPI_OEM_REVISION,                              // OEM revision number.
+    EFI_ACPI_CREATOR_ID,                                // ASL compiler vendor ID.
+    EFI_ACPI_CREATOR_REVISION,                          // ASL compiler revision number.
+  },
+
+  // TimerResourceGroup
+  {
+    // Timer group header
+    {
+      sizeof (RG_TIMER),              // Resource Group Length
+      EFI_ACPI_VENDOR_ID,             // VendorId
+      0,                              // SubvendorId
+      0x0101,                         // DeviceId
+      0,                              // SubdeviceId
+      0,                              // Revision
+      0,                              // Reserved
+      sizeof (RG_PLATFORM_INFORMATION) // Platform Information shared info
+    },
+
+    // Platform Information
+    {
+      0x0001,                        // RevMajor
+      0x0000,                        // RevMinor
+      0,                             // IMX_CHIP_TYPE (not used)
+    },
+
+    // Timers
+    {
+      // Counter (GPT)
+      {
+        {
+          sizeof (RD_TIMER),              // Resource Descriptor Length
+          EFI_ACPI_CSRT_RD_TYPE_TIMER,    // Resource Type
+          EFI_ACPI_CSRT_RD_SUBTYPE_TIMER, // Resource Subtype
+          3,                              // ResourceId
+        },
+        TIMER_CAP_READABLE | TIMER_CAP_UP_COUNTER, // Capabilities
+        32,                                 // Timer width (bits)
+        GPT_CLOCK_OSC,                      // Source is 111b for QD, 101b for SDL/ULL
+        SOC_OSC_FREQUENCY_REF_HZ,           // Frequency 24 MHz
+        24,                                 // divider to make 1 MHz
+        CSP_BASE_REG_PA_GPT,                // 32 bit Physical address
+        TIMER_ADDRES_SIZE,                  // Size of timer address space
+        0,                                  // N.B. No interrupt on this counter
+      },
+
+      // Timer0 (EPIT1)
+      {
+        {
+          sizeof (RD_TIMER),              // Resource Descriptor Length
+          EFI_ACPI_CSRT_RD_TYPE_TIMER,    // Resource Type
+          EFI_ACPI_CSRT_RD_SUBTYPE_TIMER, // Resource Subtype
+          4,                              // ResourceId
+        },
+        TIMER_CAP_ONE_SHOT | TIMER_CAP_PERIODIC | // Capabilities
+        TIMER_CAP_ALWAYS_ON | TIMER_CAP_DRIVES_IRQ,
+        32,                                 // Timer width (bits)
+        EPIT_CLOCK_LOW_FREQ,                // Source
+        SOC_LOW_FREQ_REF_HZ,                // Frequency
+        1,                                  // Frequency scale
+        CSP_BASE_REG_PA_EPIT1,              // 32 bit Physical address
+        TIMER_ADDRES_SIZE,                  // Size of timer address space
+        IRQ_EPIT1,                          // Interrupt
+      },
+
+      // Timer1 (EPIT2)
+      {
+        {
+          sizeof (RD_TIMER),              // Resource Descriptor Length
+          EFI_ACPI_CSRT_RD_TYPE_TIMER,    // Resource Type
+          EFI_ACPI_CSRT_RD_SUBTYPE_TIMER, // Resource Subtype
+          5,                              // ResourceId
+        },
+        TIMER_CAP_ONE_SHOT | TIMER_CAP_PERIODIC | // Capabilities
+        TIMER_CAP_ALWAYS_ON | TIMER_CAP_DRIVES_IRQ,
+        32,                                 // Timer width (bits)
+        EPIT_CLOCK_LOW_FREQ,                // Source
+        SOC_LOW_FREQ_REF_HZ,                // Frequency
+        1,                                  // Frequency scale
+        CSP_BASE_REG_PA_EPIT2,              // 32 bit Physical address
+        TIMER_ADDRES_SIZE,                  // Size of timer address space
+        IRQ_EPIT2,                          // Interrupt
+      },
+
+#if defined(CPU_IMX6DQ)
+      // SNVS LP Real Time Counter
+      {
+        {
+          sizeof (RD_TIMER),              // Resource Descriptor Length
+          EFI_ACPI_CSRT_RD_TYPE_TIMER,    // Resource Type
+          EFI_ACPI_CSRT_RD_SUBTYPE_TIMER, // Resource Subtype
+          6,                              // ResourceId
+        },
+        TIMER_CAP_UP_COUNTER |              // Capabilities
+        TIMER_CAP_READABLE |
+        TIMER_CAP_ALWAYS_ON,
+        47,                                 // Timer width (bits)
+        0,                                  // Source (NA)
+        SOC_LOW_FREQ_REF_HZ,                // Frequency
+        1,                                  // Frequency scale
+        IMX_SNVS_BASE,                      // 32 bit Physical address
+        TIMER_ADDRES_SIZE,                  // Size of timer address space
+        IMX_SNVS_IRQ,                       // Interrupt
+      },
+#endif
+    }
+  },
+
+#ifndef CONFIG_L2CACHE_OFF
+  // L2CacheResourceGroup
+  {
+    // L2 cache group header
+    {
+      sizeof (RG_L2_CACHE),           // Resource Group Length
+      SIGNATURE_32 ('A', 'R', 'M', 'H'), // VendorId
+      SIGNATURE_32 ('A', 'R', 'M', 'H'), // SubvendorId
+      0x0310,                         // DeviceId
+      0,                              // SubdeviceId
+      0,                              // Revision
+      0,                              // Reserved
+      0                               // No shared info
+    },
+
+    // PL310 L2 cache controller
+    {
+      {
+        sizeof (RD_L2_CACHE),           // Resource Descriptor Length
+        EFI_ACPI_CSRT_RD_TYPE_CACHE,    // Resource Type
+        EFI_ACPI_CSRT_RD_SUBTYPE_CACHE, // Resource Subtype
+        0,                              // UID
+      },
+      CSRT_PL310_VERSION_2,               // Version
+      CSRT_PL310_SMC_PROTOCOL,            // Management Protocol
+      CSP_BASE_REG_PA_PL310,              // 64 bit Physical address
+      // InvokeEnable
+      {
+        0,                                  // Immediate
+        IMX_SMC_PL310_ENABLE,               // R0
+        0,                                  // R1
+        0,                                  // R2
+        0,                                  // R3
+        0,                                  // R12
+      },
+
+      // InvokeDisable
+      {
+        0,                                  // Immediate
+        IMX_SMC_PL310_DISABLE,              // R0
+        0,                                  // R1
+        0,                                  // R2
+        0,                                  // R3
+        0,                                  // R12
+      },
+
+      // InvokeEnableWriteback
+      {
+        0,                                  // Immediate
+        IMX_SMC_PL310_ENABLE_WRITEBACK,     // R0
+        0,                                  // R1
+        0,                                  // R2
+        0,                                  // R3
+        0,                                  // R12
+      },
+
+      // InvokeDisableWriteback
+      {
+        0,                                  // Immediate
+        IMX_SMC_PL310_DISABLE_WRITEBACK,    // R0
+        0,                                  // R1
+        0,                                  // R2
+        0,                                  // R3
+        0,                                  // R12
+      },
+
+      // InvokeEnableWFLZ
+      {
+        0,                                  // Immediate
+        IMX_SMC_PL310_ENABLE_WFLZ,          // R0
+        0,                                  // R1
+        0,                                  // R2
+        0,                                  // R3
+        0,                                  // R12
+      },
+    },
+  },
+#endif
+
+  // SdmaResourceGroup
+  {
+    // SDMA group header
+    {
+      sizeof (RG_SDMA),               // Resource Group Length
+      EFI_ACPI_VENDOR_ID,             // VendorId
+      0,                              // SubvendorId
+      0x0111,                         // DeviceId
+      0,                              // SubdeviceId
+      0,                              // Revision
+      0,                              // Reserved
+      0                               // No shared info
+    },
+
+    // SDMA controller resource
+    {
+      {
+        sizeof (RD_SDMA),                           // Resource Descriptor Length
+        EFI_ACPI_CSRT_RD_TYPE_DMA,                  // Resource Type
+        EFI_ACPI_CSRT_RD_SUBTYPE_DMA_CONTROLLER,    // Resource Subtype
+        0,                                          // UID
+      },
+      0,                                    // IMX_CHIP_TYPE (not used)
+      CSP_BASE_REG_PA_SDMA,                 // SDMA registers base physical address
+      IOMUXC_GPR_BASE_ADDRESS,              // IoMuxGPR0 physical address
+      IRQ_SDMA,                             // IRQ number
+      IMX_SDMA_CORE_CLOCK_TWICE_CORE_FREQ,  // DMA/SDMA Core Clock Ratio:
+    },
+  }
+};
+
+VOID*
+ReferenceAcpiTable (
+  VOID
+  )
+{
+  // Reference the table being generated to prevent the optimizer from removing the
+  // data structure from the executable
+  return (VOID *)&Csrt;
+}

@@ -1,0 +1,488 @@
+/** @file
+*
+*  Header defining the iMX7 constants (Base addresses, sizes, flags)
+*
+*  Copyright (c), Microsoft Corporation. All rights reserved.
+*
+*  This program and the accompanying materials
+*  are licensed and made available under the terms and conditions of the BSD License
+*  which accompanies this distribution.  The full text of the license may be found at
+*  http://opensource.org/licenses/bsd-license.php
+*
+*  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+*
+**/
+
+#ifndef __IMX7_PLATFORM_H__
+#define __IMX7_PLATFORM_H__
+
+//
+// Platform specific definition
+//
+#define EFI_ACPI_OEM_TABLE_ID                   SIGNATURE_64('I','M','X','7','E','D','K','2') // OEM table id 8 bytes long
+#define EFI_ACPI_OEM_REVISION                   0x01000101
+#define EFI_ACPI_CREATOR_ID                     SIGNATURE_32('I','M','X','7')
+#define EFI_ACPI_CREATOR_REVISION               0x00000001
+
+//
+// Memory mapping
+//
+#define ARM_PERIPHERALS_REGISTERS_PHYSICAL  0x31000000
+#define ARM_PERIPHERALS_REGISTERS_LENGTH    0x003FFFFF
+
+#define ARM_IP_BUS_REGISTERS_PHYSICAL       0x30000000
+#define ARM_IP_BUS_REGISTERS_LENGTH         0x00FFFFFF
+
+#define PCIE_REG_REGISTER_PHYSICAL          0x33800000
+#define PCIE_REG_REGISTER_LENGTH            0x0001FFFF
+
+//
+// Interrupts
+//
+#define INTERRUPT_BASE_ADDRESS  0x31000000
+
+#define INTERRUPT_DISTRIBUTOR_OFFSET    0x1000
+#define INTERRUPT_CPU_INTERFACE_OFFSET  0x2000
+
+#define TOTAL_PRIVATE_INTERRUPT     32
+#define DEFINE_IMX7_INTERRUPT(a)    (a + TOTAL_PRIVATE_INTERRUPT)
+
+#define IC_DIST_VECTOR_BASE 0
+
+//
+// Serial debug port
+//
+#define UART1_BASE_ADDRESS   0x30860000
+#define UART2_BASE_ADDRESS   0x30870000
+#define UART3_BASE_ADDRESS   0x30880000
+#define UART4_BASE_ADDRESS   0x30A60000
+#define UART5_BASE_ADDRESS   0x30A70000
+#define UART6_BASE_ADDRESS   0x30A80000
+#define UART7_BASE_ADDRESS   0x30A90000
+
+#define UART_ADDRESS_SIZE    0x00010000 // 64KB
+
+#define IMX_SERIAL_DBG_PORT_SUBTYPE     0x000C
+
+#define SERIAL_DEBUG_PORT_INIT_MSG "\nUEFI Debug Serial Port Init\n"
+
+//
+// Clock Source
+//
+#define SOC_OSC_FREQUENCY_REF_HZ  24000000  // Oscillator frequency 24Mhz
+
+//
+// General Purpose Timer
+//
+
+#define GPT1_BASE_ADDRESS   0x302D0000
+#define GPT2_BASE_ADDRESS   0x302E0000
+#define GPT3_BASE_ADDRESS   0x302F0000
+#define GPT4_BASE_ADDRESS   0x30300000
+
+#define GPT1_IRQ    DEFINE_IMX7_INTERRUPT(55)
+#define GPT2_IRQ    DEFINE_IMX7_INTERRUPT(54)
+#define GPT3_IRQ    DEFINE_IMX7_INTERRUPT(53)
+#define GPT4_IRQ    DEFINE_IMX7_INTERRUPT(52)
+
+#define GPT_CLOCK_NONE          0x00
+#define GPT_CLOCK_PERIPHERAL    0x01
+#define GPT_CLOCK_HIGH_FREQ     0x02
+#define GPT_CLOCK_EXTERNAL      0x03
+#define GPT_CLOCK_LOW_FREQ      0x04
+#define GPT_CLOCK_24M           0x05
+
+//
+// TODO : Figure out what is the system bus clock value.
+// For now use the prescaler to ensure the clock frequency less than half of
+// System Bus Clock. Set PRESCALER24M to 12 which yield 2Mhz.
+//
+#define GPT_TIMER_DEFAULT_PRESCALER24M      (12 - 1)
+
+//
+// Default prescaler is 2 to set frequency to 1MHz with
+// a 24Mhz reference clock divided by 12.
+//
+#define GPT_TIMER_DEFAULT_PRESCALER         (2 - 1)
+
+#pragma pack(push, 1)
+typedef union {
+    UINT32 AsUint32;
+    struct {
+        UINT32 EN : 1;
+        UINT32 ENMOD : 1;
+        UINT32 DBGEN : 1;
+        UINT32 WAITEN : 1;
+        UINT32 DOZEEN : 1;
+        UINT32 STOPEN : 1;
+        UINT32 CLKSRC : 3;
+        UINT32 FRR : 1;
+        UINT32 EN_24M : 1;
+        UINT32 Reserved : 4;
+        UINT32 SWR : 1;
+        UINT32 IM1 : 2;
+        UINT32 IM2 : 2;
+        UINT32 OM1 : 3;
+        UINT32 OM2 : 3;
+        UINT32 OM3 : 3;
+        UINT32 FO1 : 1;
+        UINT32 FO2 : 1;
+        UINT32 FO3 : 1;
+    };
+} GPT_CR;
+
+typedef union {
+    UINT32 AsUint32;
+    struct {
+        UINT32 PRESCALER : 12;
+        UINT32 PRESCALER24M : 4;
+        UINT32 Reserved : 16;
+    };
+} GPT_PR;
+
+typedef union {
+    UINT32 AsUint32;
+    struct {
+        UINT32 OF1IE : 1;
+        UINT32 OF2IE : 1;
+        UINT32 OF3IE : 1;
+        UINT32 IF1IE : 1;
+        UINT32 IF2IE : 1;
+        UINT32 ROVIE : 1;
+        UINT32 Reserved : 26;
+    };
+} GPT_IR, GPT_SR;
+
+typedef struct {
+    GPT_CR CR;
+    GPT_PR PR;
+    GPT_SR SR;
+    GPT_IR IR;
+    UINT32 OCR1;
+    UINT32 OCR2;
+    UINT32 OCR3;
+    UINT32 ICR1;
+    UINT32 ICR2;
+    UINT32 CNT;
+} GPT_REGS;
+#pragma pack(pop)
+
+//
+// MPPP definitions
+//
+#define CPU0_MPPP_PHYSICAL_BASE            0x8080F000
+#define CPU1_MPPP_PHYSICAL_BASE            0x80810000
+
+//
+// Secure Non-Volatile Storage (SNVS)
+//
+
+#define SNVS_HP_BASE_ADDRESS    0x30370000
+#define SNVS_HP_ADDRESS_SIZE    64 * 1024
+#define SNVS_LP_OFFSET          0x034
+
+#pragma pack(push, 1)
+typedef struct {
+    UINT32 LPLR;
+    UINT32 LPCR;
+    UINT32 LPMKCR;
+    UINT32 LPSVCR;
+    UINT32 LPTGFCR;
+    UINT32 LPTDCR;
+    UINT32 LPSR;
+    UINT32 LPSRCMR;
+    UINT32 LPSRCLR;
+    UINT32 LPTAR;
+    UINT32 LPSMCMR;
+    UINT32 LPSMCLR;
+    UINT32 LPPGDR;
+    UINT32 LPPGDR0;
+}SVNS_LP_REGS;
+
+typedef union {
+    UINT32 AsUint32;
+    struct {
+        UINT32 SRTC_ENV : 1;        // 0 Secure Real Time Counter Enabled and Valid
+        UINT32 LPTA_EN : 1;         // 1 LP Time Alarm Enable
+        UINT32 MC_ENV : 1;          // 2 Monotonic Counter Enabled and Valid
+        UINT32 LPWUI_EN : 1;        // 3 LP Wake-Up Interrupt Enable
+        UINT32 SRTC_INV_EN : 1;     // 4 If this bit is 1, in the case of a security violation the SRTC stops counting and the SRTC is invalidated
+        UINT32 DP_EN : 1;           // 5 Dumb PMIC Enabled
+        UINT32 TOP : 1;             // 6 Turn off System Power
+        UINT32 LPCALB_EN : 1;       // 7 Power Glitch Enable
+        UINT32 PWR_GLITCH_EN : 1;   // 8 LP Calibration Enable
+        UINT32 Unknown0 : 1;        // 9 ???
+        UINT32 LPCALB_VAL : 5;      // 10-14 LP Calibration Value
+        UINT32 Unknown1 : 1;        // 15 ???
+        UINT32 BTN_PRESS_TIME : 2;  // 16-17 This field configures the button press time out values for the PMIC Logic
+        UINT32 DEBOUNCE : 2;        // 18-19 This field configures the amount of debounce time for the BTN input signal.
+        UINT32 ON_TIME : 2;         // 20-21
+        UINT32 PK_EN : 1;           // 22 PMIC On Request Enable
+        UINT32 PK_OVERRIDE : 1;     // 23 PMIC On Request Override
+        UINT32 GPR_Z_DIS : 1;       // 24 General Purpose Registers Zeroization Disable.
+        UINT32 Unknown2 : 7;        // 25-31 ???
+    };
+} SNVS_LPCR_REG;
+#pragma pack(pop)
+
+//
+// SRC (System Reset Controller) register offsets & masks
+//
+
+#define SRC_BASE_ADDRESS    0x30390000
+
+#define SRC_SCR_OFFSET      0x00
+#define SRC_A7RCR0_OFFSET   0x04
+#define SRC_A7RCR1_OFFSET   0x08
+#define SRC_GPR1_OFFSET     0x74
+#define SRC_GPR2_OFFSET     0x78
+#define SRC_GPR3_OFFSET     0x7C
+#define SRC_GPR4_OFFSET     0x80
+
+#pragma pack(push, 1)
+typedef union {
+    UINT32 AsUint32;
+    struct {
+        UINT32 A7_CORE_POR_RESET0 : 1;  // 0 POR reset for A7 core0 only.
+        UINT32 A7_CORE_POR_RESET1 : 1;  // 1 POR reset for A7 core1 only.
+        UINT32 Reserved0 : 2;           // 2-3 Reserved
+        UINT32 A7_CORE_RESET0 : 1;      // 4 Software reset for A7 core0 only.
+        UINT32 A7_CORE_RESET1 : 1;      // 5 Software reset for A7 core1 only.
+        UINT32 Reserved1 : 2;           // 6-7 Reserved
+        UINT32 A7_DBG_RESET0 : 1;       // 8 Software reset for A7 core0 debug only.
+        UINT32 A7_DBG_RESET1 : 1;       // 9 Software reset for A7 core1 debug only.
+        UINT32 Reserved2 : 2;           // 10-11 Reserved
+        UINT32 A7_ETM_RESET0 : 1;       // 12 Software reset for cor01 ETM only.
+        UINT32 A7_ETM_RESET1 : 1;       // 13 Software reset for core1 ETM only.
+        UINT32 Reserved3 : 2;           // 14-15 Reserved
+        UINT32 MASK_WDOG1_RST : 4;      // 16-19 Mask wdog1_rst_b source.
+        UINT32 A7_SOC_DBG_RESET : 1;    // 20 Software reset for system level debug reset.
+        UINT32 A7_L2RESET : 1;          // 21 Software reset for A7 Snoop Control Unit (SCU).
+        UINT32 Reserved4 : 2;           // 22-23 Reserved
+        UINT32 DOMAIN0 : 1;             // 24 Domain0 assignment control.
+        UINT32 DOMAIN1 : 1;             // 25 Domain1 assignment control.
+        UINT32 DOMAIN2 : 1;             // 26 Domain2 assignment control.
+        UINT32 DOMAIN3 : 1;             // 27 Domain3 assignment control.
+        UINT32 Reserved5 : 2;           // 28-29 Reserved
+        UINT32 LOCK : 1;                // 30 Domain control bits lock
+        UINT32 DOM_EN : 1;              // 31 Domain Control enable for this register.
+    };
+}SRC_A7RCR0_REG;
+
+#pragma pack(pop)
+
+//
+// Watchdog
+//
+
+#define WATCHDOG_1_BASE_ADDRESS     0x30280000
+#define WATCHDOG_2_BASE_ADDRESS     0x30290000
+#define WATCHDOG_3_BASE_ADDRESS     0x302A0000
+#define WATCHDOG_4_BASE_ADDRESS     0x302B0000
+#define WATCHDOG_ADDRESS_SIZE     64 * 1024
+
+#pragma pack(push, 1)
+typedef struct {
+    UINT16 WCR;                      // 0x0 Watchdog Control Register (WDOGx_WCR)
+    UINT16 WSR;                      // 0x2 Watchdog Service Register (WDOGx_WSR)
+    UINT16 WRSR;                     // 0x4 Watchdog Reset Status Register (WDOGx_WRSR)
+    UINT16 WICR;                     // 0x6 Watchdog Interrupt Control Register (WDOGx_WICR)
+    UINT16 WMCR;                     // 0x8 Watchdog Miscellaneous Control Register (WDOGx_WMCR)
+} WDOG_REGS;
+
+typedef union {
+    UINT16 AsUint16;
+    struct {
+        UINT16 WDZST : 1;            // 0 Watchdog Low Power
+        UINT16 WDBG : 1;             // 1 Watchdog DEBUG Enable
+        UINT16 WDE : 1;              // 2 Watchdog Enable
+        UINT16 WDT : 1;              // 3 WDOG_B Time-out assertion.
+        UINT16 SRS : 1;              // 4 Software Reset Signal
+        UINT16 WDA : 1;              // 5 WDOG_B assertion
+        UINT16 SRE : 1;              // 6 software reset extension, an option way to generate software reset
+        UINT16 WDW : 1;              // 7 Watchdog Disable for Wait
+        UINT16 WT : 8;               // 8-15 Watchdog Time-out Field
+    };
+} WDOG_WCR_REG;
+#pragma pack(pop)
+
+//
+// GPIO
+//
+#define IMX_GPIO_BASE_ADDRESS       0x30200000
+#define IMX_GPIO_BASE               IMX_GPIO_BASE_ADDRESS
+
+//
+// IOMux
+//
+
+#define IOMUXC_GPR_BASE_ADDRESS             0x30340000
+
+#define IOMUXC_LPSR_SW_MUX_PAD_BASE_ADDRESS 0x302C0000
+
+#define IOMUXC_SW_MUX_PAD_BASE_ADDRESS      0x30330000
+#define IOMUXC_SW_MUX_BASE_ADDRESS          0x30330014
+#define IOMUXC_SW_PAD_BASE_ADDRESS          0x3033026C
+#define IOMUXC_SELECT_INPUT_BASE_ADDRESS    0x303304D8 // IOMUXC_SW_PAD_CTL_PAD_ENET1_COL
+
+//
+// Select Input
+//
+typedef enum {
+    IOMUXC_FLEXCAN1_RX_SELECT_INPUT = 0x303304DC,
+    IOMUXC_FLEXCAN2_RX_SELECT_INPUT = 0x303304E0,
+    IOMUXC_CCM_EXT_CLK_1_SELECT_INPUT = 0x303304E4,
+    IOMUXC_CCM_EXT_CLK_2_SELECT_INPUT = 0x303304E8,
+    IOMUXC_CCM_EXT_CLK_3_SELECT_INPUT = 0x303304EC,
+    IOMUXC_CCM_EXT_CLK_4_SELECT_INPUT = 0x303304F0,
+    IOMUXC_CCM_PMIC_READY_SELECT_INPUT = 0x303304F4,
+    IOMUXC_CSI_DATA2_SELECT_INPUT = 0x303304F8,
+    IOMUXC_CSI_DATA3_SELECT_INPUT = 0x303304FC,
+    IOMUXC_CSI_DATA4_SELECT_INPUT = 0x30330500,
+    IOMUXC_CSI_DATA5_SELECT_INPUT = 0x30330504,
+    IOMUXC_CSI_DATA6_SELECT_INPUT = 0x30330508,
+    IOMUXC_CSI_DATA7_SELECT_INPUT = 0x3033050C,
+    IOMUXC_CSI_DATA8_SELECT_INPUT = 0x30330510,
+    IOMUXC_CSI_DATA9_SELECT_INPUT = 0x30330514,
+    IOMUXC_CSI_HSYNC_SELECT_INPUT = 0x30330518,
+    IOMUXC_CSI_PIXCLK_SELECT_INPUT = 0x3033051C,
+    IOMUXC_CSI_VSYNC_SELECT_INPUT = 0x30330520,
+    IOMUXC_ECSPI1_SCLK_SELECT_INPUT = 0x30330524,
+    IOMUXC_ECSPI1_MISO_SELECT_INPUT = 0x30330528,
+    IOMUXC_ECSPI1_MOSI_SELECT_INPUT = 0x3033052C,
+    IOMUXC_ECSPI1_SS0_B_SELECT_INPUT = 0x30330530,
+    IOMUXC_ECSPI2_SCLK_SELECT_INPUT = 0x30330534,
+    IOMUXC_ECSPI2_MISO_SELECT_INPUT = 0x30330538,
+    IOMUXC_ECSPI2_MOSI_SELECT_INPUT = 0x3033053C,
+    IOMUXC_ECSPI2_SS0_B_SELECT_INPUT = 0x30330540,
+    IOMUXC_ECSPI3_SCLK_SELECT_INPUT = 0x30330544,
+    IOMUXC_ECSPI3_MISO_SELECT_INPUT = 0x30330548,
+    IOMUXC_ECSPI3_MOSI_SELECT_INPUT = 0x3033054C,
+    IOMUXC_ECSPI3_SS0_B_SELECT_INPUT = 0x30330550,
+    IOMUXC_ECSPI4_SCLK_SELECT_INPUT = 0x30330554,
+    IOMUXC_ECSPI4_MISO_SELECT_INPUT = 0x30330558,
+    IOMUXC_ECSPI4_MOSI_SELECT_INPUT = 0x3033055C,
+    IOMUXC_ECSPI4_SS0_B_SELECT_INPUT = 0x30330560,
+    IOMUXC_CCM_ENET1_REF_CLK_SELECT_INPUT = 0x30330564,
+    IOMUXC_ENET1_MDIO_SELECT_INPUT = 0x30330568,
+    IOMUXC_ENET1_RX_CLK_SELECT_INPUT = 0x3033056C,
+    IOMUXC_CCM_ENET2_REF_CLK_SELECT_INPUT = 0x30330570,
+    IOMUXC_ENET2_MDIO_SELECT_INPUT = 0x30330574,
+    IOMUXC_ENET2_RX_CLK_SELECT_INPUT = 0x30330578,
+    IOMUXC_EPDC_PWR_IRQ_SELECT_INPUT = 0x3033057C,
+    IOMUXC_EPDC_PWR_STAT_SELECT_INPUT = 0x30330580,
+    IOMUXC_FLEXTIMER1_CH0_SELECT_INPUT = 0x30330584,
+    IOMUXC_FLEXTIMER1_CH1_SELECT_INPUT = 0x30330588,
+    IOMUXC_FLEXTIMER1_CH2_SELECT_INPUT = 0x3033058C,
+    IOMUXC_FLEXTIMER1_CH3_SELECT_INPUT = 0x30330590,
+    IOMUXC_FLEXTIMER1_CH4_SELECT_INPUT = 0x30330594,
+    IOMUXC_FLEXTIMER1_CH5_SELECT_INPUT = 0x30330598,
+    IOMUXC_FLEXTIMER1_CH6_SELECT_INPUT = 0x3033059C,
+    IOMUXC_FLEXTIMER1_CH7_SELECT_INPUT = 0x303305A0,
+    IOMUXC_FLEXTIMER1_PHA_SELECT_INPUT = 0x303305A4,
+    IOMUXC_FLEXTIMER1_PHB_SELECT_INPUT = 0x303305A8,
+    IOMUXC_FLEXTIMER2_CH0_SELECT_INPUT = 0x303305AC,
+    IOMUXC_FLEXTIMER2_CH1_SELECT_INPUT = 0x303305B0,
+    IOMUXC_FLEXTIMER2_CH2_SELECT_INPUT = 0x303305B4,
+    IOMUXC_FLEXTIMER2_CH3_SELECT_INPUT = 0x303305B8,
+    IOMUXC_FLEXTIMER2_CH4_SELECT_INPUT = 0x303305BC,
+    IOMUXC_FLEXTIMER2_CH5_SELECT_INPUT = 0x303305C0,
+    IOMUXC_FLEXTIMER2_CH6_SELECT_INPUT = 0x303305C4,
+    IOMUXC_FLEXTIMER2_CH7_SELECT_INPUT = 0x303305C8,
+    IOMUXC_FLEXTIMER2_PHA_SELECT_INPUT = 0x303305CC,
+    IOMUXC_FLEXTIMER2_PHB_SELECT_INPUT = 0x303305D0,
+    IOMUXC_I2C1_SCL_SELECT_INPUT = 0x303305D4,
+    IOMUXC_I2C1_SDA_SELECT_INPUT = 0x303305D8,
+    IOMUXC_I2C2_SCL_SELECT_INPUT = 0x303305DC,
+    IOMUXC_I2C2_SDA_SELECT_INPUT = 0x303305E0,
+    IOMUXC_I2C3_SCL_SELECT_INPUT = 0x303305E4,
+    IOMUXC_I2C3_SDA_SELECT_INPUT = 0x303305E8,
+    IOMUXC_I2C4_SCL_SELECT_INPUT = 0x303305EC,
+    IOMUXC_I2C4_SDA_SELECT_INPUT = 0x303305F0,
+    IOMUXC_KPP_COL0_SELECT_INPUT = 0x303305F4,
+    IOMUXC_KPP_COL1_SELECT_INPUT = 0x303305F8,
+    IOMUXC_KPP_COL2_SELECT_INPUT = 0x303305FC,
+    IOMUXC_KPP_COL3_SELECT_INPUT = 0x30330600,
+    IOMUXC_KPP_COL4_SELECT_INPUT = 0x30330604,
+    IOMUXC_KPP_COL5_SELECT_INPUT = 0x30330608,
+    IOMUXC_KPP_COL6_SELECT_INPUT = 0x3033060C,
+    IOMUXC_KPP_COL7_SELECT_INPUT = 0x30330610,
+    IOMUXC_KPP_ROW0_SELECT_INPUT = 0x30330614,
+    IOMUXC_KPP_ROW1_SELECT_INPUT = 0x30330618,
+    IOMUXC_KPP_ROW2_SELECT_INPUT = 0x3033061C,
+    IOMUXC_KPP_ROW3_SELECT_INPUT = 0x30330620,
+    IOMUXC_KPP_ROW4_SELECT_INPUT = 0x30330624,
+    IOMUXC_KPP_ROW5_SELECT_INPUT = 0x30330628,
+    IOMUXC_KPP_ROW6_SELECT_INPUT = 0x3033062C,
+    IOMUXC_KPP_ROW7_SELECT_INPUT = 0x30330630,
+    IOMUXC_LCD_BUSY_SELECT_INPUT = 0x30330634,
+    IOMUXC_LCD_DATA00_SELECT_INPUT = 0x30330638,
+    IOMUXC_LCD_DATA01_SELECT_INPUT = 0x3033063C,
+    IOMUXC_LCD_DATA02_SELECT_INPUT = 0x30330640,
+    IOMUXC_LCD_DATA03_SELECT_INPUT = 0x30330644,
+    IOMUXC_LCD_DATA04_SELECT_INPUT = 0x30330648,
+    IOMUXC_LCD_DATA05_SELECT_INPUT = 0x3033064C,
+    IOMUXC_LCD_DATA06_SELECT_INPUT = 0x30330650,
+    IOMUXC_LCD_DATA07_SELECT_INPUT = 0x30330654,
+    IOMUXC_LCD_DATA08_SELECT_INPUT = 0x30330658,
+    IOMUXC_LCD_DATA09_SELECT_INPUT = 0x3033065C,
+    IOMUXC_LCD_DATA10_SELECT_INPUT = 0x30330660,
+    IOMUXC_LCD_DATA11_SELECT_INPUT = 0x30330664,
+    IOMUXC_LCD_DATA12_SELECT_INPUT = 0x30330668,
+    IOMUXC_LCD_DATA13_SELECT_INPUT = 0x3033066C,
+    IOMUXC_LCD_DATA14_SELECT_INPUT = 0x30330670,
+    IOMUXC_LCD_DATA15_SELECT_INPUT = 0x30330674,
+    IOMUXC_LCD_DATA16_SELECT_INPUT = 0x30330678,
+    IOMUXC_LCD_DATA17_SELECT_INPUT = 0x3033067C,
+    IOMUXC_LCD_DATA18_SELECT_INPUT = 0x30330680,
+    IOMUXC_LCD_DATA19_SELECT_INPUT = 0x30330684,
+    IOMUXC_LCD_DATA20_SELECT_INPUT = 0x30330688,
+    IOMUXC_LCD_DATA21_SELECT_INPUT = 0x3033068C,
+    IOMUXC_LCD_DATA22_SELECT_INPUT = 0x30330690,
+    IOMUXC_LCD_DATA23_SELECT_INPUT = 0x30330694,
+    IOMUXC_LCD_VSYNC_SELECT_INPUT = 0x30330698,
+    IOMUXC_SAI1_RX_BCLK_SELECT_INPUT = 0x3033069C,
+    IOMUXC_SAI1_RX_DATA_SELECT_INPUT = 0x303306A0,
+    IOMUXC_SAI1_RX_SYNC_SELECT_INPUT = 0x303306A4,
+    IOMUXC_SAI1_TX_BCLK_SELECT_INPUT = 0x303306A8,
+    IOMUXC_SAI1_TX_SYNC_SELECT_INPUT = 0x303306AC,
+    IOMUXC_SAI2_RX_BCLK_SELECT_INPUT = 0x303306B0,
+    IOMUXC_SAI2_RX_DATA_SELECT_INPUT = 0x303306B4,
+    IOMUXC_SAI2_RX_SYNC_SELECT_INPUT = 0x303306B8,
+    IOMUXC_SAI2_TX_BCLK_SELECT_INPUT = 0x303306BC,
+    IOMUXC_SAI2_TX_SYNC_SELECT_INPUT = 0x303306C0,
+    IOMUXC_SAI3_RX_BCLK_SELECT_INPUT = 0x303306C4,
+    IOMUXC_SAI3_RX_DATA_SELECT_INPUT = 0x303306C8,
+    IOMUXC_SAI3_RX_SYNC_SELECT_INPUT = 0x303306CC,
+    IOMUXC_SAI3_TX_BCLK_SELECT_INPUT = 0x303306D0,
+    IOMUXC_SAI3_TX_SYNC_SELECT_INPUT = 0x303306D4,
+    IOMUXC_SDMA_EVENTS0_SELECT_INPUT = 0x303306D8,
+    IOMUXC_SDMA_EVENTS1_SELECT_INPUT = 0x303306DC,
+    IOMUXC_SIM1_PORT1_PD_SELECT_INPUT = 0x303306E0,
+    IOMUXC_SIM1_PORT1_TRXD_SELECT_INPUT = 0x303306E4,
+    IOMUXC_SIM2_PORT1_PD_SELECT_INPUT = 0x303306E8,
+    IOMUXC_SIM2_PORT1_TRXD_SELECT_INPUT = 0x303306EC,
+    IOMUXC_UART1_RTS_B_SELECT_INPUT = 0x303306F0,
+    IOMUXC_UART1_RX_DATA_SELECT_INPUT = 0x303306F4,
+    IOMUXC_UART2_RTS_B_SELECT_INPUT = 0x303306F8,
+    IOMUXC_UART2_RX_DATA_SELECT_INPUT = 0x303306FC,
+    IOMUXC_UART3_RTS_B_SELECT_INPUT = 0x30330700,
+    IOMUXC_UART3_RX_DATA_SELECT_INPUT = 0x30330704,
+    IOMUXC_UART4_RTS_B_SELECT_INPUT = 0x30330708,
+    IOMUXC_UART4_RX_DATA_SELECT_INPUT = 0x3033070C,
+    IOMUXC_UART5_RTS_B_SELECT_INPUT = 0x30330710,
+    IOMUXC_UART5_RX_DATA_SELECT_INPUT = 0x30330714,
+    IOMUXC_UART6_RTS_B_SELECT_INPUT = 0x30330718,
+    IOMUXC_UART6_RX_DATA_SELECT_INPUT = 0x3033071C,
+    IOMUXC_UART7_RTS_B_SELECT_INPUT = 0x30330720,
+    IOMUXC_UART7_RX_DATA_SELECT_INPUT = 0x30330724,
+    IOMUXC_USB_OTG2_OC_SELECT_INPUT = 0x30330728,
+    IOMUXC_USB_OTG1_OC_SELECT_INPUT = 0x3033072C,
+    IOMUXC_USB_OTG2_ID_SELECT_INPUT = 0x30330730,
+    IOMUXC_USB_OTG1_ID_SELECT_INPUT = 0x30330734,
+    IOMUXC_SD3_CD_B_SELECT_INPUT = 0x30330738,
+    IOMUXC_SD3_WP_SELECT_INPUT = 0x3033073C,
+} IMX_INPUT_SELECT;
+
+#endif // __IMX7_PLATFORM_H__

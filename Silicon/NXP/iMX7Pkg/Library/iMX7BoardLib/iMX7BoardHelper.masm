@@ -1,0 +1,73 @@
+//
+//  Copyright (c) Microsoft Corporation. All rights reserved.
+//
+//  This program and the accompanying materials
+//  are licensed and made available under the terms and conditions of the BSD License
+//  which accompanies this distribution.  The full text of the license may be found at
+//  http://opensource.org/licenses/bsd-license.php
+//
+//  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+//
+//
+
+#include <AsmMacroIoLib.h>
+#include <Library/ArmLib.h>
+
+    AREA    |.text|,ALIGN=2,CODE,READONLY
+
+    EXPORT ArmPlatformPeiBootAction
+    EXPORT ArmPlatformIsPrimaryCore
+    EXPORT ArmPlatformGetPrimaryCoreMpId
+    EXPORT ArmPlatformGetCorePosition
+
+    IMPORT ArmDisableDataCache
+    IMPORT ArmDisableInstructionCache
+    IMPORT _gPcd_FixedAtBuild_PcdArmPrimaryCore
+    IMPORT _gPcd_FixedAtBuild_PcdArmPrimaryCoreMask
+
+//UINTN
+//ArmPlatformGetPrimaryCoreMpId (
+//  VOID
+//  );
+ArmPlatformGetPrimaryCoreMpId PROC
+  MOV32 (r0, FixedPcdGet32 (PcdArmPrimaryCore))
+  ldr   r0, [r0]
+  bx    lr
+ArmPlatformGetPrimaryCoreMpId ENDP
+
+//UINTN
+//ArmPlatformIsPrimaryCore (
+//  IN UINTN MpId
+//  );
+ArmPlatformIsPrimaryCore PROC
+  mrc   p15,0,r0,c0,c0,5
+  ands  r0,r0,#3
+  moveq r0,#1
+  movne r0,#0
+  bx 	lr
+ArmPlatformIsPrimaryCore ENDP
+
+//UINTN
+//ArmPlatformGetCorePosition (
+//  IN UINTN MpId
+//  );
+ArmPlatformGetCorePosition PROC
+  and   r0, r0, #ARM_CORE_MASK
+  bx    lr
+ArmPlatformGetCorePosition ENDP
+
+ArmPlatformPeiBootAction PROC
+  // enable un aligned access
+  mrc   p15, 0, r1, c1, c0, 0
+  bic   r1, r1, #0x2
+  mcr   p15, 0, r1, c1, c0, 0
+  isb
+  
+  bx r14
+ArmPlatformPeiBootAction ENDP
+
+    END
+
+
+

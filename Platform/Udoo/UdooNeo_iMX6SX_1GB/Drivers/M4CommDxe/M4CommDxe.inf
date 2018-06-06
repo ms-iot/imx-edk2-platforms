@@ -1,0 +1,60 @@
+## 
+#  Microsoft Coporation
+#  SiArch
+#
+#  Portions Copyright (c) Microsoft Corporation
+#  Portions Copyright (c) Intel Corporation
+#  Portions Copyright (c) Apple
+#  Portions Copyright (c) ARM Ltd.
+#  Portions Copyright (c) Freescale
+##
+
+[Defines]
+    INF_VERSION                    = 0x00010005
+    BASE_NAME                      = UdooNeoM4CommDxe
+    FILE_GUID                      = C66CEBBC-AE7D-4A73-9AFA-E40E1135A9B9
+    MODULE_TYPE                    = DXE_DRIVER
+    VERSION_STRING                 = 1.0
+    ENTRY_POINT                    = M4CommInitialize
+
+[Sources.common]
+    M4Comm.c
+    M4TestBinary.c
+    shmem_calc.c
+    shmem_create.c
+    shmem_get.c
+    shmem_help_read.c
+    shmem_help_write.c
+    shmem_read.c
+    shmem_write.c
+
+[Packages]
+    ArmPkg/ArmPkg.dec
+    MdePkg/MdePkg.dec
+    EmbeddedPkg/EmbeddedPkg.dec
+    Silicon/NXP/iMX6Pkg/iMX6Pkg.dec
+    StdLib/StdLib.dec
+
+[LibraryClasses]
+    ArmLib
+    DebugLib
+    IoLib
+    UefiBootServicesTableLib
+    BaseMemoryLib
+    UefiDriverEntryPoint
+    TimerLib
+    MemoryAllocationLib
+    DevicePathLib
+    DxeServicesTableLib
+
+[Protocols]
+    gHardwareInterruptProtocolGuid
+    gEfiSimpleFileSystemProtocolGuid
+    gEfiDevicePathProtocolGuid
+    gEfiDevicePathFromTextProtocolGuid
+
+[Depex]
+    gHardwareInterruptProtocolGuid AND
+    gEfiSimpleFileSystemProtocolGuid AND
+    gEfiDevicePathProtocolGuid AND
+    gEfiDevicePathFromTextProtocolGuid

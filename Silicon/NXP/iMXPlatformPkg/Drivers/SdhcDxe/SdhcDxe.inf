@@ -1,0 +1,70 @@
+## @file
+#
+#  Copyright (c) 2018 Microsoft Corporation. All rights reserved.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution.  The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x0001001A
+  BASE_NAME                      = SdhcDxe
+  FILE_GUID                      = A9945BAB-78C9-43C9-9175-F576CA189870
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = SdhcInitialize
+
+[Sources.common]
+  SdhcDxe.c
+
+[Packages]
+  EmbeddedPkg/EmbeddedPkg.dec
+  MdePkg/MdePkg.dec
+  Platform/Microsoft/MsPkg.dec
+  Silicon/NXP/iMXPlatformPkg/iMXPlatformPkg.dec
+
+[LibraryClasses]
+  iMXIoMuxLib
+  IoLib
+  MemoryAllocationLib
+  PcdLib
+  UefiLib
+  UefiDriverEntryPoint
+
+[Guids]
+
+[Protocols]
+  gEfiSdhcProtocolGuid
+
+[Pcd]
+  giMXPlatformTokenSpaceGuid.PcdSdhc1Base
+  giMXPlatformTokenSpaceGuid.PcdSdhc1CardDetectSignal
+  giMXPlatformTokenSpaceGuid.PcdSdhc1Enable
+  giMXPlatformTokenSpaceGuid.PcdSdhc1WriteProtectSignal
+
+  giMXPlatformTokenSpaceGuid.PcdSdhc2Base
+  giMXPlatformTokenSpaceGuid.PcdSdhc2CardDetectSignal
+  giMXPlatformTokenSpaceGuid.PcdSdhc2Enable
+  giMXPlatformTokenSpaceGuid.PcdSdhc2WriteProtectSignal
+
+  giMXPlatformTokenSpaceGuid.PcdSdhc3Base
+  giMXPlatformTokenSpaceGuid.PcdSdhc3CardDetectSignal
+  giMXPlatformTokenSpaceGuid.PcdSdhc3Enable
+  giMXPlatformTokenSpaceGuid.PcdSdhc3WriteProtectSignal
+
+  giMXPlatformTokenSpaceGuid.PcdSdhc4Base
+  giMXPlatformTokenSpaceGuid.PcdSdhc4CardDetectSignal
+  giMXPlatformTokenSpaceGuid.PcdSdhc4Enable
+  giMXPlatformTokenSpaceGuid.PcdSdhc4WriteProtectSignal
+
+[FixedPcd]
+  giMXPlatformTokenSpaceGuid.PcdGpioBankMemoryRange
+
+[depex]
+  TRUE

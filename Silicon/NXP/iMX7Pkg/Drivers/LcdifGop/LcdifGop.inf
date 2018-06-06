@@ -1,0 +1,58 @@
+#
+# Copyright (C) Microsoft. All rights reserved
+#
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = LcdifGop
+  FILE_GUID                      = E68088EF-D1A4-4336-C1DB-4D3A204730A6
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = LcdifGopInitialize
+
+[Sources.common]
+  LcdifGop.c
+  LcdifBoard.c
+  Lcdif.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  ArmPkg/ArmPkg.dec
+  ArmPlatformPkg/ArmPlatformPkg.dec
+  EmbeddedPkg/EmbeddedPkg.dec
+  Silicon/NXP/iMXPlatformPkg/iMXPlatformPkg.dec
+  Silicon/NXP/iMX7Pkg/iMX7Pkg.dec
+
+[LibraryClasses]
+  ArmLib
+  UefiLib
+  BaseLib
+  DebugLib
+  TimerLib
+  UefiDriverEntryPoint
+  UefiBootServicesTableLib
+  IoLib
+  BaseMemoryLib
+  iMXI2cLib
+  iMXDisplayLib
+  iMX7ClkPwrLib
+  iMXIoMuxLib
+  DmaLib
+
+[Protocols]
+  gEfiDevicePathProtocolGuid                    # Produced
+  gEfiGraphicsOutputProtocolGuid                # Produced
+  gEfiEdidDiscoveredProtocolGuid                # Produced
+  gEfiEdidActiveProtocolGuid                    # Produced
+  gEfiDevicePathToTextProtocolGuid
+
+[Pcd]
+  giMX7TokenSpaceGuid.PcdLCDIFBase
+
+[FixedPcd]
+  giMXPlatformTokenSpaceGuid.PcdGpioBankMemoryRange
+
+[Depex]
+  gEfiCpuArchProtocolGuid AND gEfiTimerArchProtocolGuid
+

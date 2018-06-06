@@ -1,0 +1,138 @@
+#
+#  Copyright (c) 2018 Microsoft Corporation. All rights reserved.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution.  The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+
+[Defines]
+  DEC_SPECIFICATION              = 0x0001001A
+  PACKAGE_NAME                   = iMX6Pkg
+  PACKAGE_GUID                   = 6eba6648-d853-4eb3-9761-528b82d5ab04
+  PACKAGE_VERSION                = 0.1
+
+################################################################################
+#
+# Include Section - list of Include Paths that are provided by this package.
+#                   Comments are used for Keywords and Module Types.
+#
+# Supported Module Types:
+#  BASE SEC PEI_CORE PEIM DXE_CORE DXE_DRIVER DXE_RUNTIME_DRIVER DXE_SMM_DRIVER
+#  DXE_SAL_DRIVER UEFI_DRIVER UEFI_APPLICATION
+#
+################################################################################
+[Includes.common]
+  Include                        # Root include for the package
+  Silicon/NXP/iMXPlatformPkg/Include      # Root include for the iMXPlatform package
+
+[LibraryClasses]
+  iMXIoMuxLib|Silicon/NXP/iMX6Pkg/Include/iMX6IoMux.h
+  iMX6AudioLib|Silicon/NXP/iMX6Pkg/Include/iMX6Audio.h
+  iMX6ClkPwrLib|Silicon/NXP/iMX6Pkg/Include/iMX6ClkPwr.h
+  iMX6UsbPhyLib|Silicon/NXP/iMX6Pkg/Include/iMX6UsbPhy.h
+
+[Protocols.common]
+  gEfiSdhcProtocolGuid = { 0x46055b0f, 0x992a, 0x4ad7, { 0x8f, 0x81, 0x14, 0x81, 0x86, 0xff, 0xdf, 0x72 } }
+
+[Guids.common]
+  giMX6TokenSpaceGuid = { 0x24b09abe, 0x4e47, 0x481c, { 0xa9, 0xad, 0xce, 0xf1, 0x2c, 0x39, 0x23, 0x27} }
+
+[PcdsFixedAtBuild.common]
+  #
+  # Frame buffer is set to the first addressable memory on the i.MX6
+  # Sabre board for convenience.
+  # Keep in mind that this chunk of memory is the only one that remains fixed
+  # through the various boot stages (primary boot->UEFI->Windows.
+  #
+  giMX6TokenSpaceGuid.PcdFrameBufferBase|0x10000000|UINT32|0x0000000A
+  giMX6TokenSpaceGuid.PcdFrameBufferSize|0x00800000|UINT32|0x0000000B
+
+  #
+  # USB EHCI Controller
+  #
+  giMX6TokenSpaceGuid.PcdEHCIBase|0x02184000|UINT32|0xE
+  giMX6TokenSpaceGuid.PcdEHCILength|0x4000|UINT32|0xF
+  giMX6TokenSpaceGuid.PcdIsUsbPortOTG|TRUE|BOOLEAN|0x10
+  giMX6TokenSpaceGuid.PcdUSBOTGBase|0x02184000|UINT32|0x11
+
+  #
+  # ARM System Reset Controller (SRC)
+  #
+  giMX6TokenSpaceGuid.PcdSrcBase|0x020D8000|UINT32|0x2B
+
+  #
+  # PCIE
+  #
+  # PCI Host config space is fixed at 0x01FFC000. The memory range from
+  # 0x01000000 - 0x01FFBFFF is assigned for PCIe. The memory layout defined
+  # by the boot loader is as below
+  #
+  # PCIe Device Config Space : 0x01F00000 - 0x01F80000
+  # PCIe IO (unsupported) : 0x01100000 - 0x011FFFFF
+  # PCIe Memory : 0x01200000 - 0x012FFFFF
+  #
+  giMX6TokenSpaceGuid.PcdPcieDeviceConfigBase|0x01F00000|UINT32|0x2C
+  giMX6TokenSpaceGuid.PcdPcieDeviceConfigSize|0x00080000|UINT32|0x2D
+  giMX6TokenSpaceGuid.PcdPcieHostConfigBase|0x01FFC000|UINT32|0x2E
+  giMX6TokenSpaceGuid.PcdPcieIOBase|0x00000000|UINT32|0x2F
+  giMX6TokenSpaceGuid.PcdPcieIOSize|0x00000000|UINT32|0x30
+  giMX6TokenSpaceGuid.PcdPciMemoryBase|0x01100000|UINT32|0x31
+  giMX6TokenSpaceGuid.PcdPciMemorySize|0x00D00000|UINT32|0x32
+  giMX6TokenSpaceGuid.PcdPciPrefetchMemoryBase|0x00000000|UINT32|0x33
+  giMX6TokenSpaceGuid.PcdPciPrefetchMemorySize|0x00000000|UINT32|0x34
+  giMX6TokenSpaceGuid.PcdPcieResetGpio|FALSE|BOOLEAN|0x35
+  giMX6TokenSpaceGuid.PcdPcieResetGpioBankNumber|0|UINT32|0x36
+  giMX6TokenSpaceGuid.PcdPcieResetGpioIoNumber|0|UINT32|0x37
+
+  #
+  # SMBIOS Type1
+  #
+  giMX6TokenSpaceGuid.PcdSystemFamily|L""|VOID*|0x38
+  giMX6TokenSpaceGuid.PcdSystemManufacturer|L""|VOID*|0x39
+  giMX6TokenSpaceGuid.PcdSystemProductName|L""|VOID*|0x3A
+  giMX6TokenSpaceGuid.PcdSystemSkuNumber|L""|VOID*|0x3B
+  giMX6TokenSpaceGuid.PcdSystemVersionNumber|L""|VOID*|0x3C
+  giMX6TokenSpaceGuid.PcdSystemUuid|{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}|VOID*|0x3D
+
+  #
+  # SMBIOS Type2
+  #
+  giMX6TokenSpaceGuid.PcdBoardAssetTag|L""|VOID*|0x3E
+  giMX6TokenSpaceGuid.PcdBoardLocationInChassis|L""|VOID*|0x3F
+  giMX6TokenSpaceGuid.PcdBoardManufacturer|L""|VOID*|0x40
+  giMX6TokenSpaceGuid.PcdBoardProductName|L""|VOID*|0x41
+  giMX6TokenSpaceGuid.PcdBoardVersionNumber|L""|VOID*|0x42
+
+  #
+  # SMBIOS Type3
+  #
+  giMX6TokenSpaceGuid.PcdChassisAssetTag|L""|VOID*|0x43
+  giMX6TokenSpaceGuid.PcdChassisManufacturer|L""|VOID*|0x44
+  giMX6TokenSpaceGuid.PcdChassisVersionNumber|L""|VOID*|0x45
+
+  # SMBIOS Type4
+  giMX6TokenSpaceGuid.PcdProcessorAssetTag|L""|VOID*|0x46
+  giMX6TokenSpaceGuid.PcdProcessorManufacturer|L""|VOID*|0x47
+  giMX6TokenSpaceGuid.PcdProcessorPartNumber|L""|VOID*|0x48
+  giMX6TokenSpaceGuid.PcdProcessorSocketDesignation|L""|VOID*|0x49
+  giMX6TokenSpaceGuid.PcdProcessorVersionNumber|L""|VOID*|0x4A
+
+  # SMBIOS Type16
+  giMX6TokenSpaceGuid.PcdPhysicalMemoryMaximumCapacity|0x0|UINT32|0x4B
+
+  # SMBIOS Type17
+  giMX6TokenSpaceGuid.PcdMemoryBankLocation|L""|VOID*|0x4C
+  giMX6TokenSpaceGuid.PcdMemoryDeviceLocation|L""|VOID*|0x4D
+
+  # SMBIOS Type19
+  giMX6TokenSpaceGuid.PcdMemoryEndAddress|0x0|UINT32|0x4E
+  giMX6TokenSpaceGuid.PcdMemoryStartAddress|0x0|UINT32|0x4F
+
+[PcdsFeatureFlag.common]
+  giMX6TokenSpaceGuid.PcdGpuEnable|FALSE|BOOLEAN|0x00001000
+  giMX6TokenSpaceGuid.PcdLvdsEnable|FALSE|BOOLEAN|0x00001001

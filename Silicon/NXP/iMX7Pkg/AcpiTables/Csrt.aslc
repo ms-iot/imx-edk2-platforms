@@ -1,0 +1,200 @@
+/*++
+*  Copyright (c) Microsoft Corporation. All rights reserved.
+*
+*  This program and the accompanying materials
+*  are licensed and made available under the terms and conditions of the BSD License
+*  which accompanies this distribution.  The full text of the license may be found at
+*  http://opensource.org/licenses/bsd-license.php
+*
+*  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+
+Module Name:
+
+    Csrt.aslc
+
+Abstract:
+
+    NXP i.MX7 Core System Resource Table
+    Reference : https://acpica.org/sites/acpica/files/CSRT.doc
+
+Environment:
+
+    Firmware UEFI ACPI 5.0.
+
+Revision History:
+
+--*/
+
+#include <Platform.h>
+
+#include "iMX7.h"
+
+#pragma pack(push, 1)
+
+//------------------------------------------------------------------------
+// Timer Resource Group
+// iMX7 has 4 general purpose timer
+//------------------------------------------------------------------------
+
+//
+// Timer capability definition refer to nthalext.h
+//
+#define TIMER_PER_PROCESSOR                             0x00000001
+#define TIMER_COUNTER_READABLE                          0x00000002
+#define TIMER_COUNTER_WRITABLE                          0x00000004
+#define TIMER_HAS_DIVISOR                               0x00000008
+#define TIMER_PSEUDO_PERIODIC_CAPABLE                   0x00000010
+#define TIMER_ONE_SHOT_CAPABLE                          0x00000020
+#define TIMER_PERIODIC_CAPABLE                          0x00000040
+#define TIMER_ROLLOVER_INTERRUPTS_ONLY                  0x00000080
+#define TIMER_GENERATES_8259_INTERRUPTS                 0x00000100
+#define TIMER_GENERATES_LINE_BASED_INTERRUPTS           0x00000200
+#define TIMER_GENERATES_MSI_INTERRUPTS                  0x00000400
+#define TIMER_GENERATES_INTERNAL_INTERRUPTS             0x00000800
+#define TIMER_LOSSLESS_RATE_CHANGE                      0x00001000
+#define TIMER_PERFORMANCE_STATE_VARIANT                 0x00002000
+#define TIMER_IDLE_STATE_VARIANT                        0x00004000
+#define TIMER_ALWAYS_ON                                 0x00008000
+#define TIMER_PER_PROCESSOR_INTERNAL_DATA               0x00010000
+#define TIMER_GENERATES_RESET                           0x00020000
+#define TIMER_GENERATED_LAST_RESET                      0x00040000
+#define TIMER_GENERATES_PRE_RESET_LINE_BASED_INTERRUPTS 0x00080000
+#define TIMER_AUXILIARY                                 0x00100000
+
+//
+// Timer ID
+//
+typedef enum
+{
+    TIMER_TYPE_GPT        = 0,
+
+} IMX7_TIMER_TYPE;
+
+// Timer descriptor
+typedef struct
+{
+    EFI_ACPI_5_0_CSRT_RESOURCE_DESCRIPTOR_HEADER Header;
+
+    UINT32 BaseAddress;         // Base address
+    UINT32 BaseAddressSize;     // Base address size
+    UINT32 Interrupt;           // IRQ
+    UINT32 RefFrequency;        // Reference frequency
+    IMX7_TIMER_TYPE TimerType;  // Timer Type
+
+    // HAL Extension timer registration info
+    UINT32 CounterBitWidth;     // Number of width in timer counter
+    UINT64 CounterFrequency;    // Timer frequency in Hz
+    UINT32 MaxDivisor;          // Stores the highest supported counter divisor
+    UINT32 Capabilities;        // Timer capabilities
+
+    // GPT timer specific
+    UINT32 ClockSource;         // Clock source
+    UINT32 FreqScaler;          // Frequency scaler
+    UINT32 FreqScaler24M;       // Frequency scaler 24M
+
+    // To maintain backward compatibility only new member here
+
+} RD_TIMER;
+
+// Timer group descriptor
+typedef struct
+{
+    EFI_ACPI_5_0_CSRT_RESOURCE_GROUP_HEADER Header;
+
+    RD_TIMER Timers[1];
+} RG_TIMER;
+
+//------------------------------------------------------------------------
+// CSRT structure for this platform
+//------------------------------------------------------------------------
+typedef struct
+{
+    EFI_ACPI_DESCRIPTION_HEADER CsrtHeader; // Standard ACPI Header
+    RG_TIMER TimerResourceGroup;            // Timer Resource Group
+} EFI_ACPI_CSRT_TABLE;
+
+#pragma pack(pop)
+
+EFI_ACPI_CSRT_TABLE Csrt =
+{
+    //------------------------------------------------------------------------
+    // CSRT Header
+    //------------------------------------------------------------------------
+    {
+        EFI_ACPI_5_0_CORE_SYSTEM_RESOURCE_TABLE_SIGNATURE,  // Signature "CSRT"
+        sizeof(EFI_ACPI_CSRT_TABLE),                        // Length
+        EFI_ACPI_5_0_CSRT_REVISION,                         // Revision
+        0x00,                                               // Checksum calculated at runtime.
+        EFI_ACPI_OEM_ID,                                    // OEMID is a 6 bytes long field.
+        EFI_ACPI_OEM_TABLE_ID,                              // OEM table identification(8 bytes long).
+        EFI_ACPI_OEM_REVISION,                              // OEM revision number.
+        EFI_ACPI_CREATOR_ID,                                // ASL compiler vendor ID.
+        EFI_ACPI_CREATOR_REVISION,                          // ASL compiler revision number.
+    },
+
+    //------------------------------------------------------------------------
+    // TimerResourceGroup
+    //------------------------------------------------------------------------
+    {
+        // Timer group header (EFI_ACPI_5_0_CSRT_RESOURCE_GROUP_HEADER)
+        {
+            sizeof(RG_TIMER),               // Resource Group Length
+            EFI_ACPI_VENDOR_ID,             // VendorId
+            0,                              // SubvendorId
+            0x0112,                         // DeviceId
+            0,                              // SubdeviceId
+            0,                              // Revision
+            0,                              // Reserved
+            0                               // No shared info
+
+        }, // Timer group header
+
+        //------------------------------------------------------------------------
+        // Timers
+        //------------------------------------------------------------------------
+        {
+            // Timer (GPT1)
+            {
+                {
+                    sizeof(RD_TIMER),               // Resource Descriptor Length
+                    EFI_ACPI_CSRT_RD_TYPE_TIMER,    // Resource Type
+                    EFI_ACPI_CSRT_RD_SUBTYPE_TIMER, // Resource Subtype
+                    1,                              // ResourceId
+                },
+                GPT1_BASE_ADDRESS,                  // 32 bit Physical address
+                sizeof(GPT_REGS),                   // Physical address size
+                GPT1_IRQ,                           // IRQ
+                32768,                              // Reference frequency
+                TIMER_TYPE_GPT,                     // Timer type
+                32,                                 // Timer counter width in bit
+                32768,                              // Frequency in Hz
+                1,                                  // Max divisor
+                TIMER_PERIODIC_CAPABLE |            // Timer capability
+                TIMER_ALWAYS_ON |
+                TIMER_ONE_SHOT_CAPABLE |
+                TIMER_GENERATES_LINE_BASED_INTERRUPTS,
+                GPT_CLOCK_LOW_FREQ,                 // 32khz reference clock
+                0,                                  // Frequency prescaler
+                0,                                  // Prescaler 24M
+
+            },
+        } // Timers
+
+    }, // TimerResourceGroup
+
+
+}; // CSRT
+
+
+VOID*
+ReferenceAcpiTable (
+  VOID
+  )
+{
+  //
+  // Reference the table being generated to prevent the optimizer from removing the
+  // data structure from the executable
+  //
+  return (VOID*)&Csrt;
+}

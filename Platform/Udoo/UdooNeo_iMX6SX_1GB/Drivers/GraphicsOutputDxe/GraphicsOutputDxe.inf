@@ -1,0 +1,54 @@
+## 
+#  Microsoft Coporation
+#  SiArch
+#
+#  Portions Copyright (c) Microsoft Corporation
+#  Portions Copyright (c) Intel Corporation
+#  Portions Copyright (c) Apple
+#  Portions Copyright (c) ARM Ltd.
+#  Portions Copyright (c) Freescale
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = UdooNeoGraphicsOutputDxe
+  FILE_GUID                      = 2DAB50A6-1980-4494-AC14-BBC9CCB83CF3
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = GraphicsOutputDxeInitialize
+
+[Sources.common]
+  GraphicsOutputDxe.c
+  Hdmi.c
+  Lcdif.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  Silicon/NXP/iMX6Pkg/iMX6Pkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  ArmPkg/ArmPkg.dec
+
+[LibraryClasses]
+  DebugLib
+  BaseMemoryLib
+  MemoryAllocationLib
+  UefiDriverEntryPoint
+  UefiRuntimeServicesTableLib
+  TimerLib
+  iMX6ClkPwrLib
+  UdooNeoI2cLib
+  iMXDisplayLib
+
+[Protocols]
+  gEfiGraphicsOutputProtocolGuid
+  gEfiDevicePathProtocolGuid
+  gEfiDevicePathToTextProtocolGuid
+
+[Depex]
+  gEfiCpuArchProtocolGuid AND gEfiTimerArchProtocolGuid
+
+[Pcd]
+  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution
+  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoVerticalResolution
+  giMX6TokenSpaceGuid.PcdFrameBufferBase
+  giMX6TokenSpaceGuid.PcdFrameBufferSize

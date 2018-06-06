@@ -1,0 +1,95 @@
+/** @file
+*
+*  Copyright (c) 2018 Microsoft Corporation. All rights reserved.
+*
+*  This program and the accompanying materials
+*  are licensed and made available under the terms and conditions of the BSD License
+*  which accompanies this distribution.  The full text of the license may be found at
+*  http://opensource.org/licenses/bsd-license.php
+*
+*  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+*
+**/
+
+#include "Platform.h"
+#include "iMX6.h"
+
+// Ensure proper structure formats
+#pragma pack (1)
+
+typedef struct {
+  EFI_ACPI_DESCRIPTION_HEADER Header;
+  UINT8 Interface_Type;
+  UINT8 Reserved1[3];
+  EFI_ACPI_5_0_GENERIC_ADDRESS_STRUCTURE BaseAddressRegister;
+  UINT8 Interrupt_Type;
+  UINT8 PCAT_compatible_IRQ;
+  UINT32 Interrupt;
+  UINT8 Baud_Rate;
+  UINT8 Parity;
+  UINT8 Stop_Bits;
+  UINT8 Flow_Control;
+  UINT8 Terminal_Type;
+  UINT8 Reserved2;
+  UINT16 PCI_Device_ID;
+  UINT16 PCI_Vender_ID;
+  UINT8 PCI_Bus;
+  UINT8 PCI_Device;
+  UINT8 PCI_Function;
+  UINT32 PCI_Flags;
+  UINT8 PCI_Segment;
+  UINT32 Reserved3;
+} EFI_ACPI_5_0_SPCR_DESCRIPTION_TABLE;
+
+#pragma pack ()
+
+EFI_ACPI_5_0_SPCR_DESCRIPTION_TABLE SPCR = {
+  {
+    EFI_ACPI_5_0_SERIAL_PORT_CONSOLE_REDIRECTION_TABLE_SIGNATURE,
+    sizeof (EFI_ACPI_5_0_SPCR_DESCRIPTION_TABLE),
+    0x02,
+    0x00,                           // Checksum will be updated at runtime
+    EFI_ACPI_OEM_ID,
+    EFI_ACPI_OEM_TABLE_ID,
+    EFI_ACPI_OEM_REVISION,
+    EFI_ACPI_CREATOR_ID,
+    EFI_ACPI_CREATOR_REVISION,
+  },
+  DBG_PORT_SUBTYPE_IMX6,   // Serial Interface type = Serial Port Subtypes of the DBG2
+  {0x00, 0x00, 0x00},      // Reserved
+
+  // ACPI Generic Address Structure. Set to all zeroes to disable console redirection
+  {
+    EFI_ACPI_5_0_SYSTEM_MEMORY,         // AddressSpaceId: SystemMemory
+    0x20,                               // RegisterBitWidth
+    0,                                  // RegisterBitOffset
+    EFI_ACPI_5_0_DWORD,                 // AccessSize
+    (UINT64)CSP_BASE_REG_PA_UART3       // Address UART3
+  },
+  0x08,        // Interrupt Type = Bit[3] ARMH GIC interrupt. 0 means not supported.
+  0x00,        // IRQ. Not used since Bit[0] of the Interrupt Type field is not set
+  0x3c,        // Global System Interrupt used by the UART (UART3 interrupt 60)
+  0x07,        // Baud Rate
+  0x00,        // No Parity
+  0x01,        // One Stop Bit
+  0x00,        // Flow Control: None
+  0x03,        // Terminal Type: ANSI
+  0X00,        // Reserved
+  0xffff,      // 0xFFFF - not a PCI device
+  0xffff,      // 0xFFFF - not a PCI device
+  0x00,        // Bus Number. 0 - not a PCI device
+  0x00,        // Device Number. 0 - not a PCI device
+  0x00,        // Function. 0 - not a PCI device
+  0x00000000,  // PCI Flags
+  0x00,        // PCI Segment
+  0x00000000,  //Reserved
+};
+
+VOID*
+ReferenceAcpiTable (
+  VOID
+  )
+{
+  return (VOID *)&SPCR;
+}

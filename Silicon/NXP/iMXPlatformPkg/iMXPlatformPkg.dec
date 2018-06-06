@@ -1,0 +1,118 @@
+## @file
+#
+#  Copyright (c) 2018 Microsoft Corporation. All rights reserved.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution.  The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+##
+
+[Defines]
+  DEC_SPECIFICATION              = 0x0001001A
+  PACKAGE_NAME                   = iMXPlatformPkg
+  PACKAGE_GUID                   = 6eba6648-d853-4eb3-9761-528b82d5ab04
+  PACKAGE_VERSION                = 0.1
+
+################################################################################
+#
+# Include Section - list of Include Paths that are provided by this package.
+#                   Comments are used for Keywords and Module Types.
+#
+# Supported Module Types:
+#  BASE SEC PEI_CORE PEIM DXE_CORE DXE_DRIVER DXE_RUNTIME_DRIVER DXE_SMM_DRIVER
+#  DXE_SAL_DRIVER UEFI_DRIVER UEFI_APPLICATION
+#
+################################################################################
+[Includes.common]
+  Include                        # Root include for the package
+
+[LibraryClasses]
+
+[Guids.common]
+  giMXPlatformTokenSpaceGuid = { 0x24b09abe, 0x4e47, 0x481c, { 0xa9, 0xad, 0xce, 0xf1, 0x2c, 0x39, 0x23, 0x27} }
+
+[PcdsFixedAtBuild.common]
+  #
+  # Default base address based that needs to be defined per platform
+  #
+  giMXPlatformTokenSpaceGuid.PcdSdhc1Base|0x02190000|UINT32|0x00
+  giMXPlatformTokenSpaceGuid.PcdSdhc2Base|0x02194000|UINT32|0x01
+  giMXPlatformTokenSpaceGuid.PcdSdhc3Base|0x02198000|UINT32|0x02
+  giMXPlatformTokenSpaceGuid.PcdSdhc4Base|0x0219C000|UINT32|0x03
+
+  #
+  # Enabled uSDHCx will be registered as a BlockIo device
+  #
+  giMXPlatformTokenSpaceGuid.PcdSdhc1Enable|FALSE|BOOLEAN|0x04
+  giMXPlatformTokenSpaceGuid.PcdSdhc2Enable|FALSE|BOOLEAN|0x05
+  giMXPlatformTokenSpaceGuid.PcdSdhc3Enable|FALSE|BOOLEAN|0x06
+  giMXPlatformTokenSpaceGuid.PcdSdhc4Enable|FALSE|BOOLEAN|0x07
+
+  #
+  # Slot CardDetect and WriteProtect signals source
+  #
+  # Legal values are as follows:
+  #
+  # [0x0000, 0xFEFF]
+  # Use a value in the range from 0x0 to 0xFEFF exclusive to indicate
+  # GPIO as signal source, use MSB byte as GPIO bank number, and LSB byte
+  # as IO number both in 1-based numbering fashion. e.g. 0x0201 means GPIO2_IO1
+  #
+  # 0xFF00  -USDHC_SIGNAL_OVERRIDE_PIN_LOW
+  # Override signal source to always read LOW
+  # NOTE: CD_B=0 means card present, while WP=0 means write enabled
+  #
+  # 0xFF01 - USDHC_SIGNAL_OVERRIDE_PIN_HIGH
+  # Override signal source to always read HIGH
+  # NOTE: CD_B=1 means card not present, while WP=1 means write protected
+  #
+  # 0xFFFF - USDHC_SIGNAL_INTERNAL_PIN
+  # Signal is connected directly to the SDHC block. Which means use th SDHC
+  # internal FSM for interpreting card detect CD_B and write protect WP signals
+  # from the slot
+  #
+  # Default signals to LOW to force card present and write enabled
+  #
+  giMXPlatformTokenSpaceGuid.PcdSdhc1CardDetectSignal|0xFF00|UINT16|0x08
+  giMXPlatformTokenSpaceGuid.PcdSdhc1WriteProtectSignal|0xFF01|UINT16|0x09
+
+  giMXPlatformTokenSpaceGuid.PcdSdhc2CardDetectSignal|0xFF00|UINT16|0x0A
+  giMXPlatformTokenSpaceGuid.PcdSdhc2WriteProtectSignal|0xFF01|UINT16|0x0B
+
+  giMXPlatformTokenSpaceGuid.PcdSdhc3CardDetectSignal|0xFF00|UINT16|0x0C
+  giMXPlatformTokenSpaceGuid.PcdSdhc3WriteProtectSignal|0xFF01|UINT16|0x0D
+
+  giMXPlatformTokenSpaceGuid.PcdSdhc4CardDetectSignal|0xFF00|UINT16|0x0E
+  giMXPlatformTokenSpaceGuid.PcdSdhc4WriteProtectSignal|0xFF01|UINT16|0x0F
+
+  #
+  # iMX UART configuration
+  #
+  # PcdSerialRegisterBase   - Define a base address of UEFI console UART
+  # PcdKdUartInstance - UART instance that should be used for Windows
+  #                     Kernel debugger. 1, 2, 3, 4, or 5
+  #
+  giMXPlatformTokenSpaceGuid.PcdKdUartInstance|1|UINT32|0x11
+  giMXPlatformTokenSpaceGuid.PcdSerialRegisterBase|0x00000000|UINT32|0x12
+
+  #
+  # Global data area
+  # The PcdGlobalDataBaseAddress and PcdGlobalDataSize have to be set by each
+  # platform based on the memory layout.
+  #
+  giMXPlatformTokenSpaceGuid.PcdGlobalDataBaseAddress|0x00000000|UINT32|0x13
+  giMXPlatformTokenSpaceGuid.PcdGlobalDataSize|0x1000|UINT32|0x14
+
+  #
+  # iMX GPIO configuration
+  #
+  # PcdGpioBankMemoryRange - The memory range for 1 GPIO bank register (default 16KB)
+  #
+  giMXPlatformTokenSpaceGuid.PcdGpioBankMemoryRange|16384|UINT32|0x15
+
+[PcdsFeatureFlag.common]

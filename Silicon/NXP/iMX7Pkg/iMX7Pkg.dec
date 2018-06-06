@@ -1,0 +1,73 @@
+#
+# i.MX7 package
+#
+#  Copyright (c) Microsoft Corporation. All rights reserved.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution.  The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+#
+
+[Defines]
+  DEC_SPECIFICATION              = 0x00010005
+  PACKAGE_NAME                   = iMX7Pkg
+  PACKAGE_GUID                   = 6eba6648-d853-4eb3-9761-528b82d5ab04
+  PACKAGE_VERSION                = 0.1
+
+################################################################################
+#
+# Include Section - list of Include Paths that are provided by this package.
+#                   Comments are used for Keywords and Module Types.
+#
+# Supported Module Types:
+#  BASE SEC PEI_CORE PEIM DXE_CORE DXE_DRIVER DXE_RUNTIME_DRIVER DXE_SMM_DRIVER DXE_SAL_DRIVER UEFI_DRIVER UEFI_APPLICATION
+#
+################################################################################
+[Includes.common]
+  Include                        # Root include for the package
+  Silicon/NXP/iMXPlatformPkg/Include      # Root include for the iMXPlatform package
+
+[LibraryClasses]
+
+[Protocols.common]
+  gEfiSdhcProtocolGuid = { 0x46055b0f, 0x992a, 0x4ad7, { 0x8f, 0x81, 0x14, 0x81, 0x86, 0xff, 0xdf, 0x72 } }
+
+[Guids.common]
+  giMX7TokenSpaceGuid    =  { 0xbda8cd74, 0x925d, 0x4736, { 0x9b, 0x7b, 0xfc, 0x1e, 0xa8, 0xb, 0xd4, 0xcd } }
+
+[PcdsFixedAtBuild.common]
+
+  #
+  # UART
+  #
+  giMX7TokenSpaceGuid.PcdUARTBaseDebug|0x30860000|UINT32|0x0C	# UART1 is set as UEFI debug port
+
+  #
+  # ARM System Reset Controller (SRC)
+  #
+  giMX7TokenSpaceGuid.PcdSrcBase|0x30390000|UINT32|0x0D
+
+
+  #
+  # USB EHCI Controller
+  #
+  giMX7TokenSpaceGuid.PcdUsbOTGBase|0x30B20000|UINT32|0x0E
+  giMX7TokenSpaceGuid.PcdUsbEHCILength|0x4000|UINT32|0x0F
+  giMX7TokenSpaceGuid.PcdIsUsbPortOTG|TRUE|BOOLEAN|0x10
+
+  #
+  # Watchdog index to be used for reset. Valid value 1-4
+  #
+  giMX7TokenSpaceGuid.PcdWatchdogResetIndex|0x01|UINT32|0x11
+
+  #
+  # GOP
+  #
+  giMX7TokenSpaceGuid.PcdLCDIFBase|0x30730000|UINT32|0x12
+
+[PcdsFeatureFlag.common]
