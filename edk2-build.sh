@@ -3,7 +3,7 @@
 
 # Setup edk2 workspace
 cd $WORKSPACE
-export PACKAGES_PATH=$PWD/edk2:$PWD/edk2-platforms
+export PACKAGES_PATH=$PWD/edk2:$PWD/imx-edk2-platforms
 export GCC5_ARM_PREFIX=arm-linux-gnueabihf-
 # Note: Path to cross compiler is hardcoded
 export PATH=/home/jenkins/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf/bin:$PATH
