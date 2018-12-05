@@ -29,7 +29,7 @@ ImxPadConfig (
 {
   // Configure Mux Control
   MmioWrite32 (
-    IMX_IOMUXC_BASE + _IMX_PAD_MUX_OFFSET (Pad),
+    IMX_IOMUXC_BASE + IMX_IOMUX_PAD_MUX_OFFSET (Pad),
     _IMX_PADCFG_MUX_CTL (PadConfig));
 
   // Configure Select Input Control
@@ -45,7 +45,7 @@ ImxPadConfig (
 
   // Configure Pad Control
   MmioWrite32 (
-    IMX_IOMUXC_BASE + _IMX_PAD_CTL_OFFSET (Pad),
+    IMX_IOMUXC_BASE + IMX_IOMUX_PAD_CTL_OFFSET (Pad),
     _IMX_PADCFG_PAD_CTL (PadConfig));
 }
 
@@ -59,24 +59,24 @@ ImxPadDumpConfig (
   IMX_IOMUXC_PAD_CTL  PadCtl;
 
   MuxCtl.AsUint32 = MmioRead32 (
-                      IMX_IOMUXC_BASE + _IMX_PAD_MUX_OFFSET (Pad));
+                      IMX_IOMUXC_BASE + IMX_IOMUX_PAD_MUX_OFFSET (Pad));
 
   DEBUG ((
            DEBUG_INIT,
            "- %a MUX_CTL(0x%p)=0x%08x: MUX_MODE:%d SION:%d | ",
            SignalFriendlyName,
-           IMX_IOMUXC_BASE + _IMX_PAD_MUX_OFFSET (Pad),
+           IMX_IOMUXC_BASE + IMX_IOMUX_PAD_MUX_OFFSET (Pad),
            MuxCtl.AsUint32,
            MuxCtl.Fields.MUX_MODE,
            MuxCtl.Fields.SION));
 
   PadCtl.AsUint32 = MmioRead32 (
-                      IMX_IOMUXC_BASE + _IMX_PAD_CTL_OFFSET (Pad));
+                      IMX_IOMUXC_BASE + IMX_IOMUX_PAD_CTL_OFFSET (Pad));
 
   DEBUG ((
            DEBUG_INIT,
            "PAD_CTL(0x%p)=0x%08x: SRE:%d DSE:%d SPEED:%d ODE:%d PKE:%d PUE:%d PUS:%d HYS:%d\n",
-           IMX_IOMUXC_BASE + _IMX_PAD_CTL_OFFSET (Pad),
+           IMX_IOMUXC_BASE + IMX_IOMUX_PAD_CTL_OFFSET (Pad),
            PadCtl.AsUint32,
            PadCtl.Fields.SRE,
            PadCtl.Fields.DSE,

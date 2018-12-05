@@ -34,7 +34,7 @@ ImxPadConfig (
 
     UINTN baseAddress;
 
-    if(_IMX_PAD_CTL_OFFSET(Pad) < _IMX_PAD_CTL_OFFSET(IMX_PAD_GPIO1_IO08)) {
+    if(IMX_IOMUX_PAD_CTL_OFFSET(Pad) < IMX_IOMUX_PAD_CTL_OFFSET(IMX_PAD_GPIO1_IO08)) {
         baseAddress = IOMUXC_LPSR_SW_MUX_PAD_BASE_ADDRESS;
     } else {
         baseAddress = IOMUXC_SW_MUX_PAD_BASE_ADDRESS;
@@ -68,32 +68,32 @@ ImxPadDumpConfig (
     IMX_IOMUXC_MUX_CTL muxCtl;
     UINTN baseAddress;
 
-    if(_IMX_PAD_CTL_OFFSET(Pad) < _IMX_PAD_CTL_OFFSET(IMX_PAD_GPIO1_IO08)) {
+    if(IMX_IOMUX_PAD_CTL_OFFSET(Pad) < IMX_IOMUX_PAD_CTL_OFFSET(IMX_PAD_GPIO1_IO08)) {
         baseAddress = IOMUXC_LPSR_SW_MUX_PAD_BASE_ADDRESS;
     } else {
         baseAddress = IOMUXC_SW_MUX_PAD_BASE_ADDRESS;
     }
 
     muxCtl.AsUint32 = MmioRead32 (
-        baseAddress + _IMX_PAD_MUX_OFFSET(Pad));
+        baseAddress + IMX_IOMUX_PAD_MUX_OFFSET(Pad));
 
     DEBUG ((
         DEBUG_INIT,
         "- %a MUX_CTL(0x%p)=0x%08x: MUX_MODE:%d SION:%d | ",
         SignalFriendlyName,
-        baseAddress + _IMX_PAD_MUX_OFFSET(Pad),
+        baseAddress + IMX_IOMUX_PAD_MUX_OFFSET(Pad),
         muxCtl.AsUint32,
         muxCtl.Fields.MUX_MODE,
         muxCtl.Fields.SION));
 
     IMX_IOMUXC_PAD_CTL padCtl;
     padCtl.AsUint32 = MmioRead32 (
-        baseAddress + _IMX_PAD_CTL_OFFSET(Pad));
+        baseAddress + IMX_IOMUX_PAD_CTL_OFFSET(Pad));
 
     DEBUG ((
         DEBUG_INIT,
         "PAD_CTL(0x%p)=0x%08x: DSE:%d SRE:%d HYS:%d PE:%d PS:%d\n",
-        baseAddress + _IMX_PAD_CTL_OFFSET(Pad),
+        baseAddress + IMX_IOMUX_PAD_CTL_OFFSET(Pad),
         padCtl.AsUint32,
         padCtl.Fields.DSE,
         padCtl.Fields.SRE,

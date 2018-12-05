@@ -1233,7 +1233,7 @@ VOID GpioInit ()
     for (i = 0 ; i < sizeof(gpioPins)/sizeof(IMX_PAD) ; ++i) {
       IMX_PAD pad = gpioPins[i];
       MmioOr32 (
-        IMX_IOMUXC_BASE + _IMX_PAD_CTL_OFFSET(pad),
+        IMX_IOMUXC_BASE + IMX_IOMUX_PAD_CTL_OFFSET(pad),
         1 << 16);
     }
 }

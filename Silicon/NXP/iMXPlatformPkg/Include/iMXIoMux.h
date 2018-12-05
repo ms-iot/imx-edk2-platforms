@@ -15,10 +15,10 @@
 #ifndef _IMX_IO_MUX_H_
 #define _IMX_IO_MUX_H_
 
-#define _IMX_PAD(CtlRegOffset, MuxRegOffset) \
+#define IMX_IOMUX_PAD_DEFINE(CtlRegOffset, MuxRegOffset) \
   ((((CtlRegOffset) & 0xffff) << 16) | ((MuxRegOffset) & 0xffff))
 
-#define _IMX_PAD_CTL_OFFSET(ImxPadVal) ((ImxPadVal) >> 16)
-#define _IMX_PAD_MUX_OFFSET(ImxPadVal) ((ImxPadVal) & 0xffff)
+#define IMX_IOMUX_PAD_CTL_OFFSET(ImxPadVal) ((ImxPadVal) >> 16)
+#define IMX_IOMUX_PAD_MUX_OFFSET(ImxPadVal) ((ImxPadVal) & 0xffff)
 
 #endif // _IMX_IO_MUX_H_

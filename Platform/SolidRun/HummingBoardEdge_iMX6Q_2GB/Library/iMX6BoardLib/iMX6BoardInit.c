@@ -478,7 +478,7 @@ GpioInit (
 
   for (i = 0; i < sizeof (GpioPins) / sizeof (IMX_PAD); ++i) {
     CurPad = GpioPins[i];
-    MmioOr32 (IMX_IOMUXC_BASE + _IMX_PAD_CTL_OFFSET (CurPad), 1 << 16);
+    MmioOr32 (IMX_IOMUXC_BASE + IMX_IOMUX_PAD_CTL_OFFSET (CurPad), 1 << 16);
   }
 }
 
