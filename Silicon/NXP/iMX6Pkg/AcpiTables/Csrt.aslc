@@ -17,15 +17,12 @@
 
 #pragma pack(push, iMX6Csrt, 1)
 
-// Timer Resource Group
-// Each timer consumes 4K of address space.
-#define TIMER_ADDRES_SIZE 0x1000
-#define TIMER_CAP_ALWAYS_ON     0x00000001 // Timer is always ON.
-#define TIMER_CAP_UP_COUNTER    0x00000002 // Up counter vs. down counter (0)
-#define TIMER_CAP_READABLE      0x00000004 // Counter has a software interface.
-#define TIMER_CAP_PERIODIC      0x00000008 // Can generate periodic interrupts.
-#define TIMER_CAP_DRIVES_IRQ    0x00000010 // Timer interrupt drives a physical IRQ.
-#define TIMER_CAP_ONE_SHOT      0x00000020 // Counter can generate one-shot interrupts
+typedef enum {
+  IMX_TIMER_TYPE_INVALID,
+  IMX_TIMER_TYPE_GPT,
+  IMX_TIMER_TYPE_EPIT,
+  IMX_TIMER_TYPE_SNVS_RTC,
+} IMX_TIMER_TYPE;
 
 // Timer source clock codes
 typedef enum {
@@ -55,33 +52,19 @@ typedef enum {
 // Timer descriptor
 typedef struct {
   EFI_ACPI_5_0_CSRT_RESOURCE_DESCRIPTOR_HEADER Header;
-  UINT32 Capabilities;
-  UINT32 Width;
-  UINT32 Source;
+  UINT32 TimerType;
+  UINT32 ClockSource;
   UINT32 Frequency;
   UINT32 FrequencyScale;
   UINT32 BaseAddress;
-  UINT32 Size;
   UINT32 Interrupt;
-  UINT32 ChipType;
 } RD_TIMER;
-
-// Resource Group Shared Info
-typedef struct {
-  UINT16 RevMajor;
-  UINT16 RevMinor;
-  UINT32 ChipType;
-} RG_PLATFORM_INFORMATION;
 
 // Timer group descriptor
 typedef struct {
   EFI_ACPI_5_0_CSRT_RESOURCE_GROUP_HEADER Header;
-  RG_PLATFORM_INFORMATION PlatformInfo;
-#if defined(CPU_IMX6SDL)
-  RD_TIMER Timers[3];
-#else
-  RD_TIMER Timers[4];
-#endif
+  RD_TIMER Counter;
+  RD_TIMER ClockTimer;
 } RG_TIMER;
 
 // PL310 L2 Cache Controller Resource Group
@@ -194,96 +177,40 @@ EFI_ACPI_CSRT_TABLE Csrt = {
       0,                              // SubdeviceId
       0,                              // Revision
       0,                              // Reserved
-      sizeof (RG_PLATFORM_INFORMATION) // Platform Information shared info
+      0                               // Platform Information shared info
     },
 
-    // Platform Information
+    // Counter (GPT)
     {
-      0x0001,                        // RevMajor
-      0x0000,                        // RevMinor
-      0,                             // IMX_CHIP_TYPE (not used)
+      {
+        sizeof (RD_TIMER),                // Resource Descriptor Length
+        EFI_ACPI_CSRT_RD_TYPE_TIMER,      // Resource Type
+        EFI_ACPI_CSRT_RD_SUBTYPE_TIMER,   // Resource Subtype
+        3,                                // ResourceId
+      },
+      IMX_TIMER_TYPE_GPT,                 // TimerType
+      GPT_CLOCK_OSC,                      // Source is 111b for QD, 101b for SDL/ULL
+      SOC_OSC_FREQUENCY_REF_HZ,           // Frequency 24 MHz
+      24,                                 // divider to make 1 MHz
+      CSP_BASE_REG_PA_GPT,                // 32 bit Physical address
+      0,                                  // N.B. No interrupt on this counter
     },
 
-    // Timers
+    // Clock Timer (EPIT1)
     {
-      // Counter (GPT)
       {
-        {
-          sizeof (RD_TIMER),              // Resource Descriptor Length
-          EFI_ACPI_CSRT_RD_TYPE_TIMER,    // Resource Type
-          EFI_ACPI_CSRT_RD_SUBTYPE_TIMER, // Resource Subtype
-          3,                              // ResourceId
-        },
-        TIMER_CAP_READABLE | TIMER_CAP_UP_COUNTER, // Capabilities
-        32,                                 // Timer width (bits)
-        GPT_CLOCK_OSC,                      // Source is 111b for QD, 101b for SDL/ULL
-        SOC_OSC_FREQUENCY_REF_HZ,           // Frequency 24 MHz
-        24,                                 // divider to make 1 MHz
-        CSP_BASE_REG_PA_GPT,                // 32 bit Physical address
-        TIMER_ADDRES_SIZE,                  // Size of timer address space
-        0,                                  // N.B. No interrupt on this counter
+        sizeof (RD_TIMER),                // Resource Descriptor Length
+        EFI_ACPI_CSRT_RD_TYPE_TIMER,      // Resource Type
+        EFI_ACPI_CSRT_RD_SUBTYPE_TIMER,   // Resource Subtype
+        4,                                // ResourceId
       },
-
-      // Timer0 (EPIT1)
-      {
-        {
-          sizeof (RD_TIMER),              // Resource Descriptor Length
-          EFI_ACPI_CSRT_RD_TYPE_TIMER,    // Resource Type
-          EFI_ACPI_CSRT_RD_SUBTYPE_TIMER, // Resource Subtype
-          4,                              // ResourceId
-        },
-        TIMER_CAP_ONE_SHOT | TIMER_CAP_PERIODIC | // Capabilities
-        TIMER_CAP_ALWAYS_ON | TIMER_CAP_DRIVES_IRQ,
-        32,                                 // Timer width (bits)
-        EPIT_CLOCK_LOW_FREQ,                // Source
-        SOC_LOW_FREQ_REF_HZ,                // Frequency
-        1,                                  // Frequency scale
-        CSP_BASE_REG_PA_EPIT1,              // 32 bit Physical address
-        TIMER_ADDRES_SIZE,                  // Size of timer address space
-        IRQ_EPIT1,                          // Interrupt
-      },
-
-      // Timer1 (EPIT2)
-      {
-        {
-          sizeof (RD_TIMER),              // Resource Descriptor Length
-          EFI_ACPI_CSRT_RD_TYPE_TIMER,    // Resource Type
-          EFI_ACPI_CSRT_RD_SUBTYPE_TIMER, // Resource Subtype
-          5,                              // ResourceId
-        },
-        TIMER_CAP_ONE_SHOT | TIMER_CAP_PERIODIC | // Capabilities
-        TIMER_CAP_ALWAYS_ON | TIMER_CAP_DRIVES_IRQ,
-        32,                                 // Timer width (bits)
-        EPIT_CLOCK_LOW_FREQ,                // Source
-        SOC_LOW_FREQ_REF_HZ,                // Frequency
-        1,                                  // Frequency scale
-        CSP_BASE_REG_PA_EPIT2,              // 32 bit Physical address
-        TIMER_ADDRES_SIZE,                  // Size of timer address space
-        IRQ_EPIT2,                          // Interrupt
-      },
-
-#if defined(CPU_IMX6DQ)
-      // SNVS LP Real Time Counter
-      {
-        {
-          sizeof (RD_TIMER),              // Resource Descriptor Length
-          EFI_ACPI_CSRT_RD_TYPE_TIMER,    // Resource Type
-          EFI_ACPI_CSRT_RD_SUBTYPE_TIMER, // Resource Subtype
-          6,                              // ResourceId
-        },
-        TIMER_CAP_UP_COUNTER |              // Capabilities
-        TIMER_CAP_READABLE |
-        TIMER_CAP_ALWAYS_ON,
-        47,                                 // Timer width (bits)
-        0,                                  // Source (NA)
-        SOC_LOW_FREQ_REF_HZ,                // Frequency
-        1,                                  // Frequency scale
-        IMX_SNVS_BASE,                      // 32 bit Physical address
-        TIMER_ADDRES_SIZE,                  // Size of timer address space
-        IMX_SNVS_IRQ,                       // Interrupt
-      },
-#endif
-    }
+      IMX_TIMER_TYPE_EPIT,                // TimerType
+      EPIT_CLOCK_LOW_FREQ,                // ClockSource
+      SOC_LOW_FREQ_REF_HZ,                // Frequency
+      1,                                  // Frequency scale
+      CSP_BASE_REG_PA_EPIT1,              // 32 bit Physical address
+      IRQ_EPIT1,                          // Interrupt
+    },
   },
 
 #ifndef CONFIG_L2CACHE_OFF
