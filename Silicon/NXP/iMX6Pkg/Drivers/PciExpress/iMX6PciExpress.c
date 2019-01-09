@@ -26,7 +26,7 @@
 #include <iMX6.h>
 #include <iMX6ClkPwr.h>
 #include <iMX6IoMux.h>
-#include "iMX6PciExpress.h"
+#include <iMX6PciExpress.h>
 
 PCI_RESOURCE PcieResource[] = {
   // Memory resource
