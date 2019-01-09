@@ -34,7 +34,7 @@ typedef struct {
 } ACPI_6_0_MADT_STRUCTURE;
 #pragma pack(pop)
 
-ACPI_6_0_MADT_STRUCTURE Madt = {
+STATIC ACPI_6_0_MADT_STRUCTURE Madt = {
   {
     {
       EFI_ACPI_6_0_MULTIPLE_APIC_DESCRIPTION_TABLE_SIGNATURE, // Signature

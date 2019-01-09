@@ -85,7 +85,7 @@ typedef struct {
 #pragma pack ()
 
 // Debug Port 2 table
-EFI_ACPI_5_0_DEBUG_PORT_2_TABLE Dbg2 = {
+STATIC EFI_ACPI_5_0_DEBUG_PORT_2_TABLE Dbg2 = {
   {
     // Header
     {

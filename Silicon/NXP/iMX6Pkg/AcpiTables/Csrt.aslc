@@ -147,7 +147,7 @@ typedef struct {
 
 #pragma pack (pop, iMX6Csrt)
 
-EFI_ACPI_CSRT_TABLE Csrt = {
+STATIC EFI_ACPI_CSRT_TABLE Csrt = {
   // CSRT Header
   {
     EFI_ACPI_5_0_CORE_SYSTEM_RESOURCE_TABLE_SIGNATURE,  // Signature "CSRT"
