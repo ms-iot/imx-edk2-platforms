@@ -12,8 +12,8 @@
 *
 **/
 
-#include "../Include/Platform.h"
-#include "../Include/iMX6.h"
+#include <iMX6.h>
+#include <Platform.h>
 
 #pragma pack(push, iMX6Csrt, 1)
 

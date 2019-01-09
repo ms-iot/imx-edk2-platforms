@@ -13,11 +13,10 @@
 **/
 
 #include <IndustryStandard/Tpm2Acpi.h>
-
 #include <Library/PcdLib.h>
 
+#include <iMX6.h>
 #include <Platform.h>
-#include "iMX6.h"
 
 // Definition is missing from MdePkg/Include/IndustryStandard/Tpm2Acpi.h
 #ifdef EFI_TPM2_ACPI_TABLE_START_METHOD_COMMAND_RESPONSE_BUFFER_INTERFACE_WITH_TREE

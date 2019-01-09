@@ -12,8 +12,8 @@
 *
 **/
 
-#include "Platform.h"
-#include "iMX6.h"
+#include <iMX6.h>
+#include <Platform.h>
 
 // Ensure proper structure formats
 #pragma pack (1)

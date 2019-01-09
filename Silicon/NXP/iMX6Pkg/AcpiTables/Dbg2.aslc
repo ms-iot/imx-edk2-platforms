@@ -12,9 +12,8 @@
 *
 **/
 
+#include <iMX6.h>
 #include <Platform.h>
-
-#include "iMX6.h"
 
 // DBG2 Definitions
 #pragma pack (1)

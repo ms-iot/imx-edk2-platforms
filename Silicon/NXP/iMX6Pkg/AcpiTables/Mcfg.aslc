@@ -16,8 +16,8 @@
 
 #include <IndustryStandard/MemoryMappedConfigurationSpaceAccessTable.h>
 
-#include "iMX6.h"
-#include "../Drivers/PciExpress/iMX6PciExpress.h"
+#include <iMX6.h>
+#include <iMX6PciExpress.h>
 
 #define EFI_ACPI_OEM_MCFG_REVISION 0x00000001
 
