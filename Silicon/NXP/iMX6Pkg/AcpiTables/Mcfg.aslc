@@ -62,6 +62,7 @@ STATIC EFI_ACPI_MEMORY_MAPPED_CONFIGURATION_SPACE_ACCESS_DESCRIPTION_TABLE Mcfg 
   },
   0x00,                             // Reserved
 
+  // Root Port and device ECAM spaces are disjoint. Therefore we need two entries
   {
     // PCIe Host
     {
@@ -75,6 +76,8 @@ STATIC EFI_ACPI_MEMORY_MAPPED_CONFIGURATION_SPACE_ACCESS_DESCRIPTION_TABLE Mcfg 
     // PCIe Device
     {
       PCIE_DEVICE_CONFIG_BASE_REG - ECAM_BUS_ADDR_SIZE,  // BaseAddress
+                                         // Note: Need to subtract ECAM_BUS_ADDR_SIZE
+                                         //   since bus range starts at 0x1
       0x00,                              // PciSegmentGroupNumber (_SEG)
       0x01,                              // StartBusNumber
       0x01,                              // EndBusNumber
