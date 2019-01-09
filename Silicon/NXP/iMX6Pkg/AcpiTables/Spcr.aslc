@@ -44,7 +44,7 @@ typedef struct {
 
 #pragma pack ()
 
-STATIC EFI_ACPI_5_0_SPCR_DESCRIPTION_TABLE SPCR = {
+STATIC EFI_ACPI_5_0_SPCR_DESCRIPTION_TABLE Spcr = {
   {
     EFI_ACPI_5_0_SERIAL_PORT_CONSOLE_REDIRECTION_TABLE_SIGNATURE,
     sizeof (EFI_ACPI_5_0_SPCR_DESCRIPTION_TABLE),
@@ -91,5 +91,5 @@ ReferenceAcpiTable (
   VOID
   )
 {
-  return (VOID *)&SPCR;
+  return (VOID *)&Spcr;
 }
