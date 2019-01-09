@@ -15,7 +15,7 @@
 // Advertise support for PSCI
 #define FADT_ARM_BOOT_ARCH       0x01
 
-STATIC CHAR FACP[268] = {
+STATIC UINT8 Facp[268] = {
   0x46, 0x41, 0x43, 0x50,                         // Signature : 'FACP'
   0x0C, 0x01, 0x00, 0x00,                         // Length
   0x05,                                           // Revision
@@ -56,5 +56,5 @@ ReferenceAcpiTable (
   VOID
   )
 {
-  return (void *) &FACP;
+  return (void *) &Facp;
 }
