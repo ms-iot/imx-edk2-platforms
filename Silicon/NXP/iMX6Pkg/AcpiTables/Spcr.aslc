@@ -86,10 +86,6 @@ STATIC EFI_ACPI_5_0_SPCR_DESCRIPTION_TABLE Spcr = {
   0x00000000,  //Reserved
 };
 
-VOID*
-ReferenceAcpiTable (
-  VOID
-  )
-{
-  return (VOID *)&Spcr;
-}
+// Reference the table being generated to prevent the optimizer from removing the
+// data structure from the executable
+VOID* CONST ReferenceAcpiTable = &Spcr;

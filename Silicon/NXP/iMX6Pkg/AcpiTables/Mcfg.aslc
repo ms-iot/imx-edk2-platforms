@@ -83,10 +83,6 @@ STATIC EFI_ACPI_MEMORY_MAPPED_CONFIGURATION_SPACE_ACCESS_DESCRIPTION_TABLE Mcfg 
   }
 };
 
-VOID*
-ReferenceAcpiTable (
-  VOID
-  )
-{
-  return (VOID *)&Mcfg;
-}
+// Reference the table being generated to prevent the optimizer from removing the
+// data structure from the executable
+VOID* CONST ReferenceAcpiTable = &Mcfg;

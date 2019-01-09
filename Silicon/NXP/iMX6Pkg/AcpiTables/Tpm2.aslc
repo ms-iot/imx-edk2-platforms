@@ -43,10 +43,6 @@ STATIC EFI_TPM2_ACPI_TABLE Tpm2Table = {
   EFI_TPM2_ACPI_TABLE_START_METHOD_COMMAND_RESPONSE_BUFFER_INTERFACE_WITH_TREE,
 };
 
-VOID*
-ReferenceAcpiTable (
-  VOID
-  )
-{
-  return (VOID *)&Tpm2Table;
-}
+// Reference the table being generated to prevent the optimizer from removing the
+// data structure from the executable
+VOID* CONST ReferenceAcpiTable = &Tpm2Table;

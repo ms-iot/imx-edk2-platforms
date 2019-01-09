@@ -51,10 +51,6 @@ STATIC UINT8 Facp[268] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-VOID*
-ReferenceAcpiTable (
-  VOID
-  )
-{
-  return (void *) &Facp;
-}
+// Reference the table being generated to prevent the optimizer from removing the
+// data structure from the executable
+VOID* CONST ReferenceAcpiTable = &Facp;

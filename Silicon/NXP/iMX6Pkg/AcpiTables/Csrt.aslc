@@ -323,12 +323,6 @@ STATIC EFI_ACPI_CSRT_TABLE Csrt = {
   }
 };
 
-VOID*
-ReferenceAcpiTable (
-  VOID
-  )
-{
-  // Reference the table being generated to prevent the optimizer from removing the
-  // data structure from the executable
-  return (VOID *)&Csrt;
-}
+// Reference the table being generated to prevent the optimizer from removing the
+// data structure from the executable
+VOID* CONST ReferenceAcpiTable = &Csrt;

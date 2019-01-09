@@ -111,10 +111,6 @@ STATIC ACPI_6_0_MADT_STRUCTURE Madt = {
                                     )
 };
 
-VOID*
-ReferenceAcpiTable (
-  VOID
-  )
-{
-  return (VOID *)&Madt;
-}
+// Reference the table being generated to prevent the optimizer from removing the
+// data structure from the executable
+VOID* CONST ReferenceAcpiTable = &Madt;
