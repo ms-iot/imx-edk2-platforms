@@ -16,6 +16,7 @@ Device (ENET)
 {
   Name (_HID, "NXP010D")
   Name (_UID, 0x0)
+  Name (_CCA, 0)  // ENET is not cache coherent
 
   Method (_STA) {
     Return (0xF)

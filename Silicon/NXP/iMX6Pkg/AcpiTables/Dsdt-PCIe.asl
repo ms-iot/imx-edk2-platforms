@@ -19,6 +19,7 @@ Device (PCI0)
   Name (_STR, Unicode ("PCIe 0 Device"))
   Name (_BBN, 0)
   Name (_SEG, 0)
+  Name (_CCA, 0)  // Pcie is not cache coherent
 
   // PCIE_PL memory map
   OperationRegion (PLGC, SystemMemory, 0x01FFC700, 0x220)

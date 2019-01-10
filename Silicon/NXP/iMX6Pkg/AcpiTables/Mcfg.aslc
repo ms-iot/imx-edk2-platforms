@@ -16,8 +16,8 @@
 
 #include <IndustryStandard/MemoryMappedConfigurationSpaceAccessTable.h>
 
-#include "iMX6.h"
-#include "../Drivers/PciExpress/iMX6PciExpress.h"
+#include <iMX6.h>
+#include <iMX6PciExpress.h>
 
 #define EFI_ACPI_OEM_MCFG_REVISION 0x00000001
 
@@ -48,7 +48,7 @@ typedef struct {
 //
 // Multiple APIC Description Table
 //
-EFI_ACPI_MEMORY_MAPPED_CONFIGURATION_SPACE_ACCESS_DESCRIPTION_TABLE Mcfg = {
+STATIC EFI_ACPI_MEMORY_MAPPED_CONFIGURATION_SPACE_ACCESS_DESCRIPTION_TABLE Mcfg = {
   {
     EFI_ACPI_5_0_PCI_EXPRESS_MEMORY_MAPPED_CONFIGURATION_SPACE_BASE_ADDRESS_DESCRIPTION_TABLE_SIGNATURE,
     sizeof (EFI_ACPI_MEMORY_MAPPED_CONFIGURATION_SPACE_ACCESS_DESCRIPTION_TABLE),
@@ -62,6 +62,7 @@ EFI_ACPI_MEMORY_MAPPED_CONFIGURATION_SPACE_ACCESS_DESCRIPTION_TABLE Mcfg = {
   },
   0x00,                             // Reserved
 
+  // Root Port and device ECAM spaces are disjoint. Therefore we need two entries
   {
     // PCIe Host
     {
@@ -75,6 +76,8 @@ EFI_ACPI_MEMORY_MAPPED_CONFIGURATION_SPACE_ACCESS_DESCRIPTION_TABLE Mcfg = {
     // PCIe Device
     {
       PCIE_DEVICE_CONFIG_BASE_REG - ECAM_BUS_ADDR_SIZE,  // BaseAddress
+                                         // Note: Need to subtract ECAM_BUS_ADDR_SIZE
+                                         //   since bus range starts at 0x1
       0x00,                              // PciSegmentGroupNumber (_SEG)
       0x01,                              // StartBusNumber
       0x01,                              // EndBusNumber
@@ -83,10 +86,6 @@ EFI_ACPI_MEMORY_MAPPED_CONFIGURATION_SPACE_ACCESS_DESCRIPTION_TABLE Mcfg = {
   }
 };
 
-VOID*
-ReferenceAcpiTable (
-  VOID
-  )
-{
-  return (VOID *)&Mcfg;
-}
+// Reference the table being generated to prevent the optimizer from removing the
+// data structure from the executable
+VOID* CONST ReferenceAcpiTable = &Mcfg;

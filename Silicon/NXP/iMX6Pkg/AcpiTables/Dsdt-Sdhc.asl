@@ -17,6 +17,7 @@ Device (SDH1)
 {
   Name (_HID, "NXP0108")
   Name (_UID, 0x1)
+  Name (_CCA, 0)  // SDHC is not cache coherent
 
   Method (_STA) {
     Return (0xf)
@@ -47,6 +48,7 @@ Device (SDH2)
 {
   Name (_HID, "NXP0108")
   Name (_UID, 0x2)
+  Name (_CCA, 0)  // SDHC is not cache coherent
 
   Method (_STA) {
     Return (0xf)
@@ -73,6 +75,7 @@ Device (SDH3)
 {
   Name (_HID, "NXP0108")
   Name (_UID, 0x3)
+  Name (_CCA, 0)  // SDHC is not cache coherent
 
   Method (_STA) {
     Return (0xf)
@@ -99,6 +102,7 @@ Device (SDH4)
 {
   Name (_HID, "NXP0108")
   Name (_UID, 0x4)
+  Name (_CCA, 0)  // SDHC is not cache coherent
 
   Method (_STA) {
     Return (0xf)

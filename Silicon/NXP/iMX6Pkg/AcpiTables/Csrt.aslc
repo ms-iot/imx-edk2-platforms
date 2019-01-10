@@ -12,8 +12,8 @@
 *
 **/
 
-#include "../Include/Platform.h"
-#include "../Include/iMX6.h"
+#include <iMX6.h>
+#include <Platform.h>
 
 #pragma pack(push, iMX6Csrt, 1)
 
@@ -147,7 +147,7 @@ typedef struct {
 
 #pragma pack (pop, iMX6Csrt)
 
-EFI_ACPI_CSRT_TABLE Csrt = {
+STATIC EFI_ACPI_CSRT_TABLE Csrt = {
   // CSRT Header
   {
     EFI_ACPI_5_0_CORE_SYSTEM_RESOURCE_TABLE_SIGNATURE,  // Signature "CSRT"
@@ -323,12 +323,6 @@ EFI_ACPI_CSRT_TABLE Csrt = {
   }
 };
 
-VOID*
-ReferenceAcpiTable (
-  VOID
-  )
-{
-  // Reference the table being generated to prevent the optimizer from removing the
-  // data structure from the executable
-  return (VOID *)&Csrt;
-}
+// Reference the table being generated to prevent the optimizer from removing the
+// data structure from the executable
+VOID* CONST ReferenceAcpiTable = &Csrt;

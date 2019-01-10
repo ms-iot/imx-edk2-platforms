@@ -12,9 +12,8 @@
 *
 **/
 
+#include <iMX6.h>
 #include <Platform.h>
-
-#include "iMX6.h"
 
 // DBG2 Definitions
 #pragma pack (1)
@@ -86,7 +85,7 @@ typedef struct {
 #pragma pack ()
 
 // Debug Port 2 table
-EFI_ACPI_5_0_DEBUG_PORT_2_TABLE Dbg2 = {
+STATIC EFI_ACPI_5_0_DEBUG_PORT_2_TABLE Dbg2 = {
   {
     // Header
     {
@@ -133,10 +132,6 @@ EFI_ACPI_5_0_DEBUG_PORT_2_TABLE Dbg2 = {
   },
 };
 
-VOID*
-ReferenceAcpiTable (
-  VOID
-  )
-{
-  return (void *) &Dbg2;
-}
+// Reference the table being generated to prevent the optimizer from removing the
+// data structure from the executable
+VOID* CONST ReferenceAcpiTable = &Dbg2;
