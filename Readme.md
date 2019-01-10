@@ -1,4 +1,4 @@
-[![Build Status](http://jenkinsmaster1.westus2.cloudapp.azure.com/buildStatus/icon?job=ms-iot-jenkins/imx-edk2-platforms/imx)](http://jenkinsmaster1.westus2.cloudapp.azure.com/job/ms-iot-jenkins/imx-edk2-platforms/imx)
+![Build Status](http://jenkinsmaster1.westus2.cloudapp.azure.com/buildStatus/icon?job=ms-iot-jenkins/imx-edk2-platforms/imx)
 
 This branch holds all platforms actively maintained against the
 [edk2](https://github.com/tianocore/edk2) master branch.
