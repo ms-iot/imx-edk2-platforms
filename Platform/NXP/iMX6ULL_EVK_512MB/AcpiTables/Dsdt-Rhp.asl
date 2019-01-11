@@ -1,5 +1,5 @@
 /** @file
-* Description: NXP iMX6ULLL EVK Resource Hub Proxy
+* Description: NXP iMX6ULL EVK Resource Hub Proxy
 *
 *  Copyright (c) 2018, Microsoft Corporation. All rights reserved.
 *
@@ -28,7 +28,7 @@ Device(RHPX)
   })
 
   Name(_DSD, Package()
-  {    
+  {
     ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
     Package()
     {
@@ -36,8 +36,8 @@ Device(RHPX)
       Package (2) { "GPIO-PinCount", 124 },
       Package (2) { "GPIO-UseDescriptorPinNumbers", 1 },
 
-      // InputHighImpedance, InputPullUp, OutputCmos
-      Package (2) { "GPIO-SupportedDriveModes", 0x0b },
+      // InputHighImpedance, InputPullUp, InputPullDown, OutputCmos
+      Package (2) { "GPIO-SupportedDriveModes", 0x0f },
     }
   })
 }
