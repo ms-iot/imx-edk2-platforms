@@ -15,8 +15,6 @@
 
 #include "Dsdt-Common.h"
 
-#define SOC_TYPE 0x00000067  // iMX6 Dual
-
 //
 // Configuration area base address.
 // layout is described in iMXMiscConfig.h
