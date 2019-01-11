@@ -23,7 +23,7 @@
 
 #if defined(CPU_IMX6D) || defined(CPU_IMX6Q)
 #include "iMX6_DQ.h"
-#elif defined(CPU_IMX6DQP)
+#elif defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
 #include "iMX6_DQP.h"
 #elif defined(CPU_IMX6SDL)
 #include "iMX6_SDL.h"

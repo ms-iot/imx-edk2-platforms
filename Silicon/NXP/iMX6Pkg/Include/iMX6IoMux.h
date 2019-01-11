@@ -25,7 +25,7 @@
 //
 #include <iMXGpio.h>
 
-#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined (CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
 #include "iMX6IoMux_DQP.h"
 #elif defined(CPU_IMX6SX)
 #include "iMX6IoMux_SX.h"

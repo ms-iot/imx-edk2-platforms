@@ -47,7 +47,7 @@ TimerConstructor (
   // Set the frequency scale
   MmioWrite32 ((UINTN)&pGpt->PR, FreqPreScale - 1);
 
-#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined (CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
   // Set GPT configuration:
   // - GPT Enabled
   // - Use the 24Mhz oscillator source

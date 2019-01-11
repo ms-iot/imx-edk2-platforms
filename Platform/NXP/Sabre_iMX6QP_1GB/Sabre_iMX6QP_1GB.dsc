@@ -22,7 +22,7 @@
 
 [Defines]
   DEFINE BOARD_NAME               = Sabre_iMX6QP_1GB
-  DEFINE IMX_FAMILY               = IMX6DQP
+  DEFINE IMX_FAMILY               = IMX6QP
   DEFINE IMX_CHIP_TYPE            = QUADPLUS
   DEFINE DRAM_SIZE                = DRAM_1GB
   DEFINE CONFIG_DUMP_SYMBOL_INFO  = TRUE

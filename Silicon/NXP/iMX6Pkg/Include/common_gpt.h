@@ -153,7 +153,7 @@ typedef struct {
 #define GPT_CR_STOPEN_ENABLE            1 // GPT enabled in stopdoze mode
 #define GPT_CR_STOPEN_DISABLE           0 // GPT disabled in stopoze mode
 
-#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined (CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
 #define GPT_CR_CLKSRC_NOCLK             0 // No clock to GPT
 #define GPT_CR_CLKSRC_IPGCLK            1 // ipg_clk is the clock source
 #define GPT_CR_CLKSRC_HIGHFREQ          2 // ipg_clk_highfreq

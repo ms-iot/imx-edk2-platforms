@@ -30,7 +30,7 @@
 #define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
 #endif
 
-#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6SDL) || defined (CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6SDL) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
 typedef enum {
   IMX_PAD_CFG_GPIO_0_CCM_CLKO1 = _IMX_MAKE_PADCFG(
                               IMX_SRE_FAST,
@@ -100,7 +100,7 @@ EFI_STATUS PinOutClock (IMX_CLK Clock)
     return status;
   }
 
-#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined (CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
   ImxPadConfig (IMX_PAD_GPIO_0, IMX_PAD_CFG_GPIO_0_CCM_CLKO1);
 #elif defined(CPU_IMX6SDL)
   ImxPadConfig(IMX_PAD_GPIO_0, IMX_PAD_CFG_GPIO_0_CCM_CLKO1);
