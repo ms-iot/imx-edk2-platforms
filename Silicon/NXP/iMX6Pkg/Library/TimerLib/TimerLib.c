@@ -54,7 +54,7 @@ TimerConstructor (
   MmioWrite32 ((UINTN)&pGpt->CR,
             (GPT_CR_EN_ENABLE << GPT_CR_EN_LSH) |
             (GPT_CR_CLKSRC_CLK24M << GPT_CR_CLKSRC_LSH));
-#elif defined(CPU_IMX6SDL) || defined(CPU_IMX6SX) || defined(CPU_IMX6ULL)
+#elif defined(CPU_IMX6S) || defined(CPU_IMX6DL) || defined(CPU_IMX6SX) || defined(CPU_IMX6ULL)
   // Set GPT configuration:
   // - GPT Enabled
   // - Enable 24 Mhz Oscillator

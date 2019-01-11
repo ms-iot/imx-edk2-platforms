@@ -29,7 +29,7 @@
 #include "iMX6IoMux_DQP.h"
 #elif defined(CPU_IMX6SX)
 #include "iMX6IoMux_SX.h"
-#elif defined(CPU_IMX6SDL)
+#elif defined(CPU_IMX6S) || defined(CPU_IMX6DL)
 #include "iMX6IoMux_SDL.h"
 #elif defined(CPU_IMX6ULL)
 #include "iMX6IoMux_ULL.h"

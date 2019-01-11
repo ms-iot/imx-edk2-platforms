@@ -25,7 +25,7 @@
 #include "iMX6_DQ.h"
 #elif defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
 #include "iMX6_DQP.h"
-#elif defined(CPU_IMX6SDL)
+#elif defined(CPU_IMX6S) || defined(CPU_IMX6DL)
 #include "iMX6_SDL.h"
 #elif defined(CPU_IMX6SX)
 #include "iMX6_SX.h"
