@@ -21,7 +21,7 @@
 
 [Defines]
   DEFINE BOARD_NAME     = SabreLite_iMX6Q_1GB
-  DEFINE IMX_FAMILY     = IMX6DQ
+  DEFINE IMX_FAMILY     = IMX6Q
   DEFINE IMX_CHIP_TYPE  = QUAD
   DEFINE DRAM_SIZE      = DRAM_1GB
   BOARD_DIR             = Platform/BoundaryDevices/$(BOARD_NAME)

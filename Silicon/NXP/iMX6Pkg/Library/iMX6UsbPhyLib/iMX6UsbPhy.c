@@ -327,7 +327,7 @@ ImxUsbPhyInit (
   // Apply PHY configuration:
   // - Enable low/full speed devices.
   UsbPhyCtrlReg.AsUint32 = 0;
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6ULL)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6ULL)
   UsbPhyCtrlReg.ENAUTOSET_USBCLKS = 1;
   UsbPhyCtrlReg.ENAUTOCLR_USBCLKGATE = 1;
   UsbPhyCtrlReg.ENAUTO_PWRON_PLL = 1;
@@ -337,7 +337,7 @@ ImxUsbPhyInit (
   UsbPhyCtrlReg.ENUTMILEVEL2 = 1;
   UsbPhyCtrlReg.ENUTMILEVEL3 = 1;
   MmioWrite32 ((UINTN)&UsbPhyRegsPtr->USBPHY_CTRL_SET, UsbPhyCtrlReg.AsUint32);
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6ULL)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6ULL)
   MmioWrite32 ((UINTN)&UsbPhyRegsPtr->USBPHY_IP_SET, IMX_USBPHY_IP_FIX);
 #endif
 

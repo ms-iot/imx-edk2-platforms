@@ -21,7 +21,7 @@
 #define PLL5_MIN_FREQ 648000000
 #define PLL5_MAX_FREQ 1296000000
 
-#if defined(CPU_IMX6DQ) || defined (CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined (CPU_IMX6DQP)
 #include "iMX6ClkPwr_DQ.h"
 #elif defined(CPU_IMX6SDL)
 #include "iMX6ClkPwr_SDL.h"

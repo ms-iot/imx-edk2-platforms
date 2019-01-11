@@ -21,7 +21,7 @@
 
 [Defines]
   DEFINE BOARD_NAME     = HummingBoardEdge_iMX6Q_2GB
-  DEFINE IMX_FAMILY     = IMX6DQ
+  DEFINE IMX_FAMILY     = IMX6Q
   DEFINE IMX_CHIP_TYPE  = QUAD
   DEFINE DRAM_SIZE      = DRAM_2GB
   BOARD_DIR             = Platform/SolidRun/$(BOARD_NAME)

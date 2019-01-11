@@ -1115,7 +1115,7 @@ ProcessorInfoUpdateSmbiosType4 (
   SmbiosRecordLen += VersionLen + 1;
 
   // 14h - Max Speed
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DQP)
   mProcessorInfoType4.MaxSpeed = 1200;
   mProcessorInfoType4.CurrentSpeed = 1200;
 #elif defined(CPU_IMX6SDL) || defined(CPU_IMX6SX)
@@ -1372,7 +1372,7 @@ CacheInfoUpdateSmbiosType7L2U (
 
   // 07h - Maximum Cache Size
   // 09h - Installed Size
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DQP)
   mCacheInfoType7L2U.MaximumCacheSize = 0x400; // 1MB
   mCacheInfoType7L2U.InstalledSize = 0x400; // 1MB
 #elif defined(CPU_IMX6SDL)
@@ -1524,7 +1524,7 @@ MemoryDeviceInfoUpdateSmbiosType17 (
 
   // 08h - Total Width
   // 0Ah - Data Width
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6DQP) || defined(SOCTYPE_DUALLITE)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DQP) || defined(SOCTYPE_DUALLITE)
   mMemoryDeviceInfoType17.TotalWidth = 64;
   mMemoryDeviceInfoType17.DataWidth = 64;
 #elif defined(CPU_IMX6SX) || defined(SOCTYPE_SOLO) || defined(CPU_IMX6ULL)
@@ -1565,7 +1565,7 @@ MemoryDeviceInfoUpdateSmbiosType17 (
   SmbiosRecordLen += BankLocationLen + 1;
 
   // 15h - Speed
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DQP)
   mMemoryDeviceInfoType17.Speed = 533; // 533 MHz DDR3
 #elif defined(CPU_IMX6SDL) || defined(CPU_IMX6SX) || defined(CPU_IMX6ULL)
   mMemoryDeviceInfoType17.Speed = 400; // 400 MHz DDR3

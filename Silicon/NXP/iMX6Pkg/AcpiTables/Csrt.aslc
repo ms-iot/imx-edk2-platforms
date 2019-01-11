@@ -31,7 +31,7 @@ typedef enum {
   GPT_CLOCK_HI_FREQ     = 2,
   GPT_CLOCK_EXT         = 3,
   GPT_CLOCK_LOW_FREQ    = 4,
-#if defined(CPU_IMX6DQ) || defined (CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined (CPU_IMX6DQP)
   GPT_CLOCK_OSC_DIV_8   = 5,
   GPT_CLOCK_OSC         = 7,
 #elif (defined(CPU_IMX6SDL) || defined(CPU_IMX6SX)) || defined(CPU_IMX6ULL)

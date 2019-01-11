@@ -744,14 +744,14 @@ ImxClkPwrShouldSkipTZASC1 (
   VOID
   )
 {
-#if defined(CPU_IMX6DQ)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q)
   IMX_IOMUXC_GPR_REGISTERS  *IoMuxMmioBasePtr;
   UINTN                     IomuxGPR9;
 #endif
   BOOLEAN                   Skip;
 
   Skip = FALSE;
-#if defined(CPU_IMX6DQ)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q)
   IoMuxMmioBasePtr = (IMX_IOMUXC_GPR_REGISTERS *)IOMUXC_GPR_BASE_ADDRESS;
 
   IomuxGPR9 = MmioRead32 ((UINTN) &IoMuxMmioBasePtr->GPR9);
