@@ -1524,10 +1524,10 @@ MemoryDeviceInfoUpdateSmbiosType17 (
 
   // 08h - Total Width
   // 0Ah - Data Width
-#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP) || defined(SOCTYPE_DUALLITE)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP) || defined(CPU_IMX6DL)
   mMemoryDeviceInfoType17.TotalWidth = 64;
   mMemoryDeviceInfoType17.DataWidth = 64;
-#elif defined(CPU_IMX6SX) || defined(SOCTYPE_SOLO) || defined(CPU_IMX6ULL)
+#elif defined(CPU_IMX6SX) || defined(CPU_IMX6S) || defined(CPU_IMX6ULL)
   mMemoryDeviceInfoType17.TotalWidth = 32;
   mMemoryDeviceInfoType17.DataWidth = 32;
 #else

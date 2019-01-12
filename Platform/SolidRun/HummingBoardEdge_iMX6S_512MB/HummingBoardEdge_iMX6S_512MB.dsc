@@ -23,7 +23,6 @@
 [Defines]
   DEFINE BOARD_NAME      = HummingBoardEdge_iMX6S_512MB
   DEFINE IMX_FAMILY      = IMX6S
-  DEFINE IMX_CHIP_TYPE   = SOLO
   DEFINE DRAM_SIZE       = DRAM_512MB
   BOARD_DIR             = Platform/SolidRun/$(BOARD_NAME)
   FLASH_DEFINITION      = $(BOARD_DIR)/$(BOARD_NAME).fdf
@@ -34,7 +33,7 @@
 #
 ################################################################################
 [BuildOptions]
-  GCC:*_*_*_CC_FLAGS = -D$(BOARD_NAME) -DCPU_$(IMX_FAMILY) -DSOCTYPE_$(IMX_CHIP_TYPE) -Wno-unused-local-typedefs
+  GCC:*_*_*_CC_FLAGS = -D$(BOARD_NAME) -DCPU_$(IMX_FAMILY) -Wno-unused-local-typedefs
 
 [BuildOptions.common.EDKII.DXE_CORE,BuildOptions.common.EDKII.DXE_DRIVER,BuildOptions.common.EDKII.UEFI_DRIVER,BuildOptions.common.EDKII.UEFI_APPLICATION]
   GCC:*_*_*_DLINK_FLAGS = -z common-page-size=0x1000

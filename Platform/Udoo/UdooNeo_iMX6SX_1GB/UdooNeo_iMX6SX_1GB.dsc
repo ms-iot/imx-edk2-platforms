@@ -22,7 +22,6 @@
 [Defines]
   BOARD_NAME = UdooNeo_iMX6SX_1GB
   DEFINE IMX_FAMILY      = IMX6SX
-  DEFINE IMX_CHIP_TYPE   = SOLOX
   DEFINE DRAM_SIZE       = DRAM_1GB
   BOARD_DIR             = Platform/Udoo/$(BOARD_NAME)
   FLASH_DEFINITION      = $(BOARD_DIR)/$(BOARD_NAME).fdf
@@ -33,7 +32,7 @@
 #
 ################################################################################
 [BuildOptions]
-  GCC:*_*_*_CC_FLAGS = -D$(BOARD_NAME) -DCPU_$(IMX_FAMILY) -DSOCTYPE_$(IMX_CHIP_TYPE) -Wno-unused-local-typedefs
+  GCC:*_*_*_CC_FLAGS = -D$(BOARD_NAME) -DCPU_$(IMX_FAMILY) -Wno-unused-local-typedefs
 
 [BuildOptions.common.EDKII.DXE_CORE,BuildOptions.common.EDKII.DXE_DRIVER,BuildOptions.common.EDKII.UEFI_DRIVER,BuildOptions.common.EDKII.UEFI_APPLICATION]
   GCC:*_*_*_DLINK_FLAGS = -z common-page-size=0x1000
