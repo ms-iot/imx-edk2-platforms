@@ -23,8 +23,7 @@
 
 [Defines]
   DEFINE BOARD_NAME     = ClSomImx7_iMX7D_1GB
-  DEFINE IMX_FAMILY     = IMX7
-  DEFINE IMX_CHIP_TYPE  = DUAL
+  DEFINE IMX_FAMILY     = IMX7D
   BOARD_DIR             = Platform/Compulab/$(BOARD_NAME)
   FLASH_DEFINITION      = $(BOARD_DIR)/$(BOARD_NAME).fdf
 
