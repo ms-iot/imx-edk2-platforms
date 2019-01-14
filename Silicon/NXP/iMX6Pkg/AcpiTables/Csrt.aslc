@@ -34,7 +34,7 @@ typedef enum {
 #if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
   GPT_CLOCK_OSC_DIV_8   = 5,
   GPT_CLOCK_OSC         = 7,
-#elif (defined(CPU_IMX6S) || defined(CPU_IMX6DL) || defined(CPU_IMX6SX)) || defined(CPU_IMX6ULL)
+#elif defined(CPU_IMX6S) || defined(CPU_IMX6DL) || defined(CPU_IMX6SX) || defined(CPU_IMX6ULL)
   GPT_CLOCK_OSC         = 5,
 #else
 #error iMX6 CPU Type Not Defined (Preprocessor Flag)

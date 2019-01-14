@@ -30,7 +30,8 @@
 #define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
 #endif
 
-#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6S) || defined(CPU_IMX6DL) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6S) || \
+    defined(CPU_IMX6DL) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
 typedef enum {
   IMX_PAD_CFG_GPIO_0_CCM_CLKO1 = _IMX_MAKE_PADCFG(
                               IMX_SRE_FAST,
