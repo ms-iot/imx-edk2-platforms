@@ -404,9 +404,9 @@
 !endif
 
 !if $(CONFIG_MPCORE) == TRUE
-  !if (($(IMX_CHIP_TYPE) == QUAD) || ($(IMX_CHIP_TYPE) == QUADPLUS))
+  !if (($(IMX_FAMILY) == IMX6Q) || ($(IMX_FAMILY) == IMX6QP))
   gArmPlatformTokenSpaceGuid.PcdCoreCount|4
-  !elseif (($(IMX_CHIP_TYPE) == DUAL) || ($(IMX_CHIP_TYPE) == DUALLITE))
+  !elseif (($(IMX_FAMILY) == IMX6D) || ($(IMX_FAMILY) == IMX6DL) || ($(IMX_FAMILY) == IMX6DP))
   gArmPlatformTokenSpaceGuid.PcdCoreCount|2
   !else
   gArmPlatformTokenSpaceGuid.PcdCoreCount|1

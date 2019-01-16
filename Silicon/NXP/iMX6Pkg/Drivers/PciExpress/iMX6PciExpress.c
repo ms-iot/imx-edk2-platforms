@@ -170,7 +170,7 @@ PcieSetPhyState (
   pIoMuxcGprRegisters = (IMX_IOMUXC_GPR_REGISTERS *)IOMUXC_GPR_BASE_ADDRESS;
   Gpr1Reg.AsUint32 = MmioRead32 ((UINTN)&pIoMuxcGprRegisters->GPR1);
   if (State == TRUE) {
-#if defined(CPU_IMX6DQP)
+#if defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
     Gpr1Reg.PCIE_SW_RST = 0;
 #endif
     Gpr1Reg.REF_SSP_EN = 1;     // Enable Pcie PHY

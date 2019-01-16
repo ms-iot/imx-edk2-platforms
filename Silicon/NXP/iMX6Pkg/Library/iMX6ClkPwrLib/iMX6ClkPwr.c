@@ -113,7 +113,7 @@ STATIC CONST IMX_CCGR_INDEX ImxpCcgrIndexMap[] = {
   {6, 7},  // MX6_VPU_CLK_ENABLE
 };
 
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
 STATIC IMX_CLOCK_CONTEXT ExpectedClocks[] = {
   {IMX_OSC_CLK, {24000000, IMX_CLK_NONE}},
   {IMX_PLL1_MAIN_CLK, {792000000, IMX_OSC_CLK}},
@@ -129,7 +129,7 @@ STATIC IMX_CLOCK_CONTEXT ExpectedClocks[] = {
   {IMX_AXI_CLK_ROOT, {264000000, IMX_PERIPH_CLK}},
   {IMX_MMDC_CH0_CLK_ROOT, {528000000, IMX_PERIPH_CLK}},
 };
-#elif defined(CPU_IMX6SDL) || defined(CPU_IMX6ULL)
+#elif defined(CPU_IMX6S) || defined(CPU_IMX6DL) || defined(CPU_IMX6ULL)
 STATIC IMX_CLOCK_CONTEXT ExpectedClocks[] = {
   {IMX_OSC_CLK, {24000000, IMX_CLK_NONE}},
   {IMX_PLL1_MAIN_CLK, {792000000, IMX_OSC_CLK}},
@@ -296,7 +296,7 @@ StringFromImxClk (
     return L"UART_CLK_ROOT";
   case IMX_VIDEO_27M_CLK_ROOT:
     return L"VIDEO_27M_CLK_ROOT";
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
   case IMX_IPU2_HSP_CLK_ROOT:
     return L"IPU2_HSP_CLK_ROOT";
   case IMX_IPU2_DI0_CLK_ROOT:
@@ -393,7 +393,7 @@ ImxCcmConfigureIPUDIxClockTree (
   MmioWrite32 ((UINTN)&pCcmRegisters->CHSCCDR, ChscddrReg.AsUint32);
 }
 
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
 /**
     Configure both LDB0/1 to use PLL5 clock
 **/
@@ -709,7 +709,7 @@ ImxpGetGpu3dShaderClkInfo (
   ClockInfo->Frequency = ParentInfo.Frequency / (1 + CbcmrReg.gpu3d_shader_podf);
   ClockInfo->Parent = Parent;
 
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
   if (ClockInfo->Frequency > IMX_GPU3D_SHADER_CLK_MAX) {
     DEBUG ((
             DEBUG_WARN,
@@ -1123,7 +1123,7 @@ ImxClkPwrIpuDIxEnable (
 {
   ImxClkPwrSetClockGate (IMX_IPU1_DI0_CLK_ENABLE, IMX_CCM_CCGR_OFF);
   ImxClkPwrSetClockGate (IMX_IPU1_DI1_CLK_ENABLE, IMX_CCM_CCGR_OFF);
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
   ImxClkPwrSetClockGate (IMX_IPU2_DI0_CLK_ENABLE, IMX_CCM_CCGR_OFF);
   ImxClkPwrSetClockGate (IMX_IPU2_DI1_CLK_ENABLE, IMX_CCM_CCGR_OFF);
 #endif
@@ -1137,7 +1137,7 @@ ImxClkPwrIpuDIxEnable (
 }
 #endif
 
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
 /**
     Setup the clock tree for LDB0/1
 **/
@@ -1221,7 +1221,7 @@ ImxSetPll5ReferenceRate (
 #if !defined(CPU_IMX6ULL)
   ImxClkPwrSetClockGate (IMX_IPU1_DI0_CLK_ENABLE, IMX_CCM_CCGR_OFF);
   ImxClkPwrSetClockGate (IMX_IPU1_DI1_CLK_ENABLE, IMX_CCM_CCGR_OFF);
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
   ImxClkPwrSetClockGate (IMX_IPU2_DI0_CLK_ENABLE, IMX_CCM_CCGR_OFF);
   ImxClkPwrSetClockGate (IMX_IPU2_DI1_CLK_ENABLE, IMX_CCM_CCGR_OFF);
 #endif
@@ -1452,14 +1452,14 @@ ImxClkPwrShouldSkipTZASC1 (
   VOID
   )
 {
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
   IMX_IOMUXC_GPR_REGISTERS  *IoMuxMmioBasePtr;
   UINTN                     IomuxGPR9;
 #endif
   BOOLEAN                   Skip;
 
   Skip = FALSE;
-#if defined(CPU_IMX6DQ) || defined(CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
   IoMuxMmioBasePtr = (IMX_IOMUXC_GPR_REGISTERS *)IOMUXC_GPR_BASE_ADDRESS;
 
   IomuxGPR9 = MmioRead32 ((UINTN) &IoMuxMmioBasePtr->GPR9);

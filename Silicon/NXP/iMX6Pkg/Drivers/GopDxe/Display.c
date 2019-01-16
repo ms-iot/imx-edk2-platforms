@@ -147,7 +147,7 @@ InitDisplay (
     Status = EFI_OUT_OF_RESOURCES;
     goto Exit;
   }
-#if !defined(CPU_IMX6SDL)
+#if !defined(CPU_IMX6S) && !defined(CPU_IMX6DL)
   pTempDisplayContext->IpuMmioBasePtr[IPU2] = (VOID *)IPU2_BASE;
   if (pTempDisplayContext->IoMuxMmioBasePtr == NULL) {
     DEBUG ((DEBUG_ERROR, "%a: Fail to map IPU2 IO Mux register\n", __FUNCTION__));

@@ -31,10 +31,10 @@ typedef enum {
   GPT_CLOCK_HI_FREQ     = 2,
   GPT_CLOCK_EXT         = 3,
   GPT_CLOCK_LOW_FREQ    = 4,
-#if defined(CPU_IMX6DQ) || defined (CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
   GPT_CLOCK_OSC_DIV_8   = 5,
   GPT_CLOCK_OSC         = 7,
-#elif (defined(CPU_IMX6SDL) || defined(CPU_IMX6SX)) || defined(CPU_IMX6ULL)
+#elif defined(CPU_IMX6S) || defined(CPU_IMX6DL) || defined(CPU_IMX6SX) || defined(CPU_IMX6ULL)
   GPT_CLOCK_OSC         = 5,
 #else
 #error iMX6 CPU Type Not Defined (Preprocessor Flag)
@@ -121,7 +121,7 @@ enum IMX_SDMA_CORE_CLOCK_RATIO {
 // SDMA controller descriptor
 typedef struct {
   EFI_ACPI_5_0_CSRT_RESOURCE_DESCRIPTOR_HEADER Header;
-  UINT32 ChipType; // IMX_CHIP_TYPE
+  UINT32 ChipType;
   UINT64 RegistersBaseAddress;
   UINT64 IoMuxGPR0Address;
   UINT32 Interrupt;
@@ -314,7 +314,7 @@ STATIC EFI_ACPI_CSRT_TABLE Csrt = {
         EFI_ACPI_CSRT_RD_SUBTYPE_DMA_CONTROLLER,    // Resource Subtype
         0,                                          // UID
       },
-      0,                                    // IMX_CHIP_TYPE (not used)
+      0,                                    // Reserved
       CSP_BASE_REG_PA_SDMA,                 // SDMA registers base physical address
       IOMUXC_GPR_BASE_ADDRESS,              // IoMuxGPR0 physical address
       IRQ_SDMA,                             // IRQ number

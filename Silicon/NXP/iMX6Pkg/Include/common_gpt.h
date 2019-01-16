@@ -51,7 +51,7 @@ typedef struct {
 #define GPT_CR_STOPEN_LSH      5
 #define GPT_CR_CLKSRC_LSH      6
 #define GPT_CR_FRR_LSH         9
-#if defined(CPU_IMX6SX) || defined(CPU_IMX6SDL) || defined(CPU_IMX6ULL)
+#if defined(CPU_IMX6SX) || defined(CPU_IMX6S) || defined(CPU_IMX6DL) || defined(CPU_IMX6ULL)
 #define GPT_CR_EN_24M_LSH      10
 #endif
 #define GPT_CR_SWR_LSH         15
@@ -94,7 +94,7 @@ typedef struct {
 #define GPT_CR_STOPEN_WID      1
 #define GPT_CR_CLKSRC_WID      3
 #define GPT_CR_FRR_WID         1
-#if defined(CPU_IMX6SX) || defined(CPU_IMX6SDL)
+#if defined(CPU_IMX6SX) || defined(CPU_IMX6S) || defined(CPU_IMX6DL)
 #define GPT_CR_EN_24M_WID      1
 #endif
 #define GPT_CR_SWR_WID         1
@@ -153,7 +153,7 @@ typedef struct {
 #define GPT_CR_STOPEN_ENABLE            1 // GPT enabled in stopdoze mode
 #define GPT_CR_STOPEN_DISABLE           0 // GPT disabled in stopoze mode
 
-#if defined(CPU_IMX6DQ) || defined (CPU_IMX6DQP)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
 #define GPT_CR_CLKSRC_NOCLK             0 // No clock to GPT
 #define GPT_CR_CLKSRC_IPGCLK            1 // ipg_clk is the clock source
 #define GPT_CR_CLKSRC_HIGHFREQ          2 // ipg_clk_highfreq
@@ -162,7 +162,7 @@ typedef struct {
 #define GPT_CR_CLKSRC_CLK32K            4 // ipg_clk_32k is clock source
 #define GPT_CR_CLKSRC_CLK8M             5 // crystal oscillator divided by 8 is clock source
 #define GPT_CR_CLKSRC_CLK24M            7 // crystal oscillator (24 Mhz) is clock source
-#elif defined(CPU_IMX6SDL)
+#elif defined(CPU_IMX6S) || defined(CPU_IMX6DL)
 #define GPT_CR_CLKSRC_NOCLK             0 // No clock to GPT
 #define GPT_CR_CLKSRC_IPGCLK            1 // Peripheral Clock
 #define GPT_CR_CLKSRC_HIGHFREQ          2 // High Frequency Reference Clock
@@ -191,7 +191,7 @@ typedef struct {
                                           //   continues after compare)
 #define GPT_CR_FRR_RESTART              0 // Restart mode (counter set
                                           //   to zero after compare)
-#if defined(CPU_IMX6SX) || defined(CPU_IMX6SDL) || defined(CPU_IMX6ULL)
+#if defined(CPU_IMX6SX) || defined(CPU_IMX6S) || defined(CPU_IMX6DL) || defined(CPU_IMX6ULL)
 #define GPT_CR_EN_24M_DISABLE           0  // 24M clock disabled
 #define GPT_CR_EN_24M_ENABLE            1  // 24M clock enabled
 #endif

@@ -24,7 +24,7 @@ typedef enum {
 
 typedef enum {
   IPU1,
-#if !defined(CPU_IMX6SDL)
+#if !defined(CPU_IMX6S) && !defined(CPU_IMX6DL)
   IPU2,
 #endif
   IPU_TOTAL,

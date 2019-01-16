@@ -16,8 +16,6 @@
 
 #include "Dsdt-Common.h"
 
-#define SOC_TYPE 0x00000062    // iMX6 SoloX
-
 DefinitionBlock ("DSDT.aml", "DSDT", 5, "MSFT", "EDK2", 1)
 {
   Scope (\_SB_)

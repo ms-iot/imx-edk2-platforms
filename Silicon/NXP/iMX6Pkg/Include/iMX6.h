@@ -21,11 +21,11 @@
 #define EFI_ACPI_CREATOR_ID        SIGNATURE_32('I','M','X','6')
 #define EFI_ACPI_CREATOR_REVISION  0x00000001
 
-#if defined(CPU_IMX6DQ)
+#if defined(CPU_IMX6D) || defined(CPU_IMX6Q)
 #include "iMX6_DQ.h"
-#elif defined(CPU_IMX6DQP)
+#elif defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
 #include "iMX6_DQP.h"
-#elif defined(CPU_IMX6SDL)
+#elif defined(CPU_IMX6S) || defined(CPU_IMX6DL)
 #include "iMX6_SDL.h"
 #elif defined(CPU_IMX6SX)
 #include "iMX6_SX.h"

@@ -355,9 +355,9 @@
 
 !if $(CONFIG_MPCORE) == TRUE
 
-!if $(IMX_CHIP_TYPE) == DUAL
+!if $(IMX_FAMILY) == IMX7D
   gArmPlatformTokenSpaceGuid.PcdCoreCount|2
-!else if $(IMX_CHIP_TYPE) == SOLO
+!else
   gArmPlatformTokenSpaceGuid.PcdCoreCount|1
 !endif
 
