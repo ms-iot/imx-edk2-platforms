@@ -16,21 +16,40 @@
 
 Device (UAR1)
 {
-  Name (_HID, "NXP0107")
+  Name (_HID, "NXP0113")
   Name (_UID, 0x1)
   Name (_DDN, "UART1")
   Method (_STA) {
-    Return (0x0)
+    Return (0xf)
   }
   Name (_CRS, ResourceTemplate () {
     MEMORY32FIXED (ReadWrite, 0x30860000, 0x4000, )
     Interrupt (ResourceConsumer, Level, ActiveHigh, Shared) { 58 }
+
+    // We do not support dynamic muxing of UART pins for the kernel
+    // debugger UART. The pins should already be muxed by firmware.
+
+    UARTSerialBus(
+      115200,
+      DataBitsEight,
+      StopBitsOne,
+      0x00,                  // LinesInUse
+      LittleEndian,
+      ParityTypeNone,
+      FlowControlNone,
+      0,
+      0,
+      "\\_SB.CL0.CPU0",
+      0,
+      ResourceConsumer,
+      ,
+    )
   })
 }
 
 Device (UAR2)
 {
-  Name (_HID, "NXP0107")
+  Name (_HID, "NXP0113")
   Name (_UID, 0x2)
   Name (_DDN, "UART2")
   Method (_STA) {
@@ -75,7 +94,7 @@ Device (UAR2)
       FlowControlNone,
       0,
       0,
-      "\\_SB.CPU0",
+      "\\_SB.CL0.CPU0",
       0,
       ResourceConsumer,
       ,
@@ -86,7 +105,7 @@ Device (UAR2)
 // UART3 reserved for bluetooth on CL-SOM-iMX7
 Device (UAR3)
 {
-  Name (_HID, "NXP0107")
+  Name (_HID, "NXP0113")
   Name (_UID, 0x3)
   Name (_DDN, "UART3")
   Method (_STA) {
@@ -100,7 +119,7 @@ Device (UAR3)
 
 Device (UAR4)
 {
-  Name (_HID, "NXP0107")
+  Name (_HID, "NXP0113")
   Name (_UID, 0x4)
   Name (_DDN, "UART4")
   Method (_STA) {
@@ -145,7 +164,7 @@ Device (UAR4)
       FlowControlNone,
       0,
       0,
-      "\\_SB.CPU0",
+      "\\_SB.CL0.CPU0",
       0,
       ResourceConsumer,
       ,
@@ -156,7 +175,7 @@ Device (UAR4)
 // UART1 in CL_SOM_iMX7 schematic
 Device (UAR5)
 {
-  Name (_HID, "NXP0107")
+  Name (_HID, "NXP0113")
   Name (_UID, 0x5)
   Name (_DDN, "UART5")
   Method (_STA) {
@@ -201,7 +220,7 @@ Device (UAR5)
       FlowControlNone,
       0,
       0,
-      "\\_SB.CPU0",
+      "\\_SB.CL0.CPU0",
       0,
       ResourceConsumer,
       ,
@@ -211,7 +230,7 @@ Device (UAR5)
 
 Device (UAR6)
 {
-  Name (_HID, "NXP0107")
+  Name (_HID, "NXP0113")
   Name (_UID, 0x6)
   Name (_DDN, "UART6")
   Method (_STA) {
@@ -225,7 +244,7 @@ Device (UAR6)
 
 Device (UAR7)
 {
-  Name (_HID, "NXP0107")
+  Name (_HID, "NXP0113")
   Name (_UID, 0x7)
   Name (_DDN, "UART7")
   Method (_STA) {
@@ -270,7 +289,7 @@ Device (UAR7)
       FlowControlNone,
       0,
       0,
-      "\\_SB.CPU0",
+      "\\_SB.CL0.CPU0",
       0,
       ResourceConsumer,
       ,
