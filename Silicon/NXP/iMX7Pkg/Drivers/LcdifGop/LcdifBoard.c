@@ -120,6 +120,11 @@ VOID LcdifBoardInitialize ()
     RETURN_STATUS status;
 
     //
+    // Dummy read since first read returns garbage
+    //
+    iMXI2cRead(&i2c4SIL164Config, SIL164_REG_VND_IDL, &i2cData, 1);
+
+    //
     // Sanity check to make sure we are attached to a SIL164 chip.
     // Reading one byte at a time as SIL164 support only byte read and write.
     //
