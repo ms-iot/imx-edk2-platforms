@@ -78,7 +78,7 @@
   giMX7TokenSpaceGuid.PcdWatchdogResetIndex|1
 
   #
-  # No UART initialization required. Leveraging the first boot loader
+  # UART1 for console and kernel debugger
   #
   giMXPlatformTokenSpaceGuid.PcdSerialRegisterBase|0x30860000
-
+  giMXPlatformTokenSpaceGuid.PcdKdUartInstance|1
