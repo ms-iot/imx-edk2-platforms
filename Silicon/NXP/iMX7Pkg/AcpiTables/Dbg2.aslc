@@ -32,12 +32,35 @@ typedef enum
 } DBG2_PORT_TYPE;
 
 #define EFI_ACPI_DEBUG_PORT_2_TABLE_REVISION 0x00000000
-
-#define UART_NAME_SPACE_STRING_LENGTH               sizeof("\\_SB.UAR1")
-
 #define UART_IMX7_UART_ADDRESS_SIZE       0x000000BC
-#define KD_UART_BASE_ADDR UART1_BASE_ADDRESS  // Address = iMX7 0x30860000
+
+#if FixedPcdGet32(PcdKdUartInstance) == 1
+#define KD_UART_BASE_ADDR UART1_BASE_ADDRESS
 #define KD_UART_ACPI_PATH "\\_SB.UAR1"
+#elif FixedPcdGet32(PcdKdUartInstance) == 2
+#define KD_UART_BASE_ADDR UART2_BASE_ADDRESS
+#define KD_UART_ACPI_PATH "\\_SB.UAR2"
+#elif FixedPcdGet32(PcdKdUartInstance) == 3
+#define KD_UART_BASE_ADDR UART3_BASE_ADDRESS
+#define KD_UART_ACPI_PATH "\\_SB.UAR3"
+#elif FixedPcdGet32(PcdKdUartInstance) == 4
+#define KD_UART_BASE_ADDR UART4_BASE_ADDRESS
+#define KD_UART_ACPI_PATH "\\_SB.UAR4"
+#elif FixedPcdGet32(PcdKdUartInstance) == 5
+#define KD_UART_BASE_ADDR UART5_BASE_ADDRESS
+#define KD_UART_ACPI_PATH "\\_SB.UAR5"
+#elif FixedPcdGet32(PcdKdUartInstance) == 6
+#define KD_UART_BASE_ADDR UART6_BASE_ADDRESS
+#define KD_UART_ACPI_PATH "\\_SB.UAR6"
+#elif FixedPcdGet32(PcdKdUartInstance) == 7
+#define KD_UART_BASE_ADDR UART7_BASE_ADDRESS
+#define KD_UART_ACPI_PATH "\\_SB.UAR7"
+#else
+#error "Invalid PcdKdUartInstance. Must be 1, 2, 3, 4, 5, 6, or 7"
+#endif
+
+#define UART_NAME_SPACE_STRING_LENGTH               sizeof(KD_UART_ACPI_PATH)
+
 //
 // ACPI 5.0 DBG2 structure
 //
