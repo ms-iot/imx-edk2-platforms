@@ -53,6 +53,7 @@ Device (UAR1)
     ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
     Package() {
       Package (2) { "dte-mode", 1 },
+      Package(2) {"SerCx-FriendlyName", "UART1"}
     }
   })
 }
