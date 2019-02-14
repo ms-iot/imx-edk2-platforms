@@ -72,6 +72,13 @@ Device (UAR1)
       ,
     )
   })
+
+  Name (_DSD, Package () {
+    ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+      Package () {
+        Package (2) {"SerCx-FriendlyName", "UART1"}
+      }
+  })
 }
 
 Device (UAR2)
@@ -132,6 +139,13 @@ Device (UAR2)
       ,
     )
   })
+
+  Name (_DSD, Package () {
+    ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+      Package () {
+        Package (2) {"SerCx-FriendlyName", "UART2"}
+      }
+  })
 }
 
 Device (UAR3)
@@ -189,6 +203,13 @@ Device (UAR3)
       ResourceConsumer,
       ,
     )
+  })
+
+  Name (_DSD, Package () {
+    ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+      Package () {
+        Package (2) {"SerCx-FriendlyName", "UART3"}
+      }
   })
 }
 
@@ -270,6 +291,13 @@ Device (UAR4)
       ResourceConsumer,
       ,
     )
+  })
+
+  Name (_DSD, Package () {
+    ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+      Package () {
+        Package (2) {"SerCx-FriendlyName", "UART4"}
+      }
   })
 }
 
@@ -356,5 +384,12 @@ Device (UAR5)
       ResourceConsumer,
       ,
     )
+  })
+
+  Name (_DSD, Package () {
+    ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+      Package () {
+        Package (2) {"SerCx-FriendlyName", "UART5"}
+      }
   })
 }
