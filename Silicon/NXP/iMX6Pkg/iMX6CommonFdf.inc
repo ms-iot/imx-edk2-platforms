@@ -116,7 +116,7 @@
   }
 !endif
 
-INF MdeModulePkg/Universal/Variable/EmuRuntimeDxe/EmuVariableRuntimeDxe.inf
+INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
 
 [FV.FVMAIN_COMPACT]
 FvAlignment        = 8
