@@ -648,9 +648,24 @@ VerifyNameHandling (
                                     EFI_VARIABLE_BOOTSERVICE_ACCESS);
   STATIC CHAR16 TestVariableName1[] = L"NameTestVariable";
   STATIC CHAR16 TestVariableName2[] = L"NameTestVariable\0\0\0\0";
+  STATIC CHAR16 EmptyString1[] = L"";
+  STATIC CHAR16 EmptyString2[] = L"\0";
+  CONST UINT32 LongStringLength = 3000;
+  STATIC CHAR16 LongString[3000];
+  STATIC CHAR16 Reference[] = L"abcd";
+  STATIC CONST UINT32 NameListLength = 6;
+  STATIC CHAR16 *TestVariableNameList[] = {
+                                        L"\u00E0bcd",
+                                        L"ab\\cd",
+                                        L"ab/cd",
+                                        L"AbCd",
+                                        L"a bcd",
+                                        L"a?cd"
+                                      };
   CONST UINTN DataSize = 0x200;
   UINT32 ActualVarAttributes;
   UINTN ActualDataSize;
+  UINT32 i;
 
   mImageData = AllocateZeroPool (DataSize);
   VERIFY_IS_NOT_NULL (mImageData);
@@ -659,6 +674,9 @@ VerifyNameHandling (
   mActualImageData = AllocatePool(DataSize);
   VERIFY_IS_NOT_NULL(mActualImageData);
 
+  // Check strings with excessive length (extra terminating nulls)
+  // First set it with the normal name, then verify it is still
+  // accessible with padded name.
   VERIFY_SUCCEEDED (gRT->SetVariable (
                           TestVariableName1,
                           &TestVendorGuid,
@@ -689,6 +707,7 @@ VerifyNameHandling (
     TRUE
     );
 
+  // Now check it is still accessible with the null padded name.
   ActualDataSize = DataSize;
   VERIFY_SUCCEEDED (gRT->GetVariable (
                           TestVariableName2,
@@ -715,6 +734,112 @@ VerifyNameHandling (
     Attributes,
     0
     );
+
+  // Make sure empty strings fail correctly.
+  VERIFY_ARE_EQUAL (EFI_STATUS,
+                    EFI_INVALID_PARAMETER,
+                    gRT->SetVariable (
+                          EmptyString1,
+                          &TestVendorGuid,
+                          Attributes,
+                          DataSize,
+                          mImageData),
+                    "Setting with empty string 1"
+                    );
+
+  VERIFY_ARE_EQUAL (EFI_STATUS,
+                    EFI_INVALID_PARAMETER,
+                    gRT->SetVariable (
+                          EmptyString2,
+                          &TestVendorGuid,
+                          Attributes,
+                          DataSize,
+                          mImageData),
+                    "Setting with empty string 2"
+                    );
+  
+  VERIFY_ARE_EQUAL (EFI_STATUS,
+                    EFI_INVALID_PARAMETER,
+                    gRT->SetVariable (
+                          NULL,
+                          &TestVendorGuid,
+                          Attributes,
+                          DataSize,
+                          mImageData),
+                    "Setting with null string"
+                    );
+
+  // Try very long names (In theory there should be no limit other than the OP-TEE buffer size)
+  for (i = 0; i < LongStringLength - 1; i++) {
+    // Build a long name of the form "abc...xyzabc..."
+    LongString[i] = ('a' + (i % 26));
+  }
+  LongString[i] = '\0';
+  SetAndCheckVariable(
+    LongString,
+    &TestVendorGuid,
+    Attributes,
+    0,
+    DataSize,
+    mImageData,
+    ActualDataSize,
+    mActualImageData
+    );
+
+  DeleteAndCheckVariable(
+    LongString,
+    &TestVendorGuid,
+    Attributes,
+    0
+    );
+
+  // Run through each name in the list and make sure it can be set, and
+  // is not confused with the reference name.
+  for (i = 0; i < NameListLength; i++) {
+    FreePool (mImageData);
+    mImageData = NULL;
+    mImageData = AllocateZeroPool (DataSize);
+    VERIFY_IS_NOT_NULL (mImageData);
+    RandomBytes (DataSize, mImageData);
+
+    // Make sure none of the other variables are confused with
+    // this one.
+    VerifyVariableEnumerable (
+      TestVariableNameList[i],
+      &TestVendorGuid,
+      FALSE
+      );
+
+    // Attempt to set the variable
+    SetAndCheckVariable(
+      TestVariableNameList[i],
+      &TestVendorGuid,
+      Attributes,
+      0,
+      DataSize,
+      mImageData,
+      ActualDataSize,
+      mActualImageData
+      );
+
+    // Make sure we don't confuse this with the reference
+    VerifyVariableEnumerable (
+      Reference,
+      &TestVendorGuid,
+      FALSE
+      );
+  }
+
+  // Clean up the varaibles once we are sure there are no
+  // conflicts
+  for (i = 0; i < NameListLength; i++) {
+    DeleteAndCheckVariable(
+      TestVariableNameList[i],
+      &TestVendorGuid,
+      Attributes,
+      0
+      );
+  }
 }
 
 /**
@@ -1163,6 +1288,7 @@ UefiMain (
   TEST_FUNC (TestValidAuthVars);
   TEST_FUNC (TestInvalidAuthVars);
 
+  // Run this last
   TEST_FUNC (VerifyOverflow);
 
   if (!RUN_MODULE(0, NULL)) {
