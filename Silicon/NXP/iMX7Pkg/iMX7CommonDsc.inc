@@ -830,12 +830,13 @@
   
   Platform/Microsoft/Drivers/OpteeClientPkg/AuthVarOpteeRuntimeDxe/AuthVarsDxe.inf
 !else
-  MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
-  
-  #
-  # Make VariableRuntimeDxe work at emulated non-volatile variable mode.
-  #
-  gEfiMdeModulePkgTokenSpaceGuid.PcdEmuVariableNvModeEnable|TRUE
+  MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf {
+    <PcdsFixedAtBuild>
+    #
+    # Make VariableRuntimeDxe work at emulated non-volatile variable mode.
+    #
+    gEfiMdeModulePkgTokenSpaceGuid.PcdEmuVariableNvModeEnable|TRUE
+  }
 !endif
 
   # Applications
