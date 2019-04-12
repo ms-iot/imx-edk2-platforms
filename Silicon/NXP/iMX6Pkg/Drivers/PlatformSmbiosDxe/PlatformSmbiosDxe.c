@@ -44,6 +44,7 @@
 #include <Library/MemoryAllocationLib.h>
 #include <Library/PrintLib.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/UefiRuntimeServicesTableLib.h>
 #include <Library/UefiDriverEntryPoint.h>
 #include <Library/UefiLib.h>
 
@@ -497,6 +498,98 @@ GetImx6SerialNumber (
   return ProcessorSerialNumber;
 }
 
+// {72096f5b-2ac7-4e6d-a7bb-bf947d673415}
+EFI_GUID ProvisioningGuid =
+{ 0x72096f5b, 0x2ac7, 0x4e6d, { 0xa7, 0xbb, 0xbf, 0x94, 0x7d, 0x67, 0x34, 0x15 } };
+
+STATIC CONST CHAR16  mSystemSerialNumber[] = L"SmbiosSystemSerialNumber";
+STATIC CONST CHAR8   SystemSerialNumber[] = "SerialNumberFromUEFIVars\0";
+
+STATIC CONST CHAR16  mSystemSkuNumber[] = L"SmbiosSystemSkuNumber";
+STATIC CONST CHAR8   SystemSkuNumber[] = "ActualSkuFromUEFIVars\0";
+
+EFI_STATUS
+RetrieveSmbiosVariable (
+  CONST CHAR16 *VariableName,
+  CHAR16 *SmbiosEntry,
+  UINTN *SmbiosEntryLen,
+  UINT32 *SmbiosRecordLen
+  )
+{
+  CHAR8                 *Data;
+  UINTN                 DataSize;
+  EFI_STATUS            Status;
+
+  DataSize = 0;
+  Status = gRT->GetVariable (
+                  (CHAR16 *) VariableName,
+                  &ProvisioningGuid,
+                  NULL,
+                  &DataSize,
+                  NULL
+                  );
+
+  if (Status == EFI_BUFFER_TOO_SMALL) {
+    Data = AllocatePool (DataSize);
+    if (Data == NULL) {
+      return EFI_OUT_OF_RESOURCES;
+    }
+
+    Status = gRT->GetVariable (
+                    (CHAR16 *) VariableName,
+                    &ProvisioningGuid,
+                    NULL,
+                    &DataSize,
+                    Data
+                    );
+
+      (VOID)UnicodeSPrintAsciiFormat (SmbiosEntry,
+                                  sizeof (CHAR16) * SMBIOS_STRING_MAX_LENGTH,
+                                  Data
+                                  );
+
+      *SmbiosEntryLen = StrLen (SmbiosEntry);
+      *SmbiosRecordLen += *SmbiosEntryLen + 1;
+
+      FreePool (Data);
+      Status = EFI_SUCCESS;
+    }
+  return Status;
+}
+
+EFI_STATUS
+StoreSmbiosVariable (
+  CONST CHAR16 *VariableName,
+  CONST CHAR8 *VariableString
+  )
+{
+  EFI_STATUS            Status;
+  DEBUG ((DEBUG_ERROR, "%a: Setting SmbiosVariable\n", __FUNCTION__));
+
+  Status = gRT->SetVariable (
+                  (CHAR16 *)VariableName,
+                  &ProvisioningGuid,
+                  EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS,
+                  AsciiStrLen(VariableString)+1,
+                  (VOID *)VariableString
+                  );
+
+  return Status;
+}
+
+EFI_STATUS
+FakeSMBIOSDataInVolatileStorage (
+  VOID
+  )
+{
+  EFI_STATUS            Status;
+
+  Status = StoreSmbiosVariable (mSystemSerialNumber, SystemSerialNumber);
+  Status = StoreSmbiosVariable (mSystemSkuNumber, SystemSkuNumber);
+
+  return Status;
+}
+
 EFI_STATUS
 BiosInfoUpdateSmbiosType0 (
   VOID
@@ -681,14 +774,20 @@ SysInfoUpdateSmbiosType1 (
     Status = EFI_OUT_OF_RESOURCES;
     goto Exit;
   }
-  (VOID)UnicodeSPrintAsciiFormat (SerialNumber,
-                                  sizeof (CHAR16) * SMBIOS_STRING_MAX_LENGTH,
-                                  "%08X%08X",
-                                  (UINT32)(ProcessorSerialNumber >> 32),
-                                  (UINT32)ProcessorSerialNumber
-                                  );
-  SerialNumberLen = StrLen (SerialNumber);
-  SmbiosRecordLen += SerialNumberLen + 1;
+
+  Status = RetrieveSmbiosVariable(mSystemSerialNumber,
+                                  SerialNumber, &SerialNumberLen,
+                                  &SmbiosRecordLen);
+  if (Status != EFI_SUCCESS) {
+    (VOID)UnicodeSPrintAsciiFormat (SerialNumber,
+                                    sizeof (CHAR16) * SMBIOS_STRING_MAX_LENGTH,
+                                    "%08X%08X",
+                                    (UINT32)(ProcessorSerialNumber >> 32),
+                                    (UINT32)ProcessorSerialNumber
+                                    );
+    SerialNumberLen = StrLen (SerialNumber);
+    SmbiosRecordLen += SerialNumberLen + 1;
+  }
 
   // 08h - UUID
   // RFC4122 - Initial UUID must be the same across all boards of the same type
@@ -732,14 +831,26 @@ SysInfoUpdateSmbiosType1 (
   mSysInfoType1.Uuid = *SystemUuid;
 
   // 19h - SKU Number String
-  SkuNumber = (CHAR16 *)FixedPcdGetPtr (PcdSystemSkuNumber);
-  SkuNumberLen = StrLen (SkuNumber);
-  if (SkuNumberLen == 0) {
-    DEBUG ((DEBUG_ERROR, "%a: PcdSystemSkuNumber not filled\n", __FUNCTION__));
-    Status = EFI_INVALID_PARAMETER;
+  SkuNumber = AllocateZeroPool (sizeof (CHAR16) * SMBIOS_STRING_MAX_LENGTH);
+  if (SkuNumber == NULL) {
+    Status = EFI_OUT_OF_RESOURCES;
     goto Exit;
   }
-  SmbiosRecordLen += SkuNumberLen + 1;
+
+  Status = RetrieveSmbiosVariable(mSystemSkuNumber,
+                                  SkuNumber, &SkuNumberLen,
+                                  &SmbiosRecordLen);
+  if (Status != EFI_SUCCESS) {
+    FreePool (SkuNumber);
+    SkuNumber = (CHAR16 *)FixedPcdGetPtr (PcdSystemSkuNumber);
+    SkuNumberLen = StrLen (SkuNumber);
+    if (SkuNumberLen == 0) {
+      DEBUG ((DEBUG_ERROR, "%a: PcdSystemSkuNumber not filled\n", __FUNCTION__));
+      Status = EFI_INVALID_PARAMETER;
+      goto Exit;
+    }
+    SmbiosRecordLen += SkuNumberLen + 1;
+  }
 
   // 1Ah - Family String
   Family = (CHAR16 *)FixedPcdGetPtr (PcdSystemFamily);
@@ -790,6 +901,9 @@ Exit:
   }
   if (SystemUuid != NULL) {
     FreePool (SystemUuid);
+  }
+  if (SkuNumber != NULL && SkuNumber != FixedPcdGetPtr (PcdSystemSkuNumber)) {
+    FreePool (SkuNumber);
   }
   if (SmbiosRecord != NULL) {
     FreePool (SmbiosRecord);
@@ -1725,6 +1839,11 @@ PlatformSmbiosDriverEntryPoint (
   )
 {
   EFI_STATUS Status;
+
+  Status = FakeSMBIOSDataInVolatileStorage ();
+  if (EFI_ERROR (Status)) {
+    goto Exit;
+  }
 
   Status = BiosInfoUpdateSmbiosType0 ();
   if (EFI_ERROR (Status)) {
