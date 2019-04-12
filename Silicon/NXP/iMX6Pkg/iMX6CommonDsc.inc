@@ -932,6 +932,10 @@
   #
   Silicon/NXP/iMXPlatformPkg/Drivers/SmbiosConfigDxe/SmbiosConfigDxe.inf
 
+  # ProvisioningProvisioning
+  #
+  Silicon/NXP/iMXPlatformPkg/Drivers/Provisioning/Provisioning.inf
+
   #
   # USB Stack
   #
