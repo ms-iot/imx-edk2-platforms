@@ -92,14 +92,15 @@ LibGetTime (
 
   ElapsedSeconds = GetPerformanceCounter () / TimerFreq;
 
-  // Don't report Year/Month since Leap Year logic is not implemented. This should
+  // Start time at the Unix Epoch so EfiTimeToEpoch works. This should
   // be fine since the sole purpose of this special implementation is to be
   // used for relative time measurement. e.g. Windows Boot Manager.
-  Time->Year = 0;
-  Time->Month = 0;
+  // Note that this time fails the IsTimeValid check since it predates 2000.
+  Time->Year = 1970;
+  Time->Month = 1;
 
   CONST UINT64 SECONDS_PER_DAY = 24 * 60 * 60;
-  Time->Day = (ElapsedSeconds / SECONDS_PER_DAY);
+  Time->Day = 1 + (ElapsedSeconds / SECONDS_PER_DAY);
   ElapsedSeconds %= SECONDS_PER_DAY;
 
   CONST UINT64 SECONDS_PER_HOUR = 60 * 60;
