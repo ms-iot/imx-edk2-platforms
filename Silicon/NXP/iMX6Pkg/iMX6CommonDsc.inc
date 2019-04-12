@@ -66,6 +66,7 @@
   DefaultExceptionHandlerLib|ArmPkg/Library/DefaultExceptionHandlerLib/DefaultExceptionHandlerLib.inf
   CpuExceptionHandlerLib|ArmPkg/Library/ArmExceptionLib/ArmExceptionLib.inf
   TimerLib|Silicon/NXP/iMX6Pkg/Library/TimerLib/TimerLib.inf
+  TimeBaseLib|EmbeddedPkg/Library/TimeBaseLib/TimeBaseLib.inf
 
   #
   # Memory
@@ -932,6 +933,11 @@
   FatPkg/EnhancedFatDxe/Fat.inf
   Platform/Microsoft/Drivers/SdMmcDxe/SdMmcDxe.inf
   Silicon/NXP/iMXPlatformPkg/Drivers/SdhcDxe/SdhcDxe.inf
+
+  #
+  # ProvisioningProvisioning
+  #
+  Silicon/NXP/iMXPlatformPkg/Drivers/Provisioning/Provisioning.inf
 
   #
   # USB Stack

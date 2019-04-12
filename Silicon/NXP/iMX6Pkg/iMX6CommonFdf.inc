@@ -49,6 +49,11 @@
   INF Silicon/NXP/iMXPlatformPkg/Drivers/SdhcDxe/SdhcDxe.inf
 
   #
+  # Provisioning
+  #
+  INF Silicon/NXP/iMXPlatformPkg/Drivers/Provisioning/Provisioning.inf
+
+  #
   # USB Stack
   #
 !if $(CONFIG_USB) == TRUE
