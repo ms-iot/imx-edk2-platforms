@@ -155,7 +155,7 @@ ProvisionedCheck ()
   DataSize = 0;
   Status = gRT->GetVariable (
                   (CHAR16*) mDeviceProvisioned,
-                  &gProvisioningGuid,
+                  &giMXPlatformProvisioningGuid,
                   NULL,
                   &DataSize,
                   NULL
@@ -186,7 +186,7 @@ ProvisionedSet ()
   Data = 1;
   Status = gRT->SetVariable (
                   (CHAR16 *) mDeviceProvisioned,
-                  &gProvisioningGuid,
+                  &giMXPlatformProvisioningGuid,
                   EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS |
                   EFI_VARIABLE_RUNTIME_ACCESS,
                   1,
@@ -474,7 +474,7 @@ ReceiveCrossSignedCert ()
 
   Status = gRT->SetVariable (
                   (CHAR16 *) mDeviceCertVariableName,
-                  &gProvisioningGuid,
+                  &giMXPlatformProvisioningGuid,
                   EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS |
                   EFI_VARIABLE_RUNTIME_ACCESS,
                   CertLen,
@@ -523,7 +523,7 @@ ReceiveSmbiosValues ()
 
   Status = gRT->SetVariable (
                   (CHAR16 *) mSmbiosSystemSerialNumberName,
-                  &gProvisioningGuid,
+                  &giMXPlatformProvisioningGuid,
                   EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS |
                   EFI_VARIABLE_RUNTIME_ACCESS,
                   SmbiosLen,

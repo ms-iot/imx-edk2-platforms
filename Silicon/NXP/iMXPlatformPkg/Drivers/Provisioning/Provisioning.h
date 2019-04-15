@@ -21,6 +21,6 @@
 
 #define SEND_REQUEST_TO_HOST(msg) SerialPortWrite ((UINT8*)msg, AsciiStrLen (msg))
 
-extern EFI_GUID gProvisioningGuid;
+extern EFI_GUID giMXPlatformProvisioningGuid;
 
 #endif // _PROVISIONING_H_

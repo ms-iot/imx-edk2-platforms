@@ -61,6 +61,6 @@ typedef struct {
   UINT8 MacAddress[6];
 } GLOBAL_PAGE_DATA;
 
-extern EFI_GUID gProvisioningGuid;
+extern EFI_GUID giMXPlatformProvisioningGuid;
 
 #endif  /* _PLATFORM_SMBIOS_DXE_H_ */
