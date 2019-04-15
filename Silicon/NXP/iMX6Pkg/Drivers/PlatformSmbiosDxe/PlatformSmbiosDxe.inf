@@ -49,7 +49,11 @@
   gEfiSmbiosProtocolGuid                        # PROTOCOL SOMETIMES_CONSUMED
 
 [Guids]
+<<<<<<< c75776f4c7eb7f265432815a278262b066035946
   giMXPlatformSmbiosOverrideGuid
+=======
+  gProvisioningGuid
+>>>>>>> Update Provisioning driver to fit UEFI style
 
 [FixedPcd]
   gArmPlatformTokenSpaceGuid.PcdCoreCount
