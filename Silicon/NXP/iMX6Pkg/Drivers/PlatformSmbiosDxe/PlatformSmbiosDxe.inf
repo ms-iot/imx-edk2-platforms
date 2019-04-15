@@ -48,7 +48,7 @@
   gEfiSmbiosProtocolGuid                        # PROTOCOL SOMETIMES_CONSUMED
 
 [Guids]
-  gProvisioningGuid
+  giMXPlatformProvisioningGuid
 
 [FixedPcd]
   gArmPlatformTokenSpaceGuid.PcdCoreCount

@@ -36,7 +36,7 @@
   TimeBaseLib
 
 [Guids]
-  gProvisioningGuid
+  giMXPlatformProvisioningGuid
 
 [Protocols]
   gEfiTcg2ProtocolGuid

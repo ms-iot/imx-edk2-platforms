@@ -537,7 +537,7 @@ RetrieveSmbiosVariable (
   DataSize = 0;
   Status = gRT->GetVariable (
                   (CHAR16 *) VariableName,
-                  &gProvisioningGuid,
+                  &giMXPlatformProvisioningGuid,
                   NULL,
                   &DataSize,
                   NULL
@@ -551,7 +551,7 @@ RetrieveSmbiosVariable (
 
     Status = gRT->GetVariable (
                     (CHAR16 *) VariableName,
-                    &gProvisioningGuid,
+                    &giMXPlatformProvisioningGuid,
                     NULL,
                     &DataSize,
                     Data
@@ -598,7 +598,7 @@ StoreSmbiosVariable (
 
   Status = gRT->SetVariable (
                   (CHAR16 *) VariableName,
-                  &gProvisioningGuid,
+                  &giMXPlatformProvisioningGuid,
                   EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS,
                   AsciiStrLen (VariableString)+1,
                   (VOID *) VariableString
