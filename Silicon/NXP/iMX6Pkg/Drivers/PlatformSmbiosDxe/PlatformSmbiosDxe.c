@@ -498,16 +498,30 @@ GetImx6SerialNumber (
   return ProcessorSerialNumber;
 }
 
-// {72096f5b-2ac7-4e6d-a7bb-bf947d673415}
-EFI_GUID ProvisioningGuid =
-{ 0x72096f5b, 0x2ac7, 0x4e6d, { 0xa7, 0xbb, 0xbf, 0x94, 0x7d, 0x67, 0x34, 0x15 } };
+// Key/Value pairs for SMBIOS variables to pull from UEFI vars.
+// The values are here for testing and can be removed once persistent
+// storage is available.
+STATIC CONST CHAR16  mSystemSerialNumberKey[] = L"SmbiosSystemSerialNumber";
+STATIC CONST CHAR8   mSystemSerialNumberVal[] = "SerialNumberFromUEFIVars\0";
 
-STATIC CONST CHAR16  mSystemSerialNumber[] = L"SmbiosSystemSerialNumber";
-STATIC CONST CHAR8   SystemSerialNumber[] = "SerialNumberFromUEFIVars\0";
+STATIC CONST CHAR16  mSystemSkuNumberKey[] = L"SmbiosSystemSkuNumber";
+STATIC CONST CHAR8   mSystemSkuNumberVal[] = "ActualSkuFromUEFIVars\0";
 
-STATIC CONST CHAR16  mSystemSkuNumber[] = L"SmbiosSystemSkuNumber";
-STATIC CONST CHAR8   SystemSkuNumber[] = "ActualSkuFromUEFIVars\0";
+/**
+  Retrieve an SMBIOS variable from UEFI variables.
 
+  @param[in] VariableName         Pointer to the string containing the key name.
+
+  @param[out] SmbiosEntry         Pointer to return the SMBIOS string.
+  @param[out] SmbiosEntryLen      Length of the string retrieved for SMBIOS var.
+  @param[in,out] SmbiosRecordLen  Pointer to the SMBIOS record length so this
+                                  function can increment it for the caller.
+
+  @retval  EFI_SUCCESS            SMBIOS string retrieved successfully.
+  @retval  EFI_OUT_OF_RESOURCES   Unable to allocate space for the buffer.
+  @retval  EFI_STATUS             Status of gRT->GetVariable ()
+
+**/
 EFI_STATUS
 RetrieveSmbiosVariable (
   CONST CHAR16 *VariableName,
@@ -523,7 +537,7 @@ RetrieveSmbiosVariable (
   DataSize = 0;
   Status = gRT->GetVariable (
                   (CHAR16 *) VariableName,
-                  &ProvisioningGuid,
+                  &gProvisioningGuid,
                   NULL,
                   &DataSize,
                   NULL
@@ -537,26 +551,43 @@ RetrieveSmbiosVariable (
 
     Status = gRT->GetVariable (
                     (CHAR16 *) VariableName,
-                    &ProvisioningGuid,
+                    &gProvisioningGuid,
                     NULL,
                     &DataSize,
                     Data
                     );
 
-      (VOID)UnicodeSPrintAsciiFormat (SmbiosEntry,
-                                  sizeof (CHAR16) * SMBIOS_STRING_MAX_LENGTH,
-                                  Data
-                                  );
-
-      *SmbiosEntryLen = StrLen (SmbiosEntry);
-      *SmbiosRecordLen += *SmbiosEntryLen + 1;
-
+    if (EFI_ERROR (Status)) {
       FreePool (Data);
-      Status = EFI_SUCCESS;
+      return Status;
     }
+
+    (VOID)UnicodeSPrintAsciiFormat (SmbiosEntry,
+                                    sizeof (CHAR16) * SMBIOS_STRING_MAX_LENGTH,
+                                    Data
+                                    );
+
+    *SmbiosEntryLen = StrLen (SmbiosEntry);
+    *SmbiosRecordLen += *SmbiosEntryLen + 1;
+
+    FreePool (Data);
+  }
+
   return Status;
 }
 
+/**
+  Store an SMBIOS variable into UEFI variables.
+
+  This function is for testing until non-volatile UEFI vars are working.
+  TODO: REMOVE THIS FUNCTION BEFORE MERGING INTO MAIN BRANCH.
+
+  @param[in] VariableName         Pointer to the string containing the key name.
+  @param[in] VariableString       Pointer to the SMBIOS string.
+
+  @retval  EFI_STATUS             Status of gRT->GetVariable ()
+
+**/
 EFI_STATUS
 StoreSmbiosVariable (
   CONST CHAR16 *VariableName,
@@ -564,19 +595,27 @@ StoreSmbiosVariable (
   )
 {
   EFI_STATUS            Status;
-  DEBUG ((DEBUG_ERROR, "%a: Setting SmbiosVariable\n", __FUNCTION__));
 
   Status = gRT->SetVariable (
-                  (CHAR16 *)VariableName,
-                  &ProvisioningGuid,
+                  (CHAR16 *) VariableName,
+                  &gProvisioningGuid,
                   EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS,
-                  AsciiStrLen(VariableString)+1,
-                  (VOID *)VariableString
+                  AsciiStrLen (VariableString)+1,
+                  (VOID *) VariableString
                   );
 
   return Status;
 }
 
+/**
+  Store an several SMBIOS variable into UEFI variables.
+
+  This function is for testing until non-volatile UEFI vars are working.
+  TODO: REMOVE THIS FUNCTION BEFORE MERGING INTO MAIN BRANCH.
+
+  @retval  EFI_STATUS             Status of StoreSmbiosVariable ()
+
+**/
 EFI_STATUS
 FakeSMBIOSDataInVolatileStorage (
   VOID
@@ -584,8 +623,12 @@ FakeSMBIOSDataInVolatileStorage (
 {
   EFI_STATUS            Status;
 
-  Status = StoreSmbiosVariable (mSystemSerialNumber, SystemSerialNumber);
-  Status = StoreSmbiosVariable (mSystemSkuNumber, SystemSkuNumber);
+  Status = StoreSmbiosVariable (mSystemSerialNumberKey, mSystemSerialNumberVal);
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }
+
+  Status = StoreSmbiosVariable (mSystemSkuNumberKey, mSystemSkuNumberVal);
 
   return Status;
 }
@@ -775,9 +818,9 @@ SysInfoUpdateSmbiosType1 (
     goto Exit;
   }
 
-  Status = RetrieveSmbiosVariable(mSystemSerialNumber,
-                                  SerialNumber, &SerialNumberLen,
-                                  &SmbiosRecordLen);
+  Status = RetrieveSmbiosVariable (mSystemSerialNumberKey,
+                                   SerialNumber, &SerialNumberLen,
+                                   &SmbiosRecordLen);
   if (Status != EFI_SUCCESS) {
     (VOID)UnicodeSPrintAsciiFormat (SerialNumber,
                                     sizeof (CHAR16) * SMBIOS_STRING_MAX_LENGTH,
@@ -837,9 +880,9 @@ SysInfoUpdateSmbiosType1 (
     goto Exit;
   }
 
-  Status = RetrieveSmbiosVariable(mSystemSkuNumber,
-                                  SkuNumber, &SkuNumberLen,
-                                  &SmbiosRecordLen);
+  Status = RetrieveSmbiosVariable (mSystemSkuNumberKey,
+                                   SkuNumber, &SkuNumberLen,
+                                   &SmbiosRecordLen);
   if (Status != EFI_SUCCESS) {
     FreePool (SkuNumber);
     SkuNumber = (CHAR16 *)FixedPcdGetPtr (PcdSystemSkuNumber);
@@ -902,7 +945,7 @@ Exit:
   if (SystemUuid != NULL) {
     FreePool (SystemUuid);
   }
-  if (SkuNumber != NULL && SkuNumber != FixedPcdGetPtr (PcdSystemSkuNumber)) {
+  if ((SkuNumber != NULL) && (SkuNumber != FixedPcdGetPtr (PcdSystemSkuNumber))) {
     FreePool (SkuNumber);
   }
   if (SmbiosRecord != NULL) {

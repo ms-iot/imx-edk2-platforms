@@ -36,6 +36,7 @@
   TimeBaseLib
 
 [Guids]
+  gProvisioningGuid
 
 [Protocols]
   gEfiTcg2ProtocolGuid

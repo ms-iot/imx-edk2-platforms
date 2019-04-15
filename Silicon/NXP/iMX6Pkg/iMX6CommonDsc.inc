@@ -935,7 +935,7 @@
   Silicon/NXP/iMXPlatformPkg/Drivers/SdhcDxe/SdhcDxe.inf
 
   #
-  # ProvisioningProvisioning
+  # Provisioning
   #
   Silicon/NXP/iMXPlatformPkg/Drivers/Provisioning/Provisioning.inf
 
