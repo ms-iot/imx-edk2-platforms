@@ -1,0 +1,61 @@
+trigger:
+- imx
+
+jobs:
+  - job: Build67
+    displayName: Build iMX 6 & 7
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    strategy:
+      matrix:
+        ClSomImx7_iMX7D_1GB:
+          Target: ClSomImx7_iMX7D_1GB
+        HummingBoardEdge_iMX6DL_1GB:
+          Target: HummingBoardEdge_iMX6DL_1GB
+        HummingBoardEdge_iMX6Q_2GB:
+          Target: HummingBoardEdge_iMX6Q_2GB
+        HummingBoardEdge_iMX6S_512MB:
+          Target: HummingBoardEdge_iMX6S_512MB
+        Sabre_iMX6Q_1GB:
+          Target: Sabre_iMX6Q_1GB
+        Sabre_iMX6QP_1GB:
+          Target: Sabre_iMX6QP_1GB
+        Sabre_iMX7D_1GB:
+          Target: Sabre_iMX7D_1GB
+        SabreLite_iMX6Q_1GB:
+          Target: SabreLite_iMX6Q_1GB
+        UdooNeo_iMX6SX_1GB:
+          Target: UdooNeo_iMX6SX_1GB
+        VAB820_iMX6Q_1GB:
+          TargeT: VAB820_iMX6Q_1GB
+
+    steps:
+    - script: |
+        sudo apt-get install build-essential python python-dev python-crypto python-wand device-tree-compiler bison flex swig iasl uuid-dev wget git bc libssl-dev
+      displayName: Download tools
+
+    - script: |
+        wget https://releases.linaro.org/components/toolchain/binaries/6.4-2017.11/arm-linux-gnueabihf/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz
+        tar xf gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz
+      displayName: Download gcc
+
+    - script: |
+        pushd ..
+        git clone --recursive https://github.com/tianocore/edk2
+        git clone https://github.com/ms-iot/imx-iotcore.git
+        popd
+      displayName: Clone repos
+
+
+    # Builds all components except the final HAB signed SPL (Need to find a way to store the NXP code signing tools)
+    - script: |
+        cp -r . ../imx-edk2-platforms
+      displayName: Relocate EDK2 platforms directory
+
+    - script: |
+        pushd ../imx-iotcore
+        echo build/firmware/$(Target)
+        ls
+        cd build/firmware/$(Target)
+        make uefi CROSS_COMPILE=$(Build.SourcesDirectory)/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+      displayName: Build UEFI
