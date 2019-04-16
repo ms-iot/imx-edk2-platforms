@@ -27,7 +27,7 @@ jobs:
         UdooNeo_iMX6SX_1GB:
           Target: UdooNeo_iMX6SX_1GB
         VAB820_iMX6Q_1GB:
-          TargeT: VAB820_iMX6Q_1GB
+          Target: VAB820_iMX6Q_1GB
 
     steps:
     - script: |
@@ -45,7 +45,6 @@ jobs:
         git clone https://github.com/ms-iot/imx-iotcore.git
         popd
       displayName: Clone repos
-
 
     # Builds all components except the final HAB signed SPL (Need to find a way to store the NXP code signing tools)
     - script: |
