@@ -61,12 +61,12 @@ jobs:
 
     - script: |
         pushd ../imx-edk2-platforms
-        python3 ci/build_cgmanifest.py ci/cgmanifest_template.json
+        python3 ../imx-iotcore/ci/build_cgmanifest.py ci/cgmanifest_template.json
         cat cgmanifest.json
         popd
 
         pushd ../edk2
-        python3 ../imx-edk2-platforms/ci/build_cgmanifest.py
+        python3 ../imx-iotcore/ci/build_cgmanifest.py
         cat cgmanifest.json
         popd
       displayName: Generate dynamic Component Governance cgmanifest.json
