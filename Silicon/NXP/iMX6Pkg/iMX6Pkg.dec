@@ -136,3 +136,6 @@
 [PcdsFeatureFlag.common]
   giMX6TokenSpaceGuid.PcdGpuEnable|FALSE|BOOLEAN|0x00001000
   giMX6TokenSpaceGuid.PcdLvdsEnable|FALSE|BOOLEAN|0x00001001
+  giMX6TokenSpaceGuid.PcdUseDefaultX2LvdsPanel|FALSE|BOOLEAN|0x00001002
+  giMX6TokenSpaceGuid.PcdGopHorizontalFlip|FALSE|BOOLEAN|0x00001003
+  giMX6TokenSpaceGuid.PcdGopVerticalFlip|FALSE|BOOLEAN|0x00001004

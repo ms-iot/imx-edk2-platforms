@@ -340,8 +340,10 @@ ConfigureCpmemFrameBuffer (
 
   // No support for rotation and flipping for now
   CpmemWord0PackedReg.Rotation = CPMEM_ROT_NO_ROTATION;
-  CpmemWord0PackedReg.HorizontalFlip = CPMEM_HF_NO_HFLIP;
-  CpmemWord0PackedReg.VerticalFlip = CPMEM_HF_NO_VFLIP;
+  CpmemWord0PackedReg.HorizontalFlip = FeaturePcdGet(PcdGopHorizontalFlip) ?
+                                    CPMEM_HF_HFLIP_ENABLE : CPMEM_HF_NO_HFLIP;
+  CpmemWord0PackedReg.VerticalFlip = FeaturePcdGet(PcdGopVerticalFlip) ?
+                                    CPMEM_HF_VFLIP_ENABLE : CPMEM_HF_NO_VFLIP;
   CpmemWord0PackedReg.ThresholdEnable = CPMEM_THE_DISABLE;
 
   // Disable conditional access

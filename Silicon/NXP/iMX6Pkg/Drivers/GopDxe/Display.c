@@ -80,6 +80,27 @@ IMX_DISPLAY_TIMING Hannstar_XGA = {
   PIXEL_FORMAT_BGRA32,       // PixelFormat
 };
 
+IMX_DISPLAY_TIMING DefaultX2LvdsPanel = {
+  29500000,   // PixelClock
+  800,        // HActive
+  320,        // HBlank
+  480,        // VActive
+  38,         // VBlank
+  32,         // HSync
+  4,          // VSync
+  100,        // HSyncOffset;
+  10,         // VSyncOffset;
+  800,        // HImageSize
+  480,        // VImageSize
+  0,          // HBorder
+  0,          // VBorder
+  0,          // EdidFlags
+  0,          // Flags
+  1,          // PixelRepetition
+  32,          // Bpp
+  PIXEL_FORMAT_BGRA32,       // PixelFormat
+};
+
 EFI_STATUS
 GetPreferredTiming (
   IN  UINT8               *EdidDataPtr,
@@ -90,8 +111,13 @@ GetPreferredTiming (
   EFI_STATUS Status;
 
   if (FeaturePcdGet (PcdLvdsEnable)) {
-    *PreferredTimingPtr = Hannstar_XGA;
-    Status = EFI_SUCCESS;
+    if (FeaturePcdGet (PcdUseDefaultX2LvdsPanel)) {
+      *PreferredTimingPtr = DefaultX2LvdsPanel;
+      Status = EFI_SUCCESS;
+    } else {
+      *PreferredTimingPtr = Hannstar_XGA;
+      Status = EFI_SUCCESS;
+    }
   } else {
     Status = GetEdidPreferredTiming (EdidDataPtr, EdidDataSize, PreferredTimingPtr);
     if (Status != EFI_SUCCESS) {
