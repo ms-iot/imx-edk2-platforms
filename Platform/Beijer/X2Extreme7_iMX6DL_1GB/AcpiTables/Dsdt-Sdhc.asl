@@ -48,34 +48,3 @@ Device (SDH2)
   }
 }
 
-// uSDHC3: eMMC
-Device (SDH3)
-{
-  Name (_HID, "NXP0108")
-  Name (_UID, 0x3)
-
-  Method (_STA) {
-    Return (0xf)
-  }
-
-  Name (_S1D, 0x1)
-  Name (_S2D, 0x1)
-  Name (_S3D, 0x1)
-  Name (_S4D, 0x1)
-
-  Name (_CRS, ResourceTemplate () {
-    MEMORY32FIXED (ReadWrite, 0x02198000, 0x4000, )
-    Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive) { 56 }
-  })
-
-  Device (MMC0) {
-    Method (_ADR) {
-      Return (0)
-    }
-
-    // eMMC is non-removable
-    Method (_RMV) {
-      Return (0)
-    }
-  }
-}
