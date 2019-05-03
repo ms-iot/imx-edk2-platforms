@@ -1,7 +1,10 @@
 /** @file
-*  platform initialization for iMX6 DualLite SOM
+*  Platform initialization for iMX6 DualLite SOM
 *
-*  Copyright (c) Microsoft Corporation. All rights reserved.
+*  U-Boot should handle most of the platform init. This is for working around
+*  any muxing issues found after U-Boot finishes.
+*
+*  Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 *
 *  This program and the accompanying materials
 *  are licensed and made available under the terms and conditions of the BSD License
@@ -13,10 +16,10 @@
 *
 **/
 
-#include <Library/IoLib.h>
 #include <Library/ArmPlatformLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/DebugLib.h>
+#include <Library/IoLib.h>
 #include <Library/PrintLib.h>
 #include <Library/PcdLib.h>
 #include <Library/SerialPortLib.h>
@@ -25,9 +28,6 @@
 #include <iMX6.h>
 #include <iMX6IoMux.h>
 #include <iMX6UsbPhy.h>
-
-#include <IndustryStandard/Tpm20.h>
-#include <IndustryStandard/Tpm2Acpi.h>
 
 //
 // Prebaked pad configurations that include mux and drive settings where
@@ -102,41 +102,6 @@ VOID EhciInit ()
     // Initialize PHY1 (USBH1)
     //
     ImxUsbPhyInit(IMX_USBPHY1);
-}
-
-/**
-    Initialize the TPM2 control area.
-
-Note:
-    This is temporary, and is normally done in TPM2 OPTEE device lib,
-    which will takle place as soon as the TreeDxe driver is enabled.
-**/
-VOID
-Tpm2AcpiControlAreaInit ()
-{
-    EFI_PHYSICAL_ADDRESS BaseAddress;
-    UINT32 BufferSize;
-    EFI_TPM2_ACPI_CONTROL_AREA *ControlArea;
-   
-    BaseAddress = PcdGet64 (PcdTpm2AcpiBufferBase);
-    BufferSize = PcdGet32 (PcdTpm2AcpiBufferSize);
-
-    if ((BaseAddress == 0) || (BufferSize == 0)) {
-        //
-        // TPM not enabled
-        //
-        return;
-    }
-
-    ASSERT (BufferSize >= EFI_PAGE_SIZE * 3);
-    
-    ControlArea = (EFI_TPM2_ACPI_CONTROL_AREA *)((UINTN)BaseAddress);
-    ZeroMem(ControlArea, sizeof(EFI_TPM2_ACPI_CONTROL_AREA));
-    BufferSize = EFI_PAGE_SIZE;
-    ControlArea->Command = (UINT64)((UINTN)(ControlArea + 1));
-    ControlArea->CommandSize = BufferSize;
-    ControlArea->Response = ControlArea->Command + BufferSize;
-    ControlArea->ResponseSize = BufferSize;
 }
 
 /**
