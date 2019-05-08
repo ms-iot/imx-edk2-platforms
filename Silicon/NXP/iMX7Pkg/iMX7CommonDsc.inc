@@ -464,11 +464,6 @@
   # GUID of the UI app
   gEfiMdeModulePkgTokenSpaceGuid.PcdBootManagerMenuFile|{ 0x21, 0xaa, 0x2c, 0x46, 0x14, 0x76, 0x03, 0x45, 0x83, 0x6e, 0x8a, 0xb6, 0xf4, 0x66, 0x23, 0x31 }
 
-  #
-  # Make VariableRuntimeDxe work at emulated non-volatile variable mode.
-  #
-  gEfiMdeModulePkgTokenSpaceGuid.PcdEmuVariableNvModeEnable|TRUE
-
 [PcdsPatchableInModule]
   # Console Resolution
   gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution|1920
@@ -600,13 +595,11 @@
   #
   gEfiSecurityPkgTokenSpaceGuid.PcdTpmInstanceGuid|{ 0x5a, 0xf2, 0x6b, 0x28, 0xc3, 0xc2, 0x8c, 0x40, 0xb3, 0xb4, 0x25, 0xe6, 0x75, 0x8b, 0x73, 0x17 }
 
-  ## Sets the default Physical Presence flags that are consumed by the PP TrEE library.
+  ## Sets the default Physical Presence flags that are consumed by the TCG2 PPI library.
   #
-  # Options are defined in TrEEPhysicalPresenceData.h
-  # Current setting:
-  #   TREE_FLAG_NO_PPI_CLEAR
+  # Options are defined in Tcg2PhysicalPresenceLib.h Currently no PPI is supported.
   #
-  #gEfiSecurityPkgTokenSpaceGuid.PcdPPDefaultTrEEFlags|0x02
+  gEfiSecurityPkgTokenSpaceGuid.PcdTcg2PhysicalPresenceFlags|0x0
 
   ## Indicates whether or not the Tcg2Dxe should measure CRTM instead of PEI.
   # TRUE means the Tcg2Dxe will measure CRTM.
@@ -614,7 +607,7 @@
   #gEfiSecurityPkgTokenSpaceGuid.PcdLateMeasureCRTM|TRUE
 
 [PcdsDynamicExDefault.common.DEFAULT]
-  gEfiSecurityPkgTokenSpaceGuid.PcdTcg2HashAlgorithmBitmap|0x0
+  gEfiSecurityPkgTokenSpaceGuid.PcdTcg2HashAlgorithmBitmap|0x0F
 
 ########################
 #
@@ -821,6 +814,8 @@
     <LibraryClasses>
       NULL|SecurityPkg/Library/HashInstanceLibSha1/HashInstanceLibSha1.inf
       NULL|SecurityPkg/Library/HashInstanceLibSha256/HashInstanceLibSha256.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha384/HashInstanceLibSha384.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha512/HashInstanceLibSha512.inf
       Tpm2DeviceLib|Platform/Microsoft/OpteeClientPkg/Library/Tpm2DeviceLibOptee/Tpm2DeviceLibOptee.inf
 
     <PcdsFixedAtBuild>
@@ -830,14 +825,27 @@
         gEfiMdePkgTokenSpaceGuid.PcdPerformanceLibraryPropertyMask|0
       !endif
   }
+  
+  Platform/Microsoft/Drivers/OpteeClientPkg/AuthVarOpteeRuntimeDxe/AuthVarsDxe.inf
+!else
+  MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf {
+    <PcdsFixedAtBuild>
+    #
+    # Make VariableRuntimeDxe work at emulated non-volatile variable mode.
+    #
+    gEfiMdeModulePkgTokenSpaceGuid.PcdEmuVariableNvModeEnable|TRUE
+  }
 !endif
-
-MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
 
   # Applications
   MdeModulePkg/Application/HelloWorld/HelloWorld.inf
   #Platform/Microsoft/Application/StorageTest/StorageTest.inf
 #  Silicon/NXP/iMX7Pkg/Application/ImxClkPwr/ImxClkPwr.inf
+
+!if $(CONFIG_EDK_TESTS) == TRUE
+  Platform/Microsoft/Application/StorageTest/StorageTest.inf
+  Platform/Microsoft/Application/AuthVarTest/AuthVarTest.inf
+!endif
 
   Platform/Microsoft/OpteeClientPkg/Application/OpteeClientApiTest/OpteeClientApiTest.inf
   #SecurityPkg/Application/VariableAuthTestDxe/VariableAuthTestDxe.inf
