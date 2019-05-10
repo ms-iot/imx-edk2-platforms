@@ -23,4 +23,21 @@
 
 extern EFI_GUID giMXPlatformProvisioningGuid;
 
+#pragma pack(1)
+
+typedef struct {
+  TPM2_COMMAND_HEADER       Header;
+  TPMI_DH_OBJECT            ObjectHandle;
+} TPM2_READ_PUBLIC_COMMAND;
+
+typedef struct {
+  TPM2_RESPONSE_HEADER       Header;
+  TPM2B_PUBLIC               OutPublic;
+  TPM2B_NAME                 Name;
+  TPM2B_NAME                 QualifiedName;
+} TPM2_READ_PUBLIC_RESPONSE;
+
+#pragma pack()
+
+
 #endif // _PROVISIONING_H_

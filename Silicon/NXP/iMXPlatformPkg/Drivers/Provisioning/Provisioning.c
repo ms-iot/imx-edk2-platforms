@@ -22,6 +22,8 @@
 #include <Library/MemoryAllocationLib.h>
 #include <Library/SerialPortLib.h>
 #include <Library/TimeBaseLib.h>
+#include <Library/Tpm2CommandLib.h>
+#include <Library/Tpm2DeviceLib.h>
 #include <Library/UefiLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
@@ -276,11 +278,15 @@ EFI_STATUS
 EFIAPI
 TransmitEKCertificate ()
 {
-  UINT32             i;
-  UINT32             Length;
-  UINT32             SendUint32;
-  EFI_STATUS         Status;
-  EFI_TCG2_PROTOCOL  *Tcg2Protocol;
+  UINT32                     i;
+  UINT32                     Length;
+  TPM2_READ_PUBLIC_RESPONSE  RecvBuffer;
+  UINT32                     RecvBufferSize;
+  TPM2_READ_PUBLIC_COMMAND   SendBuffer;
+  UINT32                     SendBufferSize;
+  UINT32                     SendUint32;
+  EFI_STATUS                 Status;
+  EFI_TCG2_PROTOCOL          *Tcg2Protocol;
   UINT8  TpmCreatePrimary[TPMCREATEPRIMARY_SZ] = { 0x80,0x02, // TPM_ST_SESSIONS
            0x00,0x00,0x01,0x77,  // Command size is 0x177
            0x00,0x00,0x01,0x31,  // TPM_CC_CreatePrimary
@@ -346,12 +352,9 @@ TransmitEKCertificate ()
            0x00,0x00,0x00,0x00,
            0x00,
            0x81,0x01,0x00,0x01}; // Persistent Handle
-  UINT8  TpmReadPublic[TPMREADPUBLIC_SZ] = { 0x80, 0x01,  // TPM_ST_NO_SESSIONS
-           0x00, 0x00, 0x00, 0x0e,   // Command size is 0xe
-           0x00, 0x00, 0x01, 0x73,   // TPM_CC_ReadPublic 0x173
-           0x81, 0x01, 0x00, 0x01 }; // 0x81010001 is EK Cert
   UINT8  TpmOut[TPMOUT_SZ];
 
+  // Grab a handle to the TCG2 TPM driver.
   Status = gBS->LocateProtocol (&gEfiTcg2ProtocolGuid, NULL,
                                 (VOID **) &Tcg2Protocol);
   if (EFI_ERROR (Status)){
@@ -360,20 +363,30 @@ TransmitEKCertificate ()
     return Status;
   }
 
+  //
+  // Send a TPM_CC_ReadPublic directly to the TPM instead of through the TPM
+  //  library because we need the unmarshalled buffer back for EK Public.
+  //
+  SendBuffer.Header.tag = SwapBytes16 (TPM_ST_NO_SESSIONS);
+  SendBuffer.Header.commandCode = SwapBytes32 (TPM_CC_ReadPublic);
+  SendBuffer.ObjectHandle = SwapBytes32 (0x81010001);
+  SendBufferSize = (UINT32) sizeof (SendBuffer);
+  SendBuffer.Header.paramSize = SwapBytes32 (SendBufferSize);
+  RecvBufferSize = sizeof (RecvBuffer);
+
   Status = Tcg2Protocol->SubmitCommand (
                           Tcg2Protocol,
-                          TPMREADPUBLIC_SZ,
-                          TpmReadPublic,
-                          TPMOUT_SZ,
-                          TpmOut
+                          SendBufferSize,
+                          (UINT8 *)&SendBuffer,
+                          RecvBufferSize,
+                          (UINT8 *)&RecvBuffer
                           );
   if (EFI_ERROR (Status)){
     DEBUG ((DEBUG_ERROR, "%a: failed to submit command to TPM. Status: 0x%x\n",
            __FUNCTION__, Status));
     return Status;
   }
-
-  if (SwapBytes32 (((TPM2_RESPONSE_HEADER*)TpmOut)->responseCode) == TPM_RC_SUCCESS) {
+  if (SwapBytes32 (RecvBuffer.Header.responseCode) == TPM_RC_SUCCESS) {
     goto SendEKCert;
   }
 
@@ -417,12 +430,23 @@ TransmitEKCertificate ()
     return EFI_NOT_FOUND;
   }
 
+  //
+  // Send a TPM_CC_ReadPublic directly to the TPM instead of through the TPM
+  //  library because we need the unmarshalled buffer back for EK Public.
+  //
+  SendBuffer.Header.tag = SwapBytes16 (TPM_ST_NO_SESSIONS);
+  SendBuffer.Header.commandCode = SwapBytes32 (TPM_CC_ReadPublic);
+  SendBuffer.ObjectHandle = SwapBytes32 (0x81010001);
+  SendBufferSize = (UINT32) sizeof (SendBuffer);
+  SendBuffer.Header.paramSize = SwapBytes32 (SendBufferSize);
+  RecvBufferSize = sizeof (RecvBuffer);
+
   Status = Tcg2Protocol->SubmitCommand (
                           Tcg2Protocol,
-                          TPMREADPUBLIC_SZ,
-                          TpmReadPublic,
-                          TPMOUT_SZ,
-                          TpmOut
+                          SendBufferSize,
+                          (UINT8 *)&SendBuffer,
+                          RecvBufferSize,
+                          (UINT8 *)&RecvBuffer
                           );
   if (EFI_ERROR (Status)){
     DEBUG ((DEBUG_ERROR, "%a: failed to submit command to TPM. Status: 0x%x\n",
@@ -430,19 +454,20 @@ TransmitEKCertificate ()
     return Status;
   }
 
-  if (SwapBytes32 (((TPM2_RESPONSE_HEADER*)TpmOut)->responseCode) != TPM_RC_SUCCESS) {
+  if (SwapBytes32 (RecvBuffer.Header.responseCode) != TPM_RC_SUCCESS) {
     DEBUG ((DEBUG_ERROR, "%a: Failed to retrieve EK Cert from TPM!\n", __FUNCTION__));
     return EFI_NOT_FOUND;
   }
 
 SendEKCert:
-  Length = SwapBytes32 (((TPM2_RESPONSE_HEADER*)TpmOut)->paramSize);
+  Length = SwapBytes16 (RecvBuffer.OutPublic.size);
+  Length += 2; // Add a Uint16 to send the OutPublic size too
 
   SEND_REQUEST_TO_HOST ("MFG:ekcert\r\n");
   SerialPortWrite ((UINT8*)&Length, 4);
-  SerialPortWrite (TpmOut, Length);
+  SerialPortWrite ((UINT8*)&RecvBuffer.OutPublic, Length);
   for (i = 0, SendUint32 = 0; i < Length; i++) {
-    SendUint32 += TpmOut[i];
+    SendUint32 += ((UINT8*)&RecvBuffer.OutPublic)[i];
   }
   SerialPortWrite ((UINT8*)&SendUint32, 4);
 

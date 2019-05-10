@@ -28,12 +28,16 @@
   MdePkg/MdePkg.dec
   Platform/Microsoft/MsPkg.dec
   Silicon/NXP/iMXPlatformPkg/iMXPlatformPkg.dec
+  SecurityPkg/SecurityPkg.dec
 
 [LibraryClasses]
   IoLib
   UefiDriverEntryPoint
   UefiLib
   TimeBaseLib
+  Tpm2DeviceLib
+  Tpm2CommandLib
+  Tcg2PhysicalPresenceLib
 
 [Guids]
   giMXPlatformProvisioningGuid
