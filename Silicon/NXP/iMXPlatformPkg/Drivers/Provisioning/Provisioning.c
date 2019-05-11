@@ -287,56 +287,6 @@ TransmitEKCertificate ()
   UINT32                     SendUint32;
   EFI_STATUS                 Status;
   EFI_TCG2_PROTOCOL          *Tcg2Protocol;
-  UINT8  TpmCreatePrimary[TPMCREATEPRIMARY_SZ] = { 0x80,0x02, // TPM_ST_SESSIONS
-           0x00,0x00,0x01,0x77,  // Command size is 0x177
-           0x00,0x00,0x01,0x31,  // TPM_CC_CreatePrimary
-           0x40,0x00,0x00,0x0b,  // TPM_RH_ENDORSEMENT
-           0x00,0x00,
-           0x00,0x1d,0x40,0x00,0x00,0x09,0x00,0x00,
-           0x00,0x00,0x14,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x04,0x00,0x00,0x00,0x00,0x01,0x3a,0x00,
-           0x01,0x00,0x0b,0x00,0x03,0x00,0xb2,0x00,
-           0x20,0x83,0x71,0x97,0x67,0x44,0x84,0xb3,
-           0xf8,0x1a,0x90,0xcc,0x8d,0x46,0xa5,0xd7,
-           0x24,0xfd,0x52,0xd7,0x6e,0x06,0x52,0x0b,
-           0x64,0xf2,0xa1,0xda,0x1b,0x33,0x14,0x69,
-           0xaa,0x00,0x06,0x00,0x80,0x00,0x43,0x00,
-           0x10,0x08,0x00,0x00,0x00,0x00,0x00,0x01,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-           0x00,0x00,0x00,0x00,0x00,0x00,0x00};
   UINT8  TpmEvictEK[TPMEVICTEK_SZ] = { 0x80,0x02,        // TPM_ST_SESSIONS
            0x00,0x00,0x00,0x37,  // Length 55 bytes
            0x00,0x00,0x01,0x20,  // TPM_CC_EvictControl
@@ -353,6 +303,19 @@ TransmitEKCertificate ()
            0x00,
            0x81,0x01,0x00,0x01}; // Persistent Handle
   UINT8  TpmOut[TPMOUT_SZ];
+  TPM2_CREATE_PRIMARY_COMMAND CreatePrimary = {0};
+  UINT8 DefaultPolicySecret[POLICY_SECRET_SZ] = {0x83,0x71,0x97,0x67,0x44,0x84,
+                                                 0xb3,0xf8,0x1a,0x90,0xcc,0x8d,
+                                                 0x46,0xa5,0xd7,0x24,0xfd,0x52,
+                                                 0xd7,0x6e,0x06,0x52,0x0b,0x64,
+                                                 0xf2,0xa1,0xda,0x1b,0x33,0x14,
+                                                 0x69,0xaa};
+  UINT8 SensitiveUserData[SENSITIVE_USER_SZ] = {0x40,0x00,0x00,0x09,0x00,0x00,
+                                                0x00,0x00,0x14,0x00,0x00,0x00,
+                                                0x00,0x00,0x00,0x00,0x00,0x00,
+                                                0x00,0x00,0x00,0x00,0x00,0x00,
+                                                0x00,0x00,0x00,0x00,0x00};
+  UINT8 SensitiveData[SENSITIVE_DATA_SZ] = {0x00,0x00,0x00,0x00};
 
   // Grab a handle to the TCG2 TPM driver.
   Status = gBS->LocateProtocol (&gEfiTcg2ProtocolGuid, NULL,
@@ -363,6 +326,7 @@ TransmitEKCertificate ()
     return Status;
   }
 
+#if 1
   //
   // Send a TPM_CC_ReadPublic directly to the TPM instead of through the TPM
   //  library because we need the unmarshalled buffer back for EK Public.
@@ -385,16 +349,105 @@ TransmitEKCertificate ()
     DEBUG ((DEBUG_ERROR, "%a: failed to submit command to TPM. Status: 0x%x\n",
            __FUNCTION__, Status));
     return Status;
-  }
-  if (SwapBytes32 (RecvBuffer.Header.responseCode) == TPM_RC_SUCCESS) {
+  } else if (SwapBytes32 (RecvBuffer.Header.responseCode) == TPM_RC_SUCCESS) {
     goto SendEKCert;
   }
+#endif
+
+  UINT8 DataBuf [1000] = {0};
+  UINT8 *DataPtr;
 
   DEBUG ((DEBUG_ERROR, "%a: TPM Generating EK Certificate!\n", __FUNCTION__));
+
+  CreatePrimary.Header.tag = SwapBytes16 (TPM_ST_SESSIONS);
+  CreatePrimary.Header.commandCode = SwapBytes32 (TPM_CC_CreatePrimary);
+//CreatePrimary.Header.paramSize - Placeholder until end of marshalling
+  CreatePrimary.Hierarchy = SwapBytes32 (TPM_RH_ENDORSEMENT);
+  CreatePrimary.Sensitive.size = SwapBytes16 (0);
+  CreatePrimary.Sensitive.sensitive.userAuth.size = SwapBytes16 (SENSITIVE_USER_SZ);
+//CreatePrimary.Sensitive.sensitive.userAuth.buffer = SensitiveUserData[];
+  CreatePrimary.Sensitive.sensitive.data.size = SwapBytes16 (SENSITIVE_DATA_SZ);
+//CreatePrimary.Sensitive.sensitive.data.buffer = SensitiveData[];
+
+  TPMA_OBJECT objattrib = {0};
+  // Constructing a Default RSA EK Public Area Template
+  // As per TCG EK Credential Profile spec Revision 14.
+  CreatePrimary.Public.size = SwapBytes16 (RSA_TEMPLATE_SZ);
+  CreatePrimary.Public.publicArea.type = SwapBytes16 (TPM_ALG_RSA);
+  CreatePrimary.Public.publicArea.nameAlg = SwapBytes16 (TPM_ALG_SHA256);
+  objattrib.fixedTPM = 1;
+  objattrib.stClear = 0;
+  objattrib.fixedParent = 1;
+  objattrib.sensitiveDataOrigin = 1;
+  objattrib.userWithAuth = 0;
+  objattrib.adminWithPolicy = 1;
+  objattrib.noDA = 0;
+  objattrib.encryptedDuplication = 0;
+  objattrib.restricted = 1;
+  objattrib.decrypt = 1;
+  objattrib.sign = 0;
+  *((UINT32*)&CreatePrimary.Public.publicArea.objectAttributes) = SwapBytes32 (*((UINT32*)&objattrib));
+
+  CreatePrimary.Public.publicArea.authPolicy.size = SwapBytes16 (POLICY_SECRET_SZ);
+//CreatePrimary.Public.publicArea.authPolicy.buffer = DefaultPolicySecret[];
+  CreatePrimary.Public.publicArea.parameters.rsaDetail.symmetric.algorithm = SwapBytes16 (TPM_ALG_AES);
+  CreatePrimary.Public.publicArea.parameters.rsaDetail.symmetric.keyBits.aes = SwapBytes16 (128);
+  CreatePrimary.Public.publicArea.parameters.rsaDetail.symmetric.mode.aes = SwapBytes16 (TPM_ALG_CFB);
+//CreatePrimary.Public.publicArea.parameters.rsaDetail.symmetric.details = NULL;
+  CreatePrimary.Public.publicArea.parameters.rsaDetail.scheme.scheme = SwapBytes16 (TPM_ALG_NULL);
+//CreatePrimary.Public.publicArea.parameters.rsaDetail.scheme.details = NULL;
+  CreatePrimary.Public.publicArea.parameters.rsaDetail.keyBits = SwapBytes16 (2048);
+  CreatePrimary.Public.publicArea.parameters.rsaDetail.exponent = SwapBytes32 (0);
+
+  CreatePrimary.Public.publicArea.unique.rsa.size = SwapBytes16 (256);
+
+  CreatePrimary.Data.size = SwapBytes16 (0);
+
+  CreatePrimary.PcrSelection.count = SwapBytes32 (0);
+
+
+  DataPtr = DataBuf;
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Header);
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Hierarchy);
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Sensitive.size);
+
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Sensitive.sensitive.userAuth.size);
+  FILLBUF(DataPtr, SensitiveUserData, SwapBytes16(CreatePrimary.Sensitive.sensitive.userAuth.size));
+
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Sensitive.sensitive.data.size);
+  FILLBUF(DataPtr, SensitiveData, SwapBytes16(CreatePrimary.Sensitive.sensitive.data.size));
+
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Public.size);
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Public.publicArea.type);
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Public.publicArea.nameAlg);
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Public.publicArea.objectAttributes);
+
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Public.publicArea.authPolicy.size);
+  FILLBUF(DataPtr, DefaultPolicySecret, SwapBytes16(CreatePrimary.Public.publicArea.authPolicy.size));
+
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Public.publicArea.parameters.rsaDetail.symmetric);
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Public.publicArea.parameters.rsaDetail.scheme.scheme);
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Public.publicArea.parameters.rsaDetail.keyBits);
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Public.publicArea.parameters.rsaDetail.exponent);
+
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Public.publicArea.unique.rsa.size);
+  SetMem(DataPtr, 256, 0);
+  DataPtr += 256;
+
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Data.size);
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.PcrSelection.count);
+
+
+  // Populate the actual size of the command
+  SendBufferSize = DataPtr - DataBuf;
+  DataPtr = DataBuf;
+  CreatePrimary.Header.paramSize = SwapBytes32 (SendBufferSize);
+  FILLBUFSTRUCT(DataPtr, CreatePrimary.Header);
+
   Status = Tcg2Protocol->SubmitCommand (
                           Tcg2Protocol,
-                          TPMCREATEPRIMARY_SZ,
-                          TpmCreatePrimary,
+                          SendBufferSize,
+                          DataBuf,
                           TPMOUT_SZ,
                           TpmOut
                           );
@@ -459,7 +512,9 @@ TransmitEKCertificate ()
     return EFI_NOT_FOUND;
   }
 
+#if 1
 SendEKCert:
+#endif
   Length = SwapBytes16 (RecvBuffer.OutPublic.size);
   Length += 2; // Add a Uint16 to send the OutPublic size too
 
@@ -610,6 +665,8 @@ ProvisioningInitialize (
   }
 
   Status = TransmitEKCertificate ();
+  volatile int x = 1;
+  while(x);
   if (EFI_ERROR (Status)) {
     SEND_REQUEST_TO_HOST ("MFGF:ekcert\r\n");
     DEBUG ((DEBUG_ERROR, "TransmitEKCertificate failed. 0x%x\n", Status));

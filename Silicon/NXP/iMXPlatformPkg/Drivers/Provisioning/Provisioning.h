@@ -19,7 +19,21 @@
 #define TPMEVICTEK_SZ 0x37
 #define TPMOUT_SZ 1000
 
+// CreatePrimary sizes
+#define POLICY_SECRET_SZ  32
+#define SENSITIVE_USER_SZ 29
+#define SENSITIVE_DATA_SZ 4
+#define RSA_TEMPLATE_SZ   0x13a
+
 #define SEND_REQUEST_TO_HOST(msg) SerialPortWrite ((UINT8*)msg, AsciiStrLen (msg))
+
+#define FILLBUFSTRUCT(buf, src) \
+  CopyMem(buf, (UINT8*)&src, sizeof(src)); \
+  buf += sizeof(src); \
+
+#define FILLBUF(buf, src, len) \
+  CopyMem(buf, (UINT8*)&src, len); \
+  buf += len; \
 
 extern EFI_GUID giMXPlatformProvisioningGuid;
 
@@ -36,6 +50,15 @@ typedef struct {
   TPM2B_NAME                 Name;
   TPM2B_NAME                 QualifiedName;
 } TPM2_READ_PUBLIC_RESPONSE;
+
+typedef struct {
+  TPM2_COMMAND_HEADER       Header;
+  TPMI_RH_HIERARCHY         Hierarchy;
+  TPM2B_SENSITIVE_CREATE    Sensitive;
+  TPM2B_PUBLIC              Public;
+  TPM2B_DATA                Data;
+  TPML_PCR_SELECTION        PcrSelection;
+} TPM2_CREATE_PRIMARY_COMMAND;
 
 #pragma pack()
 
