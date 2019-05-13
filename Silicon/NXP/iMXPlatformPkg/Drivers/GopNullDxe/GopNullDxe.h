@@ -41,3 +41,4 @@ typedef struct {
 } DISPLAY_TIMING;
 
 #endif  /* _GOP_NULL_DXE_H_ */
+

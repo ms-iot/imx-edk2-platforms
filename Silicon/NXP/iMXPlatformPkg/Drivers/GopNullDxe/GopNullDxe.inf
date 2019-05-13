@@ -48,3 +48,4 @@
 
 [Depex]
   gEfiCpuArchProtocolGuid AND gEfiTimerArchProtocolGuid
+
