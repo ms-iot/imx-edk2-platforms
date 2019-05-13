@@ -66,7 +66,7 @@
     Silicon/NXP/iMX6Pkg/Drivers/GopDxe/GopDxe.inf
   !endif
 !else
-  Silicon/NXP/iMX6Pkg/Drivers/GopNullDxe/GopNullDxe.inf
+  Silicon/NXP/iMXPlatformPkg/Drivers/GopNullDxe/GopNullDxe.inf
 !endif
 
   # ACPI Support

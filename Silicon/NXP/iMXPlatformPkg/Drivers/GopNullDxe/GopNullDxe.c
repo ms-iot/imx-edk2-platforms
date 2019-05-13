@@ -13,78 +13,15 @@
 *
 **/
 
-#include <Uefi.h>
-#include <Library/BaseLib.h>
-#include <Library/BaseMemoryLib.h>
-#include <Library/MemoryAllocationLib.h>
-#include <Library/DebugLib.h>
-#include <Library/DmaLib.h>
-#include <Library/IoLib.h>
-#include <Library/PcdLib.h>
-#include <Library/UefiBootServicesTableLib.h>
+#include "GopNullDxe.h"
 
-#include <Protocol/GraphicsOutput.h>
-
-#include <iMXDisplay.h>
-
-#define PIXEL_BYTES 4
-
-typedef struct {
-  VENDOR_DEVICE_PATH Mmc;
-  EFI_DEVICE_PATH End;
-} VID_DEVICE_PATH;
-
-IMX_DISPLAY_TIMING CONST FullHdTiming = {
-  148500000,  // Full 1080p HD PixelClock
-  1920,       // HActive
-  280,        // HBlank
-  1080,       // VActive
-  45,         // VBlank
-  44,         // HSync
-  5,          // VSync
-  88,         // HSyncOffset;
-  4,          // VSyncOffset;
-  1920,       // HImageSize
-  1080,       // VImageSize
-  0,          // HBorder
-  0,          // VBorder
-  30,         // EdidFlags
-  0,          // Flags
-  1,          // PixelRepetition
-  32,         // Bpp
-  PIXEL_FORMAT_BGRA32,       // PixelFormat
+CONST DISPLAY_TIMING mDisplayTiming = {
+  1920,  // Horizontal Resolution
+  1080,  // Vertical Resolution
+  32,    // Bits Per Pixel
 };
 
-EFI_STATUS
-EFIAPI
-VidGopQueryMode (
-  IN EFI_GRAPHICS_OUTPUT_PROTOCOL           *This,
-  IN UINT32                                 ModeNumber,
-  OUT UINTN                                 *SizeOfInfo,
-  OUT EFI_GRAPHICS_OUTPUT_MODE_INFORMATION  **Info
-  );
-
-EFI_STATUS
-VidGopSetMode (
-  IN EFI_GRAPHICS_OUTPUT_PROTOCOL   *This,
-  IN UINT32                         ModeNumber
-  );
-
-EFI_STATUS
-VidGopBlt (
-  IN EFI_GRAPHICS_OUTPUT_PROTOCOL       *This,
-  IN OUT EFI_GRAPHICS_OUTPUT_BLT_PIXEL  *BltBuffer,
-  IN EFI_GRAPHICS_OUTPUT_BLT_OPERATION  BltOperation,
-  IN UINTN                              SourceX,
-  IN UINTN                              SourceY,
-  IN UINTN                              DestinationX,
-  IN UINTN                              DestinationY,
-  IN UINTN                              Width,
-  IN UINTN                              Height,
-  IN UINTN                              Delta
-  );
-
-STATIC VID_DEVICE_PATH VidDevicePath = {
+STATIC VID_DEVICE_PATH mVidDevicePath = {
   {
     {
       HARDWARE_DEVICE_PATH,
@@ -113,79 +50,6 @@ STATIC VID_DEVICE_PATH VidDevicePath = {
 
 STATIC EFI_GRAPHICS_OUTPUT_MODE_INFORMATION VidGopModeInfo;
 STATIC EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE VidGopMode;
-
-STATIC EFI_GRAPHICS_OUTPUT_PROTOCOL VidGop = {
-  VidGopQueryMode, // QueryMode
-  VidGopSetMode,   // SetMode
-  VidGopBlt,       // Blt
-  &VidGopMode    // Mode
-};
-
-EFI_STATUS
-GopNullDxeInitialize (
-  IN EFI_HANDLE         ImageHandle,
-  IN EFI_SYSTEM_TABLE   *SystemTable
-  )
-{
-  UINT32                  FrameBufferSize;
-  EFI_PHYSICAL_ADDRESS    FrameBufferBase;
-  EFI_STATUS              Status;
-
-  DEBUG ((DEBUG_INFO, "%a: Enter \n", __FUNCTION__));
-
-  // Allocate Frame Buffer
-  FrameBufferSize = FullHdTiming.HActive * FullHdTiming.VActive * FullHdTiming.Bpp / 8;
-  DEBUG ((DEBUG_INFO, "%a: Frame Buffer Size = %d \n", __FUNCTION__, FrameBufferSize));
-  Status = DmaAllocateBuffer(
-             EfiRuntimeServicesData,
-             EFI_SIZE_TO_PAGES(FrameBufferSize),
-             (VOID **)&FrameBufferBase);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: Fail to allocate fb, Status=%r\n",
-      __FUNCTION__, Status));
-    goto Exit;
-  };
-
-  // Initialize the frame buffer to black
-  SetMem32 ((VOID *)((UINTN)FrameBufferBase), FrameBufferSize, 0xFF000000);
-
-  // Configure Mode Info
-  VidGopModeInfo.Version = 0;
-  VidGopModeInfo.HorizontalResolution = FullHdTiming.HActive;
-  VidGopModeInfo.VerticalResolution = FullHdTiming.VActive;
-  VidGopModeInfo.PixelFormat = PixelBlueGreenRedReserved8BitPerColor;
-  ZeroMem (
-    &VidGopModeInfo.PixelInformation,
-    sizeof (VidGopModeInfo.PixelInformation)
-  );
-
-  VidGopModeInfo.PixelsPerScanLine = VidGopModeInfo.HorizontalResolution;
-  VidGopMode.MaxMode = 1;
-  VidGopMode.Mode = 0;
-  VidGopMode.Info = &VidGopModeInfo;
-  VidGopMode.SizeOfInfo = sizeof (VidGopModeInfo);
-  VidGopMode.FrameBufferBase = FrameBufferBase;
-  VidGopMode.FrameBufferSize = FrameBufferSize;
-
-  Status = gBS->InstallMultipleProtocolInterfaces (
-                  &ImageHandle,
-                  &gEfiGraphicsOutputProtocolGuid,
-                  &VidGop,
-                  &gEfiDevicePathProtocolGuid,
-                  &VidDevicePath,
-                  NULL
-                );
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: Fail to install protocol, Status=%x\n",
-      __FUNCTION__, Status));
-    goto Exit;
-  }
-
-Exit:
-  DEBUG ((DEBUG_INFO, "%a: Exit = %Xh\n",
-    __FUNCTION__, Status));
-  return Status;
-}
 
 EFI_STATUS
 EFIAPI
@@ -330,4 +194,77 @@ VidGopBlt (
   }
 
   return EFI_SUCCESS;
+}
+
+STATIC EFI_GRAPHICS_OUTPUT_PROTOCOL VidGop = {
+  VidGopQueryMode, // QueryMode
+  VidGopSetMode,   // SetMode
+  VidGopBlt,       // Blt
+  &VidGopMode    // Mode
+};
+
+EFI_STATUS
+GopNullDxeInitialize (
+  IN EFI_HANDLE         ImageHandle,
+  IN EFI_SYSTEM_TABLE   *SystemTable
+  )
+{
+  UINT32                  FrameBufferSize;
+  EFI_PHYSICAL_ADDRESS    FrameBufferBase;
+  EFI_STATUS              Status;
+
+  DEBUG ((DEBUG_INFO, "%a: Enter \n", __FUNCTION__));
+
+  // Allocate Frame Buffer
+  FrameBufferSize = mDisplayTiming.HActive * mDisplayTiming.VActive * mDisplayTiming.Bpp / 8;
+  DEBUG ((DEBUG_INFO, "%a: Frame Buffer Size = %d \n", __FUNCTION__, FrameBufferSize));
+  Status = DmaAllocateBuffer(
+             EfiRuntimeServicesData,
+             EFI_SIZE_TO_PAGES(FrameBufferSize),
+             (VOID **)&FrameBufferBase);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: Fail to allocate fb, Status=%r\n",
+      __FUNCTION__, Status));
+    goto Exit;
+  };
+
+  // Initialize the frame buffer to black
+  SetMem32 ((VOID *)((UINTN)FrameBufferBase), FrameBufferSize, 0xFF000000);
+
+  // Configure Mode Info
+  VidGopModeInfo.Version = 0;
+  VidGopModeInfo.HorizontalResolution = mDisplayTiming.HActive;
+  VidGopModeInfo.VerticalResolution = mDisplayTiming.VActive;
+  VidGopModeInfo.PixelFormat = PixelBlueGreenRedReserved8BitPerColor;
+  ZeroMem (
+    &VidGopModeInfo.PixelInformation,
+    sizeof (VidGopModeInfo.PixelInformation)
+  );
+
+  VidGopModeInfo.PixelsPerScanLine = VidGopModeInfo.HorizontalResolution;
+  VidGopMode.MaxMode = 1;
+  VidGopMode.Mode = 0;
+  VidGopMode.Info = &VidGopModeInfo;
+  VidGopMode.SizeOfInfo = sizeof (VidGopModeInfo);
+  VidGopMode.FrameBufferBase = FrameBufferBase;
+  VidGopMode.FrameBufferSize = FrameBufferSize;
+
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &ImageHandle,
+                  &gEfiGraphicsOutputProtocolGuid,
+                  &VidGop,
+                  &gEfiDevicePathProtocolGuid,
+                  &mVidDevicePath,
+                  NULL
+                );
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: Fail to install protocol, Status=%x\n",
+      __FUNCTION__, Status));
+    goto Exit;
+  }
+
+Exit:
+  DEBUG ((DEBUG_INFO, "%a: Exit = %Xh\n",
+    __FUNCTION__, Status));
+  return Status;
 }
