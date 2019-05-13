@@ -23,7 +23,6 @@
   DEFINE BOARD_NAME     = HummingBoardEdge_iMX6Q_2GB
   DEFINE IMX_FAMILY     = IMX6Q
   DEFINE DRAM_SIZE      = DRAM_2GB
-  DEFINE CONFIG_HEADLESS = TRUE
   BOARD_DIR             = Platform/SolidRun/$(BOARD_NAME)
   FLASH_DEFINITION      = $(BOARD_DIR)/$(BOARD_NAME).fdf
 
@@ -65,8 +64,6 @@
   !else
     Silicon/NXP/iMX6Pkg/Drivers/GopDxe/GopDxe.inf
   !endif
-!else
-  Silicon/NXP/iMXPlatformPkg/Drivers/GopNullDxe/GopNullDxe.inf
 !endif
 
   # ACPI Support

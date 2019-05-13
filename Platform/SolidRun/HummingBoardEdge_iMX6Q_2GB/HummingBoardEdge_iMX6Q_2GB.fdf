@@ -106,8 +106,6 @@ READ_LOCK_STATUS   = TRUE
   !else
     INF Silicon/NXP/iMX6Pkg/Drivers/GopDxe/GopDxe.inf
   !endif
-!else
-  INF Silicon/NXP/iMXPlatformPkg/Drivers/GopNullDxe/GopNullDxe.inf
 !endif
 
   #
