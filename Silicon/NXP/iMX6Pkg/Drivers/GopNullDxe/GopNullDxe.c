@@ -28,10 +28,7 @@
 #include <Protocol/DevicePath.h>
 #include <Protocol/GraphicsOutput.h>
 
-#include <iMXDisplay.h>
-
-#include "Display.h"
-#include "GopDxe.h"
+#include "GopNullDxe.h"
 
 #define PIXEL_BYTES 4
 
@@ -127,16 +124,6 @@ STATIC EFI_GRAPHICS_OUTPUT_PROTOCOL VidGop = {
   &VidGopMode    // Mode
 };
 
-EFI_EDID_DISCOVERED_PROTOCOL EdidDiscovered = {
-  0,
-  NULL
-};
-
-EFI_EDID_ACTIVE_PROTOCOL EdidActive = {
-  0,
-  NULL
-};
-
 DISPLAY_CONTEXT *DisplayContextPtr;
 
 EFI_STATUS
@@ -179,20 +166,23 @@ GopNullDxeInitialize (
   IN EFI_SYSTEM_TABLE   *SystemTable
   )
 {
-  UINT32                  i;
-  UINT32                  RequestedDisplayMemorySize;
-  UINT32                  ReservedDisplayMemorySize;
   EFI_STATUS              Status;
 
   DEBUG ((DEBUG_INFO, "%a: Enter \n", __FUNCTION__));
 
-  ReservedDisplayMemorySize = FixedPcdGet32 (PcdFrameBufferSize);
+  DisplayContextPtr = AllocateRuntimePool (sizeof (DISPLAY_CONTEXT));
+  if (DisplayContextPtr == NULL) {
+    DEBUG ((DEBUG_INFO, "%a: Fail to allocate display context \n", __FUNCTION__));
+    Status = EFI_OUT_OF_RESOURCES;
+    goto Exit;
+  }
+
   DisplayContextPtr->DisplayConfig.DisplaySurface[0].Width = FullHDTiming.HActive;
   DisplayContextPtr->DisplayConfig.DisplaySurface[0].Height =
     FullHDTiming.VActive;
   DisplayContextPtr->DisplayConfig.DisplaySurface[0].Bpp = FullHDTiming.Bpp;
   CopyMem (
-    &DisplayContextPtr->DiContext[0].PreferredTiming,
+    &DisplayContextPtr->DiContext[NullDisplayType].PreferredTiming,
     &FullHDTiming,
     sizeof (IMX_DISPLAY_TIMING)
   );
@@ -217,7 +207,7 @@ GopNullDxeInitialize (
   );
 
   DisplayContextPtr->DisplayConfig.DisplayTiming[0] =
-    DisplayContextPtr->DiContext[0].PreferredTiming;
+    DisplayContextPtr->DiContext[NullDisplayType].PreferredTiming;
 
   VidGopModeInfo.Version = 0;
   VidGopModeInfo.HorizontalResolution =
