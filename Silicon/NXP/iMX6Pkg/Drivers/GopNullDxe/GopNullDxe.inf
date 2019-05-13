@@ -36,15 +36,13 @@
   BaseLib
   BaseMemoryLib
   DebugLib
+  DmaLib
   IoLib
-  TimerLib
   UefiBootServicesTableLib
   UefiDriverEntryPoint
   UefiLib
 
 [Protocols]
-  gEfiDevicePathProtocolGuid                    # Produced
-  gEfiDevicePathToTextProtocolGuid
   gEfiGraphicsOutputProtocolGuid                # Produced
 
 [Pcd]
