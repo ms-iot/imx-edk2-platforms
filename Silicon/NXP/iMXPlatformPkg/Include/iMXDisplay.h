@@ -15,6 +15,13 @@
 #ifndef __IMX_DISPLAY_H__
 #define __IMX_DISPLAY_H__
 
+#include <Uefi.h>
+
+#include <Library/BaseMemoryLib.h>
+#include <Library/DebugLib.h>
+#include <Library/MemoryAllocationLib.h>
+#include <Protocol/GraphicsOutput.h>
+
 #define BYTES_PER_PIXEL 4    // Supported PixelFormat=BGRA8888
 
 #define IMX_EDID_MIN_SIZE       128
