@@ -39,8 +39,6 @@
 #include "Hdmi.h"
 #include "Lvds.h"
 
-#define PIXEL_BYTES 4
-
 typedef struct {
   VENDOR_DEVICE_PATH Mmc;
   EFI_DEVICE_PATH End;
@@ -69,31 +67,11 @@ IMX_DISPLAY_TIMING CONST FullHDTiming = {
 
 EFI_STATUS
 EFIAPI
-VidGopQueryMode (
+GopDxeQueryMode (
   IN EFI_GRAPHICS_OUTPUT_PROTOCOL           *This,
   IN UINT32                                 ModeNumber,
   OUT UINTN                                 *SizeOfInfo,
   OUT EFI_GRAPHICS_OUTPUT_MODE_INFORMATION  **Info
-  );
-
-EFI_STATUS
-VidGopSetMode (
-  IN EFI_GRAPHICS_OUTPUT_PROTOCOL   *This,
-  IN UINT32                         ModeNumber
-  );
-
-EFI_STATUS
-VidGopBlt (
-  IN EFI_GRAPHICS_OUTPUT_PROTOCOL       *This,
-  IN OUT EFI_GRAPHICS_OUTPUT_BLT_PIXEL  *BltBuffer,
-  IN EFI_GRAPHICS_OUTPUT_BLT_OPERATION  BltOperation,
-  IN UINTN                              SourceX,
-  IN UINTN                              SourceY,
-  IN UINTN                              DestinationX,
-  IN UINTN                              DestinationY,
-  IN UINTN                              Width,
-  IN UINTN                              Height,
-  IN UINTN                              Delta
   );
 
 STATIC VID_DEVICE_PATH VidDevicePath = {
@@ -127,7 +105,7 @@ STATIC EFI_GRAPHICS_OUTPUT_MODE_INFORMATION VidGopModeInfo;
 STATIC EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE VidGopMode;
 
 STATIC EFI_GRAPHICS_OUTPUT_PROTOCOL VidGop = {
-  VidGopQueryMode, // QueryMode
+  GopDxeQueryMode, // QueryMode
   VidGopSetMode,   // SetMode
   VidGopBlt,       // Blt
   &VidGopMode    // Mode
@@ -308,7 +286,7 @@ Exit:
 
 EFI_STATUS
 EFIAPI
-VidGopQueryMode (
+GopDxeQueryMode (
   IN  EFI_GRAPHICS_OUTPUT_PROTOCOL *This,
   IN  UINT32 ModeNumber,
   OUT UINTN *SizeOfInfo,
@@ -369,107 +347,3 @@ Exit:
   return Status;
 }
 
-EFI_STATUS
-VidGopSetMode (
-  IN EFI_GRAPHICS_OUTPUT_PROTOCOL   *This,
-  IN UINT32                         ModeNumber
-  )
-{
-  EFI_STATUS  Status;
-
-  if (ModeNumber != 0) {
-    DEBUG ((DEBUG_ERROR, "%a: Saw request to set mode to %d\n",
-      __FUNCTION__, ModeNumber));
-    Status = EFI_UNSUPPORTED;
-    goto Exit;
-  }
-
-  Status = EFI_SUCCESS;
-
-Exit:
-  return Status;
-}
-
-EFI_STATUS
-VidGopBlt (
-  IN EFI_GRAPHICS_OUTPUT_PROTOCOL       *This,
-  IN OUT EFI_GRAPHICS_OUTPUT_BLT_PIXEL  *BltBuffer, OPTIONAL
-  IN EFI_GRAPHICS_OUTPUT_BLT_OPERATION  BltOperation,
-  IN UINTN                              SourceX,
-  IN UINTN                              SourceY,
-  IN UINTN                              DestinationX,
-  IN UINTN                              DestinationY,
-  IN UINTN                              Width,
-  IN UINTN                              Height,
-  IN UINTN                              Delta OPTIONAL
-  )
-{
-  UINT32  *FrameBuffer;
-  UINT32  BufferOffset;
-  UINT32  BufferWidth;
-  UINT32  FrameOffset;
-  UINT32  FrameWidth;
-  UINT32  i;
-
-  FrameBuffer = (UINT32 *)((UINTN)VidGopMode.FrameBufferBase);
-  FrameWidth = VidGopModeInfo.HorizontalResolution;
-  if (Delta == 0) {
-    BufferWidth = Width;
-  } else {
-    BufferWidth = Delta / PIXEL_BYTES;
-  }
-
-  if (BltOperation == EfiBltVideoFill) {
-    FrameOffset = FrameWidth * DestinationY + DestinationX;
-    for (i = DestinationY; i < DestinationY + Height; i++) {
-      SetMem32 (
-        FrameBuffer + FrameOffset,
-        Width * PIXEL_BYTES,
-        *(UINT32 *)BltBuffer
-      );
-      FrameOffset += FrameWidth;
-    }
-  } else if (BltOperation == EfiBltVideoToBltBuffer) {
-    FrameOffset = FrameWidth * SourceY + SourceX;
-    BufferOffset = BufferWidth * DestinationY + DestinationX;
-    for (i = SourceY; i < SourceY + Height; i++) {
-      CopyMem (
-        BltBuffer + BufferOffset,
-        FrameBuffer + FrameOffset,
-        Width * PIXEL_BYTES
-      );
-      FrameOffset += FrameWidth;
-      BufferOffset += BufferWidth;
-    }
-  } else if (BltOperation == EfiBltBufferToVideo) {
-    FrameOffset = FrameWidth * DestinationY + DestinationX;
-    BufferOffset = BufferWidth * SourceY + SourceX;
-    for (i = SourceY; i < SourceY + Height; i++) {
-      CopyMem (
-        FrameBuffer + FrameOffset,
-        BltBuffer + BufferOffset,
-        Width * PIXEL_BYTES
-      );
-      FrameOffset += FrameWidth;
-      BufferOffset += BufferWidth;
-    }
-  } else if (BltOperation == EfiBltVideoToVideo) {
-    FrameOffset = FrameWidth * DestinationY + DestinationX;
-    BufferOffset = FrameWidth * SourceY + SourceX;
-    for (i = SourceY; i < SourceY + Height; i++) {
-      CopyMem (
-        FrameBuffer + FrameOffset,
-        FrameBuffer + BufferOffset,
-        Width * PIXEL_BYTES
-      );
-      FrameOffset += FrameWidth;
-      BufferOffset += FrameWidth;
-    }
-  } else {
-    DEBUG ((DEBUG_ERROR, "%a: Not implemented %d\n",
-      __FUNCTION__, BltOperation));
-    return EFI_INVALID_PARAMETER;
-  }
-
-  return EFI_SUCCESS;
-}

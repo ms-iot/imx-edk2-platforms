@@ -30,8 +30,6 @@
 
 #include "Lcdif.h"
 
-#define PIXEL_BYTES 4
-
 typedef struct _LCDIF_DISPLAY_CONTEXT {
 
     //
@@ -50,36 +48,6 @@ typedef struct {
     VENDOR_DEVICE_PATH Mmc;
     EFI_DEVICE_PATH End;
 } VID_DEVICE_PATH;
-
-
-EFI_STATUS
-EFIAPI
-LcdifGopQueryMode(
-    IN EFI_GRAPHICS_OUTPUT_PROTOCOL *This,
-    IN UINT32 ModeNumber,
-    OUT UINTN *SizeOfInfo,
-    OUT EFI_GRAPHICS_OUTPUT_MODE_INFORMATION **Info
-    );
-
-EFI_STATUS
-LcdifGopSetMode(
-    IN EFI_GRAPHICS_OUTPUT_PROTOCOL *This,
-    IN UINT32 ModeNumber
-    );
-
-EFI_STATUS
-LcdifGopBlt(
-    IN EFI_GRAPHICS_OUTPUT_PROTOCOL *This,
-    IN OUT EFI_GRAPHICS_OUTPUT_BLT_PIXEL *BltBuffer,
-    IN EFI_GRAPHICS_OUTPUT_BLT_OPERATION BltOperation,
-    IN UINTN SourceX,
-    IN UINTN SourceY,
-    IN UINTN DestinationX,
-    IN UINTN DestinationY,
-    IN UINTN Width,
-    IN UINTN Height,
-    IN UINTN Delta
-    );
 
 static VID_DEVICE_PATH LcdifVidDevicePath =
 {
@@ -115,9 +83,9 @@ static EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE LcdifGopProtocolMode;
 
 static EFI_GRAPHICS_OUTPUT_PROTOCOL LcdifGopProtocol =
 {
-    LcdifGopQueryMode,      // QueryMode
-    LcdifGopSetMode,        // SetMode
-    LcdifGopBlt,            // Blt
+    VidGopQueryMode,      // QueryMode
+    VidGopSetMode,        // SetMode
+    VidGopBlt,            // Blt
     &LcdifGopProtocolMode   // Mode
 };
 
@@ -299,168 +267,5 @@ Exit:
 
     DEBUG ((DEBUG_INIT, "exiting LcdIfGopInitialized return=%ld\n", status));
     return status;
-}
-
-//
-// GraphicsOutput Protocol function, mapping to
-// EFI_GRAPHICS_OUTPUT_PROTOCOL.QueryMode
-//
-EFI_STATUS
-EFIAPI
-LcdifGopQueryMode (
-    IN EFI_GRAPHICS_OUTPUT_PROTOCOL *This,
-    IN UINT32 ModeNumber,
-    OUT UINTN *SizeOfInfo,
-    OUT EFI_GRAPHICS_OUTPUT_MODE_INFORMATION **Info
-    )
-{
-    EFI_STATUS status;
-    EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* outputModePtr;
-
-    DEBUG ((DEBUG_INIT, "entering LcdifGopQueryMode\n"));
-
-    if (ModeNumber != 0) {
-        DEBUG((EFI_D_ERROR, "LcdifGopQueryMode: Saw request to query mode %d\n", ModeNumber));
-        status = EFI_INVALID_PARAMETER;
-        goto Exit;
-    }
-
-    outputModePtr = (EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *)
-        AllocatePool (sizeof(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION));
-    if (outputModePtr == NULL) {
-        status = EFI_OUT_OF_RESOURCES;
-        goto Exit;
-    }
-
-    outputModePtr->Version = 0;
-    outputModePtr->HorizontalResolution = LcdifGopModeInfo.HorizontalResolution;
-    outputModePtr->VerticalResolution = LcdifGopModeInfo.VerticalResolution;
-    outputModePtr->PixelFormat = PixelBlueGreenRedReserved8BitPerColor;
-
-    outputModePtr->PixelsPerScanLine = LcdifGopModeInfo.HorizontalResolution;
-    *SizeOfInfo = sizeof(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION);
-    *Info = outputModePtr;
-
-    status = EFI_SUCCESS;
-
-Exit:
-    return status;
-}
-
-//
-// GraphicsOutput Protocol function, mapping to
-// EFI_GRAPHICS_OUTPUT_PROTOCOL.SetMode
-//
-
-EFI_STATUS
-LcdifGopSetMode (
-    IN EFI_GRAPHICS_OUTPUT_PROTOCOL *This,
-    IN UINT32 ModeNumber
-    )
-{
-    DEBUG ((DEBUG_INIT, "entering LcdifGopSetMode\n"));
-    EFI_STATUS status;
-
-    if (ModeNumber != 0) {
-        DEBUG((EFI_D_ERROR, "LcdifGopSetMode: Saw request to set mode to %d\n", ModeNumber));
-        status = EFI_UNSUPPORTED;
-        goto Exit;
-    }
-
-    status = EFI_SUCCESS;
-
-Exit:
-    return status;
-}
-
-//
-// GraphicsOutput Protocol function, mapping to
-// EFI_GRAPHICS_OUTPUT_PROTOCOL. Blt
-//
-EFI_STATUS
-LcdifGopBlt (
-    IN EFI_GRAPHICS_OUTPUT_PROTOCOL *This,
-    IN OUT EFI_GRAPHICS_OUTPUT_BLT_PIXEL *BltBuffer, OPTIONAL
-    IN EFI_GRAPHICS_OUTPUT_BLT_OPERATION BltOperation,
-    IN UINTN SourceX,
-    IN UINTN SourceY,
-    IN UINTN DestinationX,
-    IN UINTN DestinationY,
-    IN UINTN Width,
-    IN UINTN Height,
-    IN UINTN Delta OPTIONAL
-    )
-{
-    DEBUG ((DEBUG_VERBOSE, "entering LcdifGopBlt\n"));
-    UINT32 *frameBuffer;
-    UINT32 frameWidth;
-    UINT32 frameOffset;
-    UINT32 bufferOffset;
-    UINT32 bufferWidth;
-    UINT32 i;
-
-    frameBuffer = (UINT32 *) (UINTN) LcdifGopProtocolMode.FrameBufferBase;
-    frameWidth = LcdifGopModeInfo.HorizontalResolution;
-
-    if (Delta == 0) {
-        bufferWidth = Width;
-    } else {
-        bufferWidth = Delta / PIXEL_BYTES;
-    }
-
-    if (BltOperation == EfiBltVideoFill) {
-
-        frameOffset = frameWidth * DestinationY + DestinationX;
-        for (i = DestinationY; i < DestinationY + Height; i++) {
-            SetMem32(frameBuffer + frameOffset,
-                     Width * PIXEL_BYTES,
-                     *(UINT32 *)BltBuffer
-                     );
-            frameOffset += frameWidth;
-        }
-    } else if (BltOperation == EfiBltVideoToBltBuffer) {
-
-        frameOffset = frameWidth * SourceY + SourceX;
-        bufferOffset = bufferWidth * DestinationY + DestinationX;
-
-        for (i = SourceY; i < SourceY + Height; i++) {
-            CopyMem(BltBuffer + bufferOffset,
-                    frameBuffer + frameOffset,
-                    Width * PIXEL_BYTES);
-            frameOffset += frameWidth;
-            bufferOffset += bufferWidth;
-        }
-    } else if (BltOperation == EfiBltBufferToVideo) {
-
-        frameOffset = frameWidth * DestinationY + DestinationX;
-        bufferOffset = bufferWidth * SourceY + SourceX;
-
-        for (i = SourceY; i < SourceY + Height; i++) {
-            CopyMem(frameBuffer + frameOffset,
-                    BltBuffer + bufferOffset,
-                    Width * PIXEL_BYTES);
-            frameOffset += frameWidth;
-            bufferOffset += bufferWidth;
-        }
-
-    } else if (BltOperation == EfiBltVideoToVideo) {
-
-        frameOffset = frameWidth * DestinationY + DestinationX;
-        bufferOffset = frameWidth * SourceY + SourceX;
-
-        for (i = SourceY; i < SourceY + Height; i++) {
-            CopyMem(frameBuffer + frameOffset,
-                    frameBuffer + bufferOffset,
-                    Width * PIXEL_BYTES);
-            frameOffset += frameWidth;
-            bufferOffset += frameWidth;
-        }
-
-    } else {
-        DEBUG((EFI_D_ERROR, "LcdifGopBlt:LcdifGopBlt not implemented %d\n", BltOperation));
-        return EFI_INVALID_PARAMETER;
-    }
-
-    return EFI_SUCCESS;
 }
 
