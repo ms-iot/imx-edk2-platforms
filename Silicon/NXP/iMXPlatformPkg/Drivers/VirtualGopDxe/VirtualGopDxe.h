@@ -23,6 +23,8 @@
 
 #include <Protocol/GraphicsOutput.h>
 
+#include <iMXDisplay.h>
+
 typedef struct {
   VENDOR_DEVICE_PATH Mmc;
   EFI_DEVICE_PATH End;

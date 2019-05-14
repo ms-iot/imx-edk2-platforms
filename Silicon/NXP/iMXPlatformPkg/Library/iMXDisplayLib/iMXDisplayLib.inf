@@ -26,6 +26,9 @@
   Silicon/NXP/iMXPlatformPkg/iMXPlatformPkg.dec
 
 [LibraryClasses]
+  BaseMemoryLib
+  MemoryAllocationLib
 
 [Sources.common]
   iMXDisplayLib.c
+

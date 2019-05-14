@@ -26,11 +26,13 @@
 [Packages]
   EmbeddedPkg/EmbeddedPkg.dec
   MdePkg/MdePkg.dec
+  Silicon/NXP/iMXPlatformPkg/iMXPlatformPkg.dec
 
 [LibraryClasses]
   BaseMemoryLib
   DebugLib
   DmaLib
+  iMXDisplayLib
   MemoryAllocationLib
   UefiBootServicesTableLib
   UefiDriverEntryPoint

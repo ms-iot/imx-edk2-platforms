@@ -14,8 +14,10 @@
 
 #include <Uefi.h>
 
+#include <Library/BaseMemoryLib.h>
 #include <Library/DebugLib.h>
-
+#include <Library/MemoryAllocationLib.h>
+#include <Protocol/GraphicsOutput.h>
 #include <iMXDisplay.h>
 
 /**
@@ -150,3 +152,148 @@ ImxValidateEdidData (
   DEBUG ((DEBUG_INFO, "%a: Success\r\n", __FUNCTION__));
   return EFI_SUCCESS;
 }
+
+EFI_STATUS
+EFIAPI
+VidGopQueryMode (
+  IN  EFI_GRAPHICS_OUTPUT_PROTOCOL *This,
+  IN  UINT32 ModeNumber,
+  OUT UINTN *SizeOfInfo,
+  OUT EFI_GRAPHICS_OUTPUT_MODE_INFORMATION **Info
+  )
+{
+  EFI_GRAPHICS_OUTPUT_MODE_INFORMATION  *OutputMode;
+  EFI_STATUS                            Status;
+
+  if (ModeNumber != 0) {
+    DEBUG ((DEBUG_ERROR, "%a: Saw request to query mode %d\n",
+            __FUNCTION__, ModeNumber));
+    Status = EFI_INVALID_PARAMETER;
+    goto Exit;
+  }
+
+  OutputMode = (EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *)
+                AllocatePool (sizeof (EFI_GRAPHICS_OUTPUT_MODE_INFORMATION));
+  if (OutputMode == NULL) {
+    Status = EFI_OUT_OF_RESOURCES;
+    goto Exit;
+  }
+
+  OutputMode->Version = 0;
+  OutputMode->HorizontalResolution = This->Mode->Info->HorizontalResolution;
+  OutputMode->VerticalResolution = This->Mode->Info->VerticalResolution;
+  OutputMode->PixelFormat = This->Mode->Info->PixelFormat;
+  OutputMode->PixelsPerScanLine = This->Mode->Info->HorizontalResolution;
+
+  *SizeOfInfo = sizeof (EFI_GRAPHICS_OUTPUT_MODE_INFORMATION);
+  *Info = OutputMode;
+  Status = EFI_SUCCESS;
+
+Exit:
+  return Status;
+}
+
+EFI_STATUS
+VidGopSetMode (
+  IN EFI_GRAPHICS_OUTPUT_PROTOCOL   *This,
+  IN UINT32                         ModeNumber
+  )
+{
+  EFI_STATUS  Status;
+
+  // Supports only 1 mode
+  if (ModeNumber != 0) {
+    DEBUG ((DEBUG_ERROR, "%a: Saw request to set mode to %d\n",
+            __FUNCTION__, ModeNumber));
+    Status = EFI_UNSUPPORTED;
+    goto Exit;
+  }
+
+  Status = EFI_SUCCESS;
+
+Exit:
+  return Status;
+}
+
+EFI_STATUS
+VidGopBlt (
+  IN EFI_GRAPHICS_OUTPUT_PROTOCOL       *This,
+  IN OUT EFI_GRAPHICS_OUTPUT_BLT_PIXEL  *BltBuffer, OPTIONAL
+  IN EFI_GRAPHICS_OUTPUT_BLT_OPERATION  BltOperation,
+  IN UINTN                              SourceX,
+  IN UINTN                              SourceY,
+  IN UINTN                              DestinationX,
+  IN UINTN                              DestinationY,
+  IN UINTN                              Width,
+  IN UINTN                              Height,
+  IN UINTN                              Delta OPTIONAL
+  )
+{
+  UINT32  *FrameBuffer;
+  UINT32  BufferOffset;
+  UINT32  BufferWidth;
+  UINT32  FrameOffset;
+  UINT32  FrameWidth;
+  UINT32  i;
+
+  FrameBuffer = (UINT32*)((UINTN)(This->Mode->FrameBufferBase));
+  FrameWidth = This->Mode->Info->HorizontalResolution;
+  if (Delta == 0) {
+    BufferWidth = Width;
+  } else {
+    BufferWidth = Delta / BYTES_PER_PIXEL;
+  }
+  if (BltOperation == EfiBltVideoFill) {
+    FrameOffset = FrameWidth * DestinationY + DestinationX;
+    for (i = DestinationY; i < DestinationY + Height; i++) {
+      SetMem32 (
+          FrameBuffer + FrameOffset,
+          Width * BYTES_PER_PIXEL,
+          *(UINT32 *)BltBuffer
+          );
+      FrameOffset += FrameWidth;
+    }
+  } else if (BltOperation == EfiBltVideoToBltBuffer) {
+    FrameOffset = FrameWidth * SourceY + SourceX;
+    BufferOffset = BufferWidth * DestinationY + DestinationX;
+    for (i = SourceY; i < SourceY + Height; i++) {
+      CopyMem (
+          BltBuffer + BufferOffset,
+          FrameBuffer + FrameOffset,
+          Width * BYTES_PER_PIXEL
+          );
+      FrameOffset += FrameWidth;
+      BufferOffset += BufferWidth;
+    }
+  } else if (BltOperation == EfiBltBufferToVideo) {
+    FrameOffset = FrameWidth * DestinationY + DestinationX;
+    BufferOffset = BufferWidth * SourceY + SourceX;
+    for (i = SourceY; i < SourceY + Height; i++) {
+      CopyMem (
+          FrameBuffer + FrameOffset,
+          BltBuffer + BufferOffset,
+          Width * BYTES_PER_PIXEL
+          );
+      FrameOffset += FrameWidth;
+      BufferOffset += BufferWidth;
+    }
+  } else if (BltOperation == EfiBltVideoToVideo) {
+    FrameOffset = FrameWidth * DestinationY + DestinationX;
+    BufferOffset = FrameWidth * SourceY + SourceX;
+    for (i = SourceY; i < SourceY + Height; i++) {
+      CopyMem (
+          FrameBuffer + FrameOffset,
+          FrameBuffer + BufferOffset,
+          Width * BYTES_PER_PIXEL
+          );
+      FrameOffset += FrameWidth;
+      BufferOffset += FrameWidth;
+    }
+  } else {
+    DEBUG ((DEBUG_ERROR, "%a: Not implemented %d\n",
+          __FUNCTION__, BltOperation));
+    return EFI_INVALID_PARAMETER;
+  }
+  return EFI_SUCCESS;
+}
+

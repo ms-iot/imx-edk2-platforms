@@ -15,6 +15,8 @@
 #ifndef __IMX_DISPLAY_H__
 #define __IMX_DISPLAY_H__
 
+#define BYTES_PER_PIXEL 4    // Supported PixelFormat=BGRA8888
+
 #define IMX_EDID_MIN_SIZE       128
 #define IMX_EDID_I2C_ADDRESS    0x50
 
@@ -111,6 +113,35 @@ ImxPrintDisplayTiming (
 EFI_STATUS
 ImxValidateEdidData (
   IN UINT8 *EdidDataPtr
+  );
+
+EFI_STATUS
+EFIAPI
+VidGopQueryMode (
+  IN  EFI_GRAPHICS_OUTPUT_PROTOCOL *This,
+  IN  UINT32 ModeNumber,
+  OUT UINTN *SizeOfInfo,
+  OUT EFI_GRAPHICS_OUTPUT_MODE_INFORMATION **Info
+  );
+
+EFI_STATUS
+VidGopSetMode (
+  IN EFI_GRAPHICS_OUTPUT_PROTOCOL   *This,
+  IN UINT32                         ModeNumber
+  );
+
+EFI_STATUS
+VidGopBlt (
+  IN EFI_GRAPHICS_OUTPUT_PROTOCOL       *This,
+  IN OUT EFI_GRAPHICS_OUTPUT_BLT_PIXEL  *BltBuffer, OPTIONAL
+  IN EFI_GRAPHICS_OUTPUT_BLT_OPERATION  BltOperation,
+  IN UINTN                              SourceX,
+  IN UINTN                              SourceY,
+  IN UINTN                              DestinationX,
+  IN UINTN                              DestinationY,
+  IN UINTN                              Width,
+  IN UINTN                              Height,
+  IN UINTN                              Delta OPTIONAL
   );
 
 #endif // __IMX_DISPLAY_H__
