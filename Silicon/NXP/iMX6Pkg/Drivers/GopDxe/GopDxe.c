@@ -39,8 +39,6 @@
 #include "Hdmi.h"
 #include "Lvds.h"
 
-#define PIXEL_BYTES 4
-
 typedef struct {
   VENDOR_DEVICE_PATH Mmc;
   EFI_DEVICE_PATH End;

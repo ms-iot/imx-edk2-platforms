@@ -159,6 +159,20 @@ VidGopQueryMode (
   EFI_GRAPHICS_OUTPUT_MODE_INFORMATION  *OutputMode;
   EFI_STATUS                            Status;
 
+  if (This == NULL) {
+    Status = EFI_INVALID_PARAMETER;
+    goto Exit;
+  }
+  if (This->Mode == NULL) {
+    Status = EFI_INVALID_PARAMETER;
+    goto Exit;
+  }
+
+  if (This->Mode->Info == NULL) {
+    Status = EFI_INVALID_PARAMETER;
+    goto Exit;
+  }
+
   if (ModeNumber != 0) {
     DEBUG ((DEBUG_ERROR, "%a: Saw request to query mode %d\n",
             __FUNCTION__, ModeNumber));
@@ -223,13 +237,29 @@ VidGopBlt (
   IN UINTN                              Delta OPTIONAL
   )
 {
-  UINT32  *FrameBuffer;
-  UINT32  BufferOffset;
-  UINT32  BufferWidth;
-  UINT32  FrameOffset;
-  UINT32  FrameWidth;
-  UINT32  i;
+  UINT32       *FrameBuffer;
+  UINT32       BufferOffset;
+  UINT32       BufferWidth;
+  UINT32       FrameOffset;
+  UINT32       FrameWidth;
+  UINT32       i;
+  EFI_STATUS   Status;
 
+  if (This == NULL) {
+    Status = EFI_INVALID_PARAMETER;
+    goto Exit;
+  }
+  if (This->Mode == NULL) {
+    Status = EFI_INVALID_PARAMETER;
+    goto Exit;
+  }
+
+  if (This->Mode->Info == NULL) {
+    Status = EFI_INVALID_PARAMETER;
+    goto Exit;
+  }
+
+  Status = EFI_SUCCESS;
   FrameBuffer = (UINT32*)((UINTN)(This->Mode->FrameBufferBase));
   FrameWidth = This->Mode->Info->HorizontalResolution;
   if (Delta == 0) {
@@ -237,57 +267,63 @@ VidGopBlt (
   } else {
     BufferWidth = Delta / BYTES_PER_PIXEL;
   }
-  if (BltOperation == EfiBltVideoFill) {
-    FrameOffset = FrameWidth * DestinationY + DestinationX;
-    for (i = DestinationY; i < DestinationY + Height; i++) {
-      SetMem32 (
-          FrameBuffer + FrameOffset,
-          Width * BYTES_PER_PIXEL,
-          *(UINT32 *)BltBuffer
-          );
-      FrameOffset += FrameWidth;
-    }
-  } else if (BltOperation == EfiBltVideoToBltBuffer) {
-    FrameOffset = FrameWidth * SourceY + SourceX;
-    BufferOffset = BufferWidth * DestinationY + DestinationX;
-    for (i = SourceY; i < SourceY + Height; i++) {
-      CopyMem (
-          BltBuffer + BufferOffset,
-          FrameBuffer + FrameOffset,
-          Width * BYTES_PER_PIXEL
-          );
-      FrameOffset += FrameWidth;
-      BufferOffset += BufferWidth;
-    }
-  } else if (BltOperation == EfiBltBufferToVideo) {
-    FrameOffset = FrameWidth * DestinationY + DestinationX;
-    BufferOffset = BufferWidth * SourceY + SourceX;
-    for (i = SourceY; i < SourceY + Height; i++) {
-      CopyMem (
-          FrameBuffer + FrameOffset,
-          BltBuffer + BufferOffset,
-          Width * BYTES_PER_PIXEL
-          );
-      FrameOffset += FrameWidth;
-      BufferOffset += BufferWidth;
-    }
-  } else if (BltOperation == EfiBltVideoToVideo) {
-    FrameOffset = FrameWidth * DestinationY + DestinationX;
-    BufferOffset = FrameWidth * SourceY + SourceX;
-    for (i = SourceY; i < SourceY + Height; i++) {
-      CopyMem (
-          FrameBuffer + FrameOffset,
-          FrameBuffer + BufferOffset,
-          Width * BYTES_PER_PIXEL
-          );
-      FrameOffset += FrameWidth;
-      BufferOffset += FrameWidth;
-    }
-  } else {
-    DEBUG ((DEBUG_ERROR, "%a: Not implemented %d\n",
-          __FUNCTION__, BltOperation));
-    return EFI_INVALID_PARAMETER;
+  switch (BltOperation) {
+    case EfiBltVideoFill: 
+      FrameOffset = FrameWidth * DestinationY + DestinationX;
+      for (i = DestinationY; i < DestinationY + Height; i++) {
+        SetMem32 (
+           FrameBuffer + FrameOffset,
+           Width * BYTES_PER_PIXEL,
+           *(UINT32 *)BltBuffer
+            );
+        FrameOffset += FrameWidth;
+      }
+      break;
+    case EfiBltVideoToBltBuffer:
+      FrameOffset = FrameWidth * SourceY + SourceX;
+      BufferOffset = BufferWidth * DestinationY + DestinationX;
+      for (i = SourceY; i < SourceY + Height; i++) {
+        CopyMem (
+            BltBuffer + BufferOffset,
+            FrameBuffer + FrameOffset,
+            Width * BYTES_PER_PIXEL
+            );
+        FrameOffset += FrameWidth;
+        BufferOffset += BufferWidth;
+      }
+      break;
+    case EfiBltBufferToVideo:
+      FrameOffset = FrameWidth * DestinationY + DestinationX;
+      BufferOffset = BufferWidth * SourceY + SourceX;
+      for (i = SourceY; i < SourceY + Height; i++) {
+        CopyMem (
+            FrameBuffer + FrameOffset,
+            BltBuffer + BufferOffset,
+            Width * BYTES_PER_PIXEL
+            );
+        FrameOffset += FrameWidth;
+        BufferOffset += BufferWidth;
+      }
+      break;
+    case EfiBltVideoToVideo:
+      FrameOffset = FrameWidth * DestinationY + DestinationX;
+      BufferOffset = FrameWidth * SourceY + SourceX;
+      for (i = SourceY; i < SourceY + Height; i++) {
+        CopyMem (
+            FrameBuffer + FrameOffset,
+            FrameBuffer + BufferOffset,
+            Width * BYTES_PER_PIXEL
+            );
+        FrameOffset += FrameWidth;
+        BufferOffset += FrameWidth;
+      }
+      break;
+    default:
+      DEBUG ((DEBUG_ERROR, "%a: Not implemented %d\n",
+              __FUNCTION__, BltOperation));
+      Status = EFI_INVALID_PARAMETER;
   }
-  return EFI_SUCCESS;
+Exit:
+  return Status;
 }
 

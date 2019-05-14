@@ -152,3 +152,4 @@ VidGopBlt (
   );
 
 #endif // __IMX_DISPLAY_H__
+
