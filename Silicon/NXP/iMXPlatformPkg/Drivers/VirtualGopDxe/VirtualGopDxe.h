@@ -12,8 +12,8 @@
 *
 **/
 
-#ifndef _GOP_NULL_DXE_H_
-#define _GOP_NULL_DXE_H_
+#ifndef _VIRTUAL_GOP_DXE_H_
+#define _VIRTUAL_GOP_DXE_H_
 
 #include <Library/BaseMemoryLib.h>
 #include <Library/DebugLib.h>
@@ -22,8 +22,6 @@
 #include <Library/UefiBootServicesTableLib.h>
 
 #include <Protocol/GraphicsOutput.h>
-
-#define BYTES_PER_PIXEL 4 // Windows expects PixelFormat=BGRA8888
 
 typedef struct {
   VENDOR_DEVICE_PATH Mmc;
@@ -35,5 +33,5 @@ typedef struct {
   UINT32 VActive;
 } DISPLAY_TIMING;
 
-#endif  /* _GOP_NULL_DXE_H_ */
+#endif  /* _VIRTUAL_GOP_DXE_H_ */
 

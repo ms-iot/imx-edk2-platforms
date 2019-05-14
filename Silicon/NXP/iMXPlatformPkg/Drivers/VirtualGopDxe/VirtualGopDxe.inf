@@ -18,10 +18,10 @@
   FILE_GUID                      = 6434ee80-2635-4e27-8eb0-8388d0d8fc9e
   MODULE_TYPE                    = DXE_DRIVER
   VERSION_STRING                 = 1.0
-  ENTRY_POINT                    = GopNullDxeInitialize
+  ENTRY_POINT                    = VirtualGopDxeInitialize
 
 [Sources.common]
-  GopNullDxe.c
+  VirtualGopDxe.c
 
 [Packages]
   EmbeddedPkg/EmbeddedPkg.dec

@@ -13,7 +13,9 @@
 *
 **/
 
-#include "GopNullDxe.h"
+#include "VirtualGopDxe.h"
+
+#define BYTES_PER_PIXEL 4 // PixelFormat=BGRA8888
 
 CONST DISPLAY_TIMING mDisplayTiming = {
   1920,  // Horizontal Resolution
@@ -203,7 +205,7 @@ STATIC EFI_GRAPHICS_OUTPUT_PROTOCOL VidGop = {
 };
 
 EFI_STATUS
-GopNullDxeInitialize (
+VirtualGopDxeInitialize (
   IN EFI_HANDLE         ImageHandle,
   IN EFI_SYSTEM_TABLE   *SystemTable
   )
