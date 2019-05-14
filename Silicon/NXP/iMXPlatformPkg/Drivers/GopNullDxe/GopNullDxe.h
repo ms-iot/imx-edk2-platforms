@@ -23,7 +23,7 @@
 
 #include <Protocol/GraphicsOutput.h>
 
-#define PIXEL_BYTES 4
+#define BYTES_PER_PIXEL 4 // Windows expects PixelFormat=BGRA8888
 
 typedef struct {
   VENDOR_DEVICE_PATH Mmc;
@@ -33,7 +33,6 @@ typedef struct {
 typedef struct {
   UINT32 HActive;
   UINT32 VActive;
-  UINT32 Bpp;
 } DISPLAY_TIMING;
 
 #endif  /* _GOP_NULL_DXE_H_ */

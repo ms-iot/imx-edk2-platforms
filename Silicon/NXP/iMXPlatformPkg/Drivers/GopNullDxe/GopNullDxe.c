@@ -18,7 +18,6 @@
 CONST DISPLAY_TIMING mDisplayTiming = {
   1920,  // Horizontal Resolution
   1080,  // Vertical Resolution
-  32,    // Bits Per Pixel
 };
 
 STATIC VID_DEVICE_PATH mVidDevicePath = {
@@ -138,7 +137,7 @@ VidGopBlt (
   if (Delta == 0) {
     BufferWidth = Width;
   } else {
-    BufferWidth = Delta / PIXEL_BYTES;
+    BufferWidth = Delta / BYTES_PER_PIXEL;
   }
 
   if (BltOperation == EfiBltVideoFill) {
@@ -146,7 +145,7 @@ VidGopBlt (
     for (i = DestinationY; i < DestinationY + Height; i++) {
       SetMem32 (
         FrameBuffer + FrameOffset,
-        Width * PIXEL_BYTES,
+        Width * BYTES_PER_PIXEL,
         *(UINT32 *)BltBuffer
       );
       FrameOffset += FrameWidth;
@@ -158,7 +157,7 @@ VidGopBlt (
       CopyMem (
         BltBuffer + BufferOffset,
         FrameBuffer + FrameOffset,
-        Width * PIXEL_BYTES
+        Width * BYTES_PER_PIXEL
       );
       FrameOffset += FrameWidth;
       BufferOffset += BufferWidth;
@@ -170,7 +169,7 @@ VidGopBlt (
       CopyMem (
         FrameBuffer + FrameOffset,
         BltBuffer + BufferOffset,
-        Width * PIXEL_BYTES
+        Width * BYTES_PER_PIXEL
       );
       FrameOffset += FrameWidth;
       BufferOffset += BufferWidth;
@@ -182,7 +181,7 @@ VidGopBlt (
       CopyMem (
         FrameBuffer + FrameOffset,
         FrameBuffer + BufferOffset,
-        Width * PIXEL_BYTES
+        Width * BYTES_PER_PIXEL
       );
       FrameOffset += FrameWidth;
       BufferOffset += FrameWidth;
@@ -216,7 +215,7 @@ GopNullDxeInitialize (
   DEBUG ((DEBUG_INFO, "%a: Enter \n", __FUNCTION__));
 
   // Allocate Frame Buffer
-  FrameBufferSize = mDisplayTiming.HActive * mDisplayTiming.VActive * mDisplayTiming.Bpp / 8;
+  FrameBufferSize = mDisplayTiming.HActive * mDisplayTiming.VActive * BYTES_PER_PIXEL;
   DEBUG ((DEBUG_INFO, "%a: Frame Buffer Size = %d \n", __FUNCTION__, FrameBufferSize));
   Status = DmaAllocateBuffer (
              EfiRuntimeServicesData,
