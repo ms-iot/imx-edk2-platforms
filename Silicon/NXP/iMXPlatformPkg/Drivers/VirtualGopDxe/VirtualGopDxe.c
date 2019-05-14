@@ -79,10 +79,10 @@ VidGopQueryMode (
   }
 
   OutputMode->Version = 0;
-  OutputMode->HorizontalResolution = VidGopModeInfo.HorizontalResolution;
-  OutputMode->VerticalResolution = VidGopModeInfo.VerticalResolution;
-  OutputMode->PixelFormat = VidGopModeInfo.PixelFormat;
-  OutputMode->PixelsPerScanLine = VidGopModeInfo.HorizontalResolution;
+  OutputMode->HorizontalResolution = This->Mode->Info->HorizontalResolution;
+  OutputMode->VerticalResolution = This->Mode->Info->VerticalResolution;
+  OutputMode->PixelFormat = This->Mode->Info->PixelFormat;
+  OutputMode->PixelsPerScanLine = This->Mode->Info->HorizontalResolution;
   *SizeOfInfo = sizeof (EFI_GRAPHICS_OUTPUT_MODE_INFORMATION);
   *Info = OutputMode;
 
@@ -134,8 +134,8 @@ VidGopBlt (
   UINT32  FrameWidth;
   UINT32  i;
 
-  FrameBuffer = (UINT32 *)((UINTN)VidGopMode.FrameBufferBase);
-  FrameWidth = VidGopModeInfo.HorizontalResolution;
+  FrameBuffer = (UINT32*)((UINTN)(This->Mode->FrameBufferBase));
+  FrameWidth = This->Mode->Info->HorizontalResolution;
   if (Delta == 0) {
     BufferWidth = Width;
   } else {
