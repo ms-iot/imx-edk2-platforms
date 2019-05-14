@@ -26,8 +26,6 @@
 #include <iMX6.h>
 #include <iMXDisplay.h>
 
-#define PIXEL_BYTES 4
-
 typedef struct {
     VENDOR_DEVICE_PATH Mmc;
     EFI_DEVICE_PATH End;
@@ -77,67 +75,6 @@ static VID_DEVICE_PATH g_VidDevicePath =
         }
     }
 }; // copied from iMXVideoDxe.c
-
-//
-// Protocol Delegates
-//
-EFI_STATUS
-sGfxQueryMode(
-    IN  EFI_GRAPHICS_OUTPUT_PROTOCOL          *This,
-    IN  UINT32                                ModeNumber,
-    OUT UINTN                                 *SizeOfInfo,
-    OUT EFI_GRAPHICS_OUTPUT_MODE_INFORMATION  **Info
-    )
-{
-    EFI_GRAPHICS_OUTPUT_MODE_INFORMATION  *pOut;
-
-    if (This != &sgInst.Protocol)
-        return EFI_INVALID_PARAMETER;
-
-    if (ModeNumber != 0)
-        return EFI_UNSUPPORTED;
-
-    pOut = (EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *)
-        AllocatePool(sizeof(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION));
-    if (pOut == NULL)
-        return EFI_OUT_OF_RESOURCES;
-
-    ZeroMem(pOut, sizeof(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION));
-    CopyMem(pOut, &sgInst.ModeInfo, sizeof(sgInst.ModeInfo));
-    *SizeOfInfo = sizeof(sgInst.ModeInfo);
-    *Info = pOut;
-
-    return EFI_SUCCESS;
-}
-
-static
-EFI_STATUS
-sGfxSetMode(
-    IN  EFI_GRAPHICS_OUTPUT_PROTOCOL *This,
-    IN  UINT32                       ModeNumber
-    )
-{
-    if ((This != &sgInst.Protocol) ||
-        (ModeNumber != 0))
-        return EFI_INVALID_PARAMETER;
-
-    return EFI_UNSUPPORTED;
-}
-
-static
-EFI_STATUS
-sGfxBlt(
-    IN  EFI_GRAPHICS_OUTPUT_PROTOCOL            *This,
-    IN  EFI_GRAPHICS_OUTPUT_BLT_PIXEL           *BltBuffer, OPTIONAL
-    IN  EFI_GRAPHICS_OUTPUT_BLT_OPERATION       BltOperation,
-    IN  UINTN                                   SourceX,
-    IN  UINTN                                   SourceY,
-    IN  UINTN                                   DestinationX,
-    IN  UINTN                                   DestinationY,
-    IN  UINTN                                   Width,
-    IN  UINTN                                   Height,
-    IN  UINTN                                   Delta         OPTIONAL
-    );
 
 VOID
 InitLCD(
@@ -332,9 +269,9 @@ GraphicsOutputDxeInitialize(
     }
 
     // Graphics output protocol
-    sgInst.Protocol.QueryMode = sGfxQueryMode;
-    sgInst.Protocol.SetMode = sGfxSetMode;
-    sgInst.Protocol.Blt = sGfxBlt;
+    sgInst.Protocol.QueryMode = VidGopQueryMode;
+    sgInst.Protocol.SetMode = VidGopSetMode;
+    sgInst.Protocol.Blt = VidGopBlt;
     sgInst.Protocol.Mode = &sgInst.Mode;
 
     sgInst.ModeInfo.Version = 0;
@@ -360,92 +297,3 @@ Exit:
     return status;
 }
 
-// -------------------------------------------------------------------------------------------------------
-
-// Almost Identical to iMXVideoDxe.c VidGopBlt
-static
-EFI_STATUS
-sGfxBlt(
-    IN  EFI_GRAPHICS_OUTPUT_PROTOCOL            *This,
-    IN  EFI_GRAPHICS_OUTPUT_BLT_PIXEL           *BltBuffer, OPTIONAL
-    IN  EFI_GRAPHICS_OUTPUT_BLT_OPERATION       BltOperation,
-    IN  UINTN                                   SourceX,
-    IN  UINTN                                   SourceY,
-    IN  UINTN                                   DestinationX,
-    IN  UINTN                                   DestinationY,
-    IN  UINTN                                   Width,
-    IN  UINTN                                   Height,
-    IN  UINTN                                   Delta         OPTIONAL
-    )
-{
-    UINT32 *frameBuffer;
-    UINT32 frameWidth;
-    UINT32 frameOffset;
-    UINT32 bufferOffset;
-    UINT32 bufferWidth;
-    UINT32 i;
-
-    frameBuffer = (UINT32 *) (UINTN) sgInst.Mode.FrameBufferBase;
-    frameWidth = sgInst.ModeInfo.HorizontalResolution;
-
-    if (Delta == 0) {
-        bufferWidth = Width;
-    } else {
-        bufferWidth = Delta / PIXEL_BYTES;
-    }
-
-    if (BltOperation == EfiBltVideoFill) {
-
-        frameOffset = frameWidth * DestinationY + DestinationX;
-        for (i = DestinationY; i < DestinationY + Height; i++) {
-            SetMem32(frameBuffer + frameOffset,
-                     Width * PIXEL_BYTES,
-                     *(UINT32 *)BltBuffer
-                     );
-            frameOffset += frameWidth;
-        }
-    } else if (BltOperation == EfiBltVideoToBltBuffer) {
-
-        frameOffset = frameWidth * SourceY + SourceX;
-        bufferOffset = bufferWidth * DestinationY + DestinationX;
-
-        for (i = SourceY; i < SourceY + Height; i++) {
-            CopyMem(BltBuffer + bufferOffset,
-                    frameBuffer + frameOffset,
-                    Width * PIXEL_BYTES);
-            frameOffset += frameWidth;
-            bufferOffset += bufferWidth;
-        }
-    } else if (BltOperation == EfiBltBufferToVideo) {
-
-        frameOffset = frameWidth * DestinationY + DestinationX;
-        bufferOffset = bufferWidth * SourceY + SourceX;
-
-        for (i = SourceY; i < SourceY + Height; i++) {
-            CopyMem(frameBuffer + frameOffset,
-                    BltBuffer + bufferOffset,
-                    Width * PIXEL_BYTES);
-            frameOffset += frameWidth;
-            bufferOffset += bufferWidth;
-        }
-
-    } else if (BltOperation == EfiBltVideoToVideo) {
-
-        frameOffset = frameWidth * DestinationY + DestinationX;
-        bufferOffset = frameWidth * SourceY + SourceX;
-
-        for (i = SourceY; i < SourceY + Height; i++) {
-            CopyMem(frameBuffer + frameOffset,
-                    frameBuffer + bufferOffset,
-                    Width * PIXEL_BYTES);
-            frameOffset += frameWidth;
-            bufferOffset += frameWidth;
-        }
-
-    } else {
-        DEBUG((EFI_D_ERROR, "VideoDxe:VidGopBlt not implemented %d\n", BltOperation));
-        return EFI_INVALID_PARAMETER;
-    }
-
-    return EFI_SUCCESS;
-}
