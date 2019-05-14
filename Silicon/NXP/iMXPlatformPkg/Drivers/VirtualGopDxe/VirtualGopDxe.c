@@ -15,12 +15,12 @@
 
 #include "VirtualGopDxe.h"
 
-CONST DISPLAY_TIMING mDisplayTiming = {
+STATIC CONST DISPLAY_TIMING mDisplayTiming = {
   1920,  // Horizontal Resolution
   1080,  // Vertical Resolution
 };
 
-STATIC VID_DEVICE_PATH mVidDevicePath = {
+STATIC CONST VID_DEVICE_PATH mVidDevicePath = {
   {
     {
       HARDWARE_DEVICE_PATH,
@@ -74,7 +74,7 @@ VirtualGopDxeInitialize (
   DEBUG ((DEBUG_INFO, "%a: Frame Buffer Size = %d \n", __FUNCTION__, FrameBufferSize));
   Status = DmaAllocateBuffer (
              EfiRuntimeServicesData,
-             EFI_SIZE_TO_PAGES(FrameBufferSize),
+             EFI_SIZE_TO_PAGES (FrameBufferSize),
              (VOID **)&FrameBufferBase);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "%a: Fail to allocate fb, Status=%r\n",
@@ -86,14 +86,11 @@ VirtualGopDxeInitialize (
   SetMem32 ((VOID *)((UINTN)FrameBufferBase), FrameBufferSize, 0xFF000000);
 
   // Configure Mode Info
+  ZeroMem (&VidGopModeInfo, sizeof (VidGopModeInfo));
   VidGopModeInfo.Version = 0;
   VidGopModeInfo.HorizontalResolution = mDisplayTiming.HActive;
   VidGopModeInfo.VerticalResolution = mDisplayTiming.VActive;
   VidGopModeInfo.PixelFormat = PixelBlueGreenRedReserved8BitPerColor;
-  ZeroMem (
-    &VidGopModeInfo.PixelInformation,
-    sizeof (VidGopModeInfo.PixelInformation)
-  );
 
   VidGopModeInfo.PixelsPerScanLine = VidGopModeInfo.HorizontalResolution;
   VidGopMode.MaxMode = 1;
@@ -114,6 +111,7 @@ VirtualGopDxeInitialize (
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "%a: Fail to install protocol, Status=%x\n",
       __FUNCTION__, Status));
+    DmaFreeBuffer (EFI_SIZE_TO_PAGES (FrameBufferSize), (VOID *)FrameBufferBase);
     goto Exit;
   }
 

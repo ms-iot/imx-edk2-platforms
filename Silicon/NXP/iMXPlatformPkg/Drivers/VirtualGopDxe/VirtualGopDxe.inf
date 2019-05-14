@@ -14,7 +14,7 @@
 
 [Defines]
   INF_VERSION                    = 0x0001001A
-  BASE_NAME                      = GopNullDxe
+  BASE_NAME                      = VirtualGopDxe
   FILE_GUID                      = 6434ee80-2635-4e27-8eb0-8388d0d8fc9e
   MODULE_TYPE                    = DXE_DRIVER
   VERSION_STRING                 = 1.0
