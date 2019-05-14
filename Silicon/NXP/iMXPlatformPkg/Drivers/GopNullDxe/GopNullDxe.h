@@ -15,14 +15,10 @@
 #ifndef _GOP_NULL_DXE_H_
 #define _GOP_NULL_DXE_H_
 
-#include <Uefi.h>
-#include <Library/BaseLib.h>
 #include <Library/BaseMemoryLib.h>
-#include <Library/MemoryAllocationLib.h>
 #include <Library/DebugLib.h>
 #include <Library/DmaLib.h>
-#include <Library/IoLib.h>
-#include <Library/PcdLib.h>
+#include <Library/MemoryAllocationLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 
 #include <Protocol/GraphicsOutput.h>

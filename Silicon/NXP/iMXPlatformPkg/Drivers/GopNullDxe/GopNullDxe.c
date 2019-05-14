@@ -28,7 +28,7 @@ STATIC VID_DEVICE_PATH mVidDevicePath = {
       HW_VENDOR_DP,
       {
         (UINT8)sizeof (VENDOR_DEVICE_PATH),
-        (UINT8) ((sizeof (VENDOR_DEVICE_PATH)) >> 8),
+        (UINT8)((sizeof (VENDOR_DEVICE_PATH)) >> 8),
       }
     },
     {
@@ -200,7 +200,7 @@ STATIC EFI_GRAPHICS_OUTPUT_PROTOCOL VidGop = {
   VidGopQueryMode, // QueryMode
   VidGopSetMode,   // SetMode
   VidGopBlt,       // Blt
-  &VidGopMode    // Mode
+  &VidGopMode      // Mode
 };
 
 EFI_STATUS
@@ -218,7 +218,7 @@ GopNullDxeInitialize (
   // Allocate Frame Buffer
   FrameBufferSize = mDisplayTiming.HActive * mDisplayTiming.VActive * mDisplayTiming.Bpp / 8;
   DEBUG ((DEBUG_INFO, "%a: Frame Buffer Size = %d \n", __FUNCTION__, FrameBufferSize));
-  Status = DmaAllocateBuffer(
+  Status = DmaAllocateBuffer (
              EfiRuntimeServicesData,
              EFI_SIZE_TO_PAGES(FrameBufferSize),
              (VOID **)&FrameBufferBase);
