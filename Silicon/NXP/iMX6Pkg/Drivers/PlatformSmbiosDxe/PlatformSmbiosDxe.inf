@@ -81,4 +81,5 @@
   giMX6TokenSpaceGuid.PcdMemoryStartAddress
 
 [Depex]
-  gEfiSmbiosProtocolGuid
+  AFTER gSmbiosConfigDxeFileGuid
+ 

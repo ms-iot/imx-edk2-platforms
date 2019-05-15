@@ -33,6 +33,9 @@
 
 [LibraryClasses]
 
+[Guids]
+  gSmbiosConfigDxeFileGuid = { 0x94b2b168, 0xabe7, 0x408f, { 0x8b, 0xe5, 0xf3, 0x05, 0x1a, 0x0e, 0x9f, 0x55 } }
+
 [Guids.common]
   giMXPlatformTokenSpaceGuid = { 0x24b09abe, 0x4e47, 0x481c, { 0xa9, 0xad, 0xce, 0xf1, 0x2c, 0x39, 0x23, 0x27} }
 
@@ -114,5 +117,8 @@
   # PcdGpioBankMemoryRange - The memory range for 1 GPIO bank register (default 16KB)
   #
   giMXPlatformTokenSpaceGuid.PcdGpioBankMemoryRange|16384|UINT32|0x15
+
+  giMXPlatformTokenSpaceGuid.PcdSmbiosOverrideDevicePath|L"VenHw(AAFB8DAA-7340-43AC-8D49-0CCE14812489,02000000)/SD(0x0)/HD(2,MBR,0xAE420040,0x2000,0x20000)"|VOID*|0x16
+  #giMXPlatformTokenSpaceGuid.PcdSmbiosOverrideDevicePath|L""|VOID*|0x16
 
 [PcdsFeatureFlag.common]

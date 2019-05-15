@@ -15,7 +15,7 @@
 [Defines]
   INF_VERSION                    = 0x0001001A
   BASE_NAME                      = SmbiosConfigDxe
-  FILE_GUID                      = 94b2b168-abe7-408f-8be5-f3051a0e9f55
+  FILE_GUID                      = 94b2b168-abe7-408f-8be5-f3051a0e9f55 #gSmbiosConfigDxeFileGuid
   MODULE_TYPE                    = DXE_DRIVER
   VERSION_STRING                 = 1.0
   ENTRY_POINT                    = SmbiosConfigDxeInitialize
@@ -24,3 +24,25 @@
   SmbiosConfigDxe.c
 
 [Packages]
+  MdePkg/MdePkg.dec
+  Silicon/NXP/iMXPlatformPkg/iMXPlatformPkg.dec
+
+[LibraryClasses]
+  DebugLib
+  DevicePathLib
+  MemoryAllocationLib
+  PcdLib
+  UefiDriverEntryPoint
+  UefiBootServicesTableLib
+
+[Guids]
+  gEfiFileInfoGuid  ## CONSUMES
+
+[Protocols]
+  gEfiSimpleFileSystemProtocolGuid  ## CONSUMES
+
+[Pcd]
+  giMXPlatformTokenSpaceGuid.PcdSmbiosOverrideDevicePath
+
+[Depex]
+  gEfiSimpleFileSystemProtocolGuid AND gEfiSmbiosProtocolGuid
