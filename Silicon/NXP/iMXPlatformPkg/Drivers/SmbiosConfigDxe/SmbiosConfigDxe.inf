@@ -1,0 +1,26 @@
+## @file
+#
+#  Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution.  The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x0001001A
+  BASE_NAME                      = SmbiosConfigDxe
+  FILE_GUID                      = 94b2b168-abe7-408f-8be5-f3051a0e9f55
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = SmbiosConfigDxeInitialize
+
+[Sources.common]
+  SmbiosConfigDxe.c
+
+[Packages]
