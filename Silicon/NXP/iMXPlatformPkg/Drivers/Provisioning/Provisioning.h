@@ -25,6 +25,8 @@
 #define SENSITIVE_DATA_SZ 4
 #define RSA_TEMPLATE_SZ   0x13a
 
+#define EK_CERT_NVINDEX 0x01C00002
+
 #define SEND_REQUEST_TO_HOST(msg) SerialPortWrite ((UINT8*)msg, AsciiStrLen (msg))
 
 #define FILLBUFSTRUCT(buf, src) \
@@ -59,6 +61,13 @@ typedef struct {
   TPM2B_DATA                Data;
   TPML_PCR_SELECTION        PcrSelection;
 } TPM2_CREATE_PRIMARY_COMMAND;
+
+typedef struct {
+  TPM2_COMMAND_HEADER       Header;
+  TPMI_RH_PROVISION         AuthHandle;
+  TPMI_DH_OBJECT            SequenceHandle;
+  TPMI_DH_PERSISTENT        PersistentHandle;
+} TPM2_EVICT_CONTROL_COMMAND;
 
 #pragma pack()
 
