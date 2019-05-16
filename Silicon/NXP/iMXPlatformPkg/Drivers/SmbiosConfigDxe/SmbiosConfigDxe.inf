@@ -28,6 +28,8 @@
   Silicon/NXP/iMXPlatformPkg/iMXPlatformPkg.dec
 
 [LibraryClasses]
+  BaseLib
+  BaseMemoryLib
   DebugLib
   DevicePathLib
   MemoryAllocationLib

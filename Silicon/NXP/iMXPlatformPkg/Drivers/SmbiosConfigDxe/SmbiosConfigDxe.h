@@ -16,6 +16,8 @@
 
 #include <Guid/FileInfo.h>
 
+#include <Library/BaseLib.h>
+#include <Library/BaseMemoryLib.h>
 #include <Library/DebugLib.h>
 #include <Library/DevicePathLib.h>
 #include <Library/MemoryAllocationLib.h>
