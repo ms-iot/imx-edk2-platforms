@@ -33,68 +33,32 @@
 // each enum named as IMX_<MODULE-NAME>_PADCFG contains configurations
 // for pads used by that module
 
+#define ENET_PAD_CTRL(alt) _IMX_MAKE_PADCFG(\
+                              IMX_SRE_FAST,\
+                              IMX_DSE_50_OHM,\
+                              IMX_SPEED_MAXIMUM,\
+                              IMX_ODE_DISABLE,\
+                              IMX_PKE_DISABLE,\
+                              IMX_PUE_PULL,\
+                              IMX_PUS_100K_OHM_PU,\
+                              IMX_HYS_DISABLED,\
+                              IMX_SION_DISABLED,\
+                              alt)
+
 typedef enum {
     IMX_PAD_ENET1_MDIO_CTL = _IMX_MAKE_PADCFG_INPSEL(
                               IMX_SRE_FAST,
-                              IMX_DSE_40_OHM,
-                              IMX_SPEED_MEDIUM,
+                              IMX_DSE_50_OHM,
+                              IMX_SPEED_LOW,
                               IMX_ODE_ENABLE,
                               IMX_PKE_DISABLE,
                               IMX_PUE_PULL,
                               IMX_PUS_100K_OHM_PU,
-                              IMX_HYS_ENABLED,
+                              IMX_HYS_DISABLED,
                               IMX_SION_DISABLED,
-                              IMX_IOMUXC_ALT0,
+                              IMX_IOMUXC_GPIO1_IO06_ALT0_ENET1_MDIO,
                               IOMUXC_USB_ENET1_MDIO_SELECT_INPUT,
-                              0),
-
-    IMX_PAD_ENET1_MDC_CTL = _IMX_MAKE_PADCFG(
-                              IMX_SRE_SLOW,
-                              IMX_DSE_40_OHM,
-                              IMX_SPEED_MEDIUM,
-                              IMX_ODE_DISABLE,
-                              IMX_PKE_DISABLE,
-                              IMX_PUE_PULL,
-                              IMX_PUS_100K_OHM_PU,
-                              IMX_HYS_ENABLED,
-                              IMX_SION_DISABLED,
-                              IMX_IOMUXC_ALT0),
-
-    IMX_PAD_ENET1_TXD0_CTL = _IMX_MAKE_PADCFG(
-                              IMX_SRE_SLOW,
-                              IMX_DSE_40_OHM,
-                              IMX_SPEED_MEDIUM,
-                              IMX_ODE_DISABLE,
-                              IMX_PKE_DISABLE,
-                              IMX_PUE_PULL,
-                              IMX_PUS_100K_OHM_PU,
-                              IMX_HYS_ENABLED,
-                              IMX_SION_DISABLED,
-                              IMX_IOMUXC_ALT0),
-
-    IMX_PAD_ENET1_TXD1_CTL = _IMX_MAKE_PADCFG(
-                              IMX_SRE_SLOW,
-                              IMX_DSE_40_OHM,
-                              IMX_SPEED_MEDIUM,
-                              IMX_ODE_DISABLE,
-                              IMX_PKE_DISABLE,
-                              IMX_PUE_PULL,
-                              IMX_PUS_100K_OHM_PU,
-                              IMX_HYS_ENABLED,
-                              IMX_SION_DISABLED,
-                              IMX_IOMUXC_ALT0),
-
-    IMX_PAD_ENET1_TX_EN_CTL = _IMX_MAKE_PADCFG(
-                              IMX_SRE_SLOW,
-                              IMX_DSE_40_OHM,
-                              IMX_SPEED_MEDIUM,
-                              IMX_ODE_DISABLE,
-                              IMX_PKE_DISABLE,
-                              IMX_PUE_PULL,
-                              IMX_PUS_100K_OHM_PU,
-                              IMX_HYS_ENABLED,
-                              IMX_SION_DISABLED,
-                              IMX_IOMUXC_ALT0),
+                              GPIO1_IO06_ALT0),
 
     IMX_PAD_ENET1_REF_CLK_CTL = _IMX_MAKE_PADCFG_INPSEL(
                               IMX_SRE_FAST,
@@ -106,69 +70,26 @@ typedef enum {
                               IMX_PUS_100K_OHM_PD,
                               IMX_HYS_DISABLED,
                               IMX_SION_ENABLED,
-                              IMX_IOMUXC_ALT4,
+                              IMX_IOMUXC_ENET1_TX_CLK_ALT4_ENET1_REF_CLK1,
                               IOMUXC_USB_ENET1_CLK_SELECT_INPUT,
-                              0),
+                              ENET1_TX_CLK_ALT4),
 
-    IMX_PAD_ENET1_RX_ER_CTL = _IMX_MAKE_PADCFG(
-                              IMX_SRE_SLOW,
-                              IMX_DSE_40_OHM,
-                              IMX_SPEED_MEDIUM,
-                              IMX_ODE_DISABLE,
-                              IMX_PKE_DISABLE,
-                              IMX_PUE_PULL,
-                              IMX_PUS_100K_OHM_PU,
-                              IMX_HYS_ENABLED,
-                              IMX_SION_DISABLED,
-                              IMX_IOMUXC_ALT0),
+    IMX_PAD_ENET1_MDC_CTL   = ENET_PAD_CTRL(IMX_IOMUXC_GPIO1_IO07_ALT0_ENET1_MDC),
 
-    IMX_PAD_ENET1_RX_EN_CTL = _IMX_MAKE_PADCFG(
-                              IMX_SRE_SLOW,
-                              IMX_DSE_40_OHM,
-                              IMX_SPEED_MEDIUM,
-                              IMX_ODE_DISABLE,
-                              IMX_PKE_DISABLE,
-                              IMX_PUE_PULL,
-                              IMX_PUS_100K_OHM_PU,
-                              IMX_HYS_ENABLED,
-                              IMX_SION_DISABLED,
-                              IMX_IOMUXC_ALT0),
+    IMX_PAD_ENET1_TXD0_CTL  = ENET_PAD_CTRL(IMX_IOMUXC_ENET1_TX_DATA0_ALT0_ENET1_TDATA00),
 
-    IMX_PAD_ENET1_RXD0_CTL = _IMX_MAKE_PADCFG(
-                              IMX_SRE_SLOW,
-                              IMX_DSE_40_OHM,
-                              IMX_SPEED_MEDIUM,
-                              IMX_ODE_DISABLE,
-                              IMX_PKE_DISABLE,
-                              IMX_PUE_PULL,
-                              IMX_PUS_100K_OHM_PU,
-                              IMX_HYS_ENABLED,
-                              IMX_SION_DISABLED,
-                              IMX_IOMUXC_ALT0),
+    IMX_PAD_ENET1_TXD1_CTL  = ENET_PAD_CTRL(IMX_IOMUXC_ENET1_TX_DATA1_ALT0_ENET1_TDATA01),
 
-    IMX_PAD_ENET1_RXD1_CTL = _IMX_MAKE_PADCFG(
-                              IMX_SRE_SLOW,
-                              IMX_DSE_40_OHM,
-                              IMX_SPEED_MEDIUM,
-                              IMX_ODE_DISABLE,
-                              IMX_PKE_DISABLE,
-                              IMX_PUE_PULL,
-                              IMX_PUS_100K_OHM_PU,
-                              IMX_HYS_ENABLED,
-                              IMX_SION_DISABLED,
-                              IMX_IOMUXC_ALT0),
+    IMX_PAD_ENET1_TX_EN_CTL = ENET_PAD_CTRL(IMX_IOMUXC_ENET1_TX_EN_ALT0_ENET1_TX_EN),
 
-    IMX_PAD_ENET1_PHY_RESET_CTL = _IMX_MAKE_PADCFG(
-                              IMX_SRE_SLOW,
-                              IMX_DSE_HIZ,
-                              IMX_SPEED_LOW,
-                              IMX_ODE_DISABLE,
-                              IMX_PKE_DISABLE,
-                              IMX_PUE_KEEP,
-                              IMX_PUS_100K_OHM_PD,
-                              IMX_HYS_DISABLED,
-                              IMX_SION_DISABLED,
-                              IMX_IOMUXC_ALT5),
+    IMX_PAD_ENET1_RX_ER_CTL = ENET_PAD_CTRL(IMX_IOMUXC_ENET1_RX_ER_ALT0_ENET1_RX_ER),
+
+    IMX_PAD_ENET1_RX_EN_CTL = ENET_PAD_CTRL(IMX_IOMUXC_ENET1_RX_EN_ALT0_ENET1_RX_EN),
+
+    IMX_PAD_ENET1_RXD0_CTL  = ENET_PAD_CTRL(IMX_IOMUXC_ENET1_RX_DATA0_ALT0_ENET1_RDATA00),
+
+    IMX_PAD_ENET1_RXD1_CTL  = ENET_PAD_CTRL(IMX_IOMUXC_ENET1_RX_DATA1_ALT0_ENET1_RDATA01), 
+
 } IMX_ENET_PADCFG;
 
 typedef enum {
@@ -265,40 +186,36 @@ VOID EnetInit ()
   ImxPadConfig(IMX_PAD_ENET1_TXD0      , IMX_PAD_ENET1_TXD0_CTL       );
   ImxPadConfig(IMX_PAD_ENET1_TXD1      , IMX_PAD_ENET1_TXD1_CTL       );
   ImxPadConfig(IMX_PAD_ENET1_TX_EN     , IMX_PAD_ENET1_TX_EN_CTL      );
-  ImxPadConfig(IMX_PAD_ENET1_REF_CLK   , IMX_PAD_ENET1_REF_CLK_CTL    );
   ImxPadConfig(IMX_PAD_ENET1_RX_ER     , IMX_PAD_ENET1_RX_ER_CTL      );
   ImxPadConfig(IMX_PAD_ENET1_RX_EN     , IMX_PAD_ENET1_RX_EN_CTL      );
   ImxPadConfig(IMX_PAD_ENET1_RXD0      , IMX_PAD_ENET1_RXD0_CTL       );
   ImxPadConfig(IMX_PAD_ENET1_RXD1      , IMX_PAD_ENET1_RXD1_CTL       );
-  MmioWrite32 (IMX_IOMUXC_SNVS_BASE + 0x20, IMX_IOMUXC_ALT5);
-  // Enable ENET PLL, also required for PCIe
+
+  // Enable ENET PLL
   {
     UINT32 counter = 0;
     IMX_CCM_ANALOG_PLL_ENET_REG ccmAnalogPllReg;
     volatile IMX_CCM_ANALOG_REGISTERS *ccmAnalogRegistersPtr =
       (IMX_CCM_ANALOG_REGISTERS *)IMX_CCM_ANALOG_BASE;
-    ccmAnalogPllReg.AsUint32 = MmioRead32 ((UINTN)&ccmAnalogRegistersPtr->PLL_ENET);
+
+    ccmAnalogPllReg.AsUint32 = MmioRead32((UINTN)&ccmAnalogRegistersPtr->PLL_ENET);
+
     ccmAnalogPllReg.POWERDOWN = 0;
-    ccmAnalogPllReg.ENABLE = 1;
-    MmioWrite32 (
-      (UINTN)&ccmAnalogRegistersPtr->PLL_ENET,
-      ccmAnalogPllReg.AsUint32);
+    ccmAnalogPllReg.ENET1_125M_EN = 1;
+    ccmAnalogPllReg.ENET1_DIV_SELECT = PLL_ENET_DIV_SELECT_50MHZ;
+
+    MmioWrite32(
+        (UINTN)&ccmAnalogRegistersPtr->PLL_ENET,
+        ccmAnalogPllReg.AsUint32);
 
     do {
       ccmAnalogPllReg.AsUint32 =
-        MmioRead32 ((UINTN)&ccmAnalogRegistersPtr->PLL_ENET);
-      MicroSecondDelay (100);
+        MmioRead32((UINTN)&ccmAnalogRegistersPtr->PLL_ENET);
+
+      MicroSecondDelay(100);
       ++counter;
     } while ((ccmAnalogPllReg.LOCK == 0) && (counter < 100));
 
-    // Enable PCIe output 125Mhz
-    ccmAnalogPllReg.BYPASS = 0;
-    ccmAnalogPllReg.ENABLE_125M = 1;
-    ccmAnalogPllReg.DIV_SELECT = PLL_ENET_DIV_SELECT_25MHZ;
-    MmioWrite32 (
-      (UINTN)&ccmAnalogRegistersPtr->PLL_ENET,
-      ccmAnalogPllReg.AsUint32);
-    MicroSecondDelay (50000);
     if (ccmAnalogPllReg.LOCK == 0) {
       DEBUG ((DEBUG_ERROR, "PLL_ENET is not locked!\n"));
     }
