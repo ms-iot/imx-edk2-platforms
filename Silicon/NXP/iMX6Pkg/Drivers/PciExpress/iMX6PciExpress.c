@@ -1,6 +1,7 @@
 /** @file
 *
 *  Copyright (c) 2018 Microsoft Corporation. All rights reserved.
+*  Copyright 2019 NXP
 *
 *  This program and the accompanying materials
 *  are licensed and made available under the terms and conditions of the BSD License
@@ -165,9 +166,31 @@ PcieSetPhyState (
   )
 {
   volatile IMX_IOMUXC_GPR_REGISTERS   *pIoMuxcGprRegisters;
-  IMX_IOMUXC_GPR1_REG                 Gpr1Reg;
 
   pIoMuxcGprRegisters = (IMX_IOMUXC_GPR_REGISTERS *)IOMUXC_GPR_BASE_ADDRESS;
+#if defined(CPU_IMX6SX)
+  volatile IMX_GPC_REGISTERS      *pGpcRegisters = (IMX_GPC_REGISTERS *)IMX_GPC_BASE;
+  IMX_IOMUXC_GPR12_REG            Gpr12Reg;
+  IMX_IOMUXC_GPR5_REG             Gpr5Reg;
+  IMX_GPC_CNTR_REG                GpcCntrReg;
+
+  Gpr12Reg.AsUint32 = MmioRead32 ((UINTN)&pIoMuxcGprRegisters->GPR12);
+  Gpr5Reg.AsUint32 = MmioRead32 ((UINTN)&pIoMuxcGprRegisters->GPR5);
+  GpcCntrReg.AsUint32 = MmioRead32 ((UINTN)&pGpcRegisters->CNTR);
+  if (State == TRUE) {
+    Gpr12Reg.TEST_POWERDOWN = 0;     // Power down is not requested
+    Gpr5Reg.PCIE_BTNRST = 0;         // Force PCIe PHY reset
+  } else {
+    Gpr12Reg.TEST_POWERDOWN = 1;     // Power down is requested
+    Gpr5Reg.PCIE_BTNRST = 1;
+    GpcCntrReg.PCIE_PHY_PUP_REQ = 1; // Request power up sequence
+  }
+  MmioWrite32 ((UINTN)&pIoMuxcGprRegisters->GPR12, Gpr12Reg.AsUint32);
+  MmioWrite32 ((UINTN)&pIoMuxcGprRegisters->GPR5, Gpr5Reg.AsUint32);
+  MmioWrite32 ((UINTN)&pGpcRegisters->CNTR, GpcCntrReg.AsUint32);
+#else
+  IMX_IOMUXC_GPR1_REG             Gpr1Reg;
+
   Gpr1Reg.AsUint32 = MmioRead32 ((UINTN)&pIoMuxcGprRegisters->GPR1);
   if (State == TRUE) {
 #if defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
@@ -180,6 +203,7 @@ PcieSetPhyState (
     Gpr1Reg.TEST_POWERDOWN = 1; // Power down is requested
   }
   MmioWrite32 ((UINTN)&pIoMuxcGprRegisters->GPR1, Gpr1Reg.AsUint32);
+#endif
   return EFI_SUCCESS;
 }
 
@@ -190,11 +214,13 @@ PcieSetupInitSetting (
 {
   volatile IMX_IOMUXC_GPR_REGISTERS   *pIoMuxcGprRegisters;
   EFI_STATUS                          Status;
-  IMX_IOMUXC_GPR1_REG                 Gpr1Reg;
   IMX_IOMUXC_GPR12_REG                Gpr12Reg;
   IMX_IOMUXC_GPR8_REG                 Gpr8Reg;
 
   pIoMuxcGprRegisters = (IMX_IOMUXC_GPR_REGISTERS *)IOMUXC_GPR_BASE_ADDRESS;
+
+#if !defined(CPU_IMX6SX)
+  IMX_IOMUXC_GPR1_REG                 Gpr1Reg;
 
   // If Pcie PHY is already enabled we are in an unexpected state, just exit
   // and assume a bootloader has already setup Pcie and assigned resources.
@@ -203,6 +229,7 @@ PcieSetupInitSetting (
     Status = EFI_DEVICE_ERROR;
     goto Exit;
   }
+#endif
 
   // Disable the PHY first, without this Pci link randomly does not come up
   Status = PcieSetPhyState (FALSE);

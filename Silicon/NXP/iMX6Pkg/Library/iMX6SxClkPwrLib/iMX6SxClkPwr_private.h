@@ -1,7 +1,7 @@
 /** @file
 *
 *  Copyright (c) 2018 Microsoft Corporation. All rights reserved.
-*  Copyright 2018 NXP
+*  Copyright 2018-2019 NXP
 *
 *  This program and the accompanying materials
 *  are licensed and made available under the terms and conditions of the BSD License
@@ -76,9 +76,7 @@ ImxCcmConfigureIPULDBxClockTree (
 
 VOID
 ImxSetClockRatePLL5 (
-  IN  UINT32 TargetClockRate,
-  IN  UINT32 PreDividerLcdif1Val,
-  IN  UINT32 PostDividerLcdif1Val
+  IN  UINT32 TargetClockRate
 );
 
 EFI_STATUS

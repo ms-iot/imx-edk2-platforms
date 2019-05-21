@@ -1,6 +1,7 @@
 /** @file
 *
 *  Copyright (c) 2018 Microsoft Corporation. All rights reserved.
+*  Copyright 2019 NXP
 *
 *  This program and the accompanying materials
 *  are licensed and made available under the terms and conditions of the BSD License
@@ -174,16 +175,17 @@ typedef enum {
 
 VOID
 ImxClkPwrLcdClockDisable (
-  VOID
+  UINT32 LcdIfBaseAddr
   );
 
 VOID
 ImxClkPwrLcdClockEnable (
-  VOID
+  UINT32 LcdIfBaseAddr
   );
 
 EFI_STATUS
 ImxSetLcdIfClockRate (
+  IN  UINT32  LcdIfBaseAddr,
   IN  UINT32  ClockRate
   );
 

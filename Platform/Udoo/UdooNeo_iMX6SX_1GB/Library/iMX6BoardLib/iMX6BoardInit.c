@@ -378,7 +378,7 @@ LcdInit(
     UINT32 reg32Val;
 
     // turn off LCD module clock
-    ImxClkPwrLcdClockDisable();
+    ImxClkPwrLcdClockDisable(IMX6SX_PHYSADDR_LCDIF1);
 
     // turn off lcd pixel clock and display axi clock
     MmioClrBits32(IMX_CCM_BASE + IMX6SX_CCM_OFFSET_CCGR3, 

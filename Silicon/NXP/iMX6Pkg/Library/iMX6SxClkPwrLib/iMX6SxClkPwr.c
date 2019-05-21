@@ -1,6 +1,7 @@
 /** @file
 *
 *  Copyright (c) 2018 Microsoft Corporation. All rights reserved.
+*  Copyright 2019 NXP
 *
 *  This program and the accompanying materials
 *  are licensed and made available under the terms and conditions of the BSD License
@@ -22,6 +23,7 @@
 #include <iMX6.h>
 #include <iMX6ClkPwr.h>
 #include "iMX6SxClkPwr_private.h"
+#include <imx6sxdef.inc>
 
 static IMX_CLOCK_TREE_CACHE mImxpClockPwrCache;   // Cached clock value
 
@@ -485,47 +487,59 @@ EFI_STATUS ImxClkPwrValidateClocks ()
   return EFI_UNSUPPORTED;
 }
 
-VOID ImxClkPwrLcdClockDisable ()
+VOID ImxClkPwrLcdClockDisable (UINT32 LcdIfBaseAddr)
 {
-    IMX_CCM_CCGR2_REG value32;
     volatile IMX_CCM_REGISTERS *ccmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-
-    value32.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[2]);
-    value32.lcd_clk_enable = IMX6SX_CCM_CLOCK_OFF;
-    MmioWrite32((UINTN) &ccmRegisters->CCGR[2], value32.AsUint32);
-}
-
-VOID ImxClkPwrLcdClockEnable ()
-{
-    IMX_CCM_CCGR2_REG value32;
-    volatile IMX_CCM_REGISTERS *ccmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-
-    value32.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[2]);
-//    value32 |= (IMX6SX_RUN_ONLY << IMX6SX_SHL_CCM_CCGR2_LCD);
-    value32.lcd_clk_enable = IMX6SX_RUN_ONLY;
-    MmioWrite32((UINTN) &ccmRegisters->CCGR[2], value32.AsUint32);
-}
-
-VOID ImxSetClockRatePLL5 (
-  UINT32 TargetClockRate,
-  UINT32 PreDividerLcdif1Val,
-  UINT32 PostDividerLcdif1Val
-  )
-{
+    IMX_CCM_CCGR2_REG ccgr2;
     IMX_CCM_CCGR3_REG ccgr3;
-    UINT32 value32;
-    IMX_CCM_PLL_VIDEO_CTRL_REG videoControl;
-    volatile IMX_CCM_REGISTERS *ccmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-    volatile IMX_CCM_ANALOG_REGISTERS *analogRegisters = (IMX_CCM_ANALOG_REGISTERS *) IMX_CCM_ANALOG_BASE;
-
-    // turn off LCD clocks
-    ImxClkPwrLcdClockDisable();
 
     // gate the LCD pixel and AXI clocks CCGR3.CG5
     ccgr3.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[3]);
-    ccgr3.lcdif1_pix_clk_enable = IMX6SX_CCM_CLOCK_OFF;
+    if (LcdIfBaseAddr == IMX6SX_PHYSADDR_LCDIF1) {
+        ccgr3.lcdif1_pix_clk_enable = IMX6SX_CCM_CLOCK_OFF;
+    } else {
+        ccgr3.lcdif2_pix_clk_enable = IMX6SX_CCM_CLOCK_OFF;
+    }
     ccgr3.disp_axi_clk_enable = IMX6SX_CCM_CLOCK_OFF;
     MmioWrite32((UINTN) &ccmRegisters->CCGR[3], ccgr3.AsUint32);
+
+    ccgr2.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[2]);
+    ccgr2.lcd_clk_enable = IMX6SX_CCM_CLOCK_OFF;
+    MmioWrite32((UINTN) &ccmRegisters->CCGR[2], ccgr2.AsUint32);
+}
+
+VOID ImxClkPwrLcdClockEnable (UINT32 LcdIfBaseAddr)
+{
+    volatile IMX_CCM_REGISTERS *ccmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+    UINT32 value32;
+    IMX_CCM_CCGR2_REG ccgr2;
+    IMX_CCM_CCGR3_REG ccgr3;
+
+    // Ungate the LCD pixel clock
+    ccgr3.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[3]);
+    value32 = MmioRead32((UINTN) &ccmRegisters->CSCDR2);
+    if (LcdIfBaseAddr == IMX6SX_PHYSADDR_LCDIF1) {
+        value32 &= ~(0x07 << 15);
+        ccgr3.lcdif1_pix_clk_enable = IMX6SX_RUN_ONLY;
+    } else {
+        value32 &= ~(0x07 << 0);
+        ccgr3.lcdif2_pix_clk_enable = IMX6SX_RUN_ONLY;
+    }
+    MmioWrite32((UINTN) &ccmRegisters->CSCDR2, value32);
+    ccgr3.disp_axi_clk_enable = IMX6SX_RUN_ONLY;
+    MmioWrite32((UINTN) &ccmRegisters->CCGR[3], ccgr3.AsUint32);
+
+    ccgr2.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[2]);
+    ccgr2.lcd_clk_enable = IMX6SX_RUN_ONLY;
+    MmioWrite32((UINTN) &ccmRegisters->CCGR[2], ccgr2.AsUint32);
+}
+
+VOID ImxSetClockRatePLL5 (
+  UINT32 TargetClockRate
+  )
+{
+    IMX_CCM_PLL_VIDEO_CTRL_REG videoControl;
+    volatile IMX_CCM_ANALOG_REGISTERS *analogRegisters = (IMX_CCM_ANALOG_REGISTERS *) IMX_CCM_ANALOG_BASE;
 
     //
     // set the divider for the source clock to the video PLL to divide by 1 
@@ -590,65 +604,50 @@ VOID ImxSetClockRatePLL5 (
         videoControl.AsUint32 = MmioRead32((UINTN) &analogRegisters->PLL_VIDEO);
     } while (!(videoControl.LOCK));
 
-    //
-    // select the video PLL in the LCDIF clock selector
-    // and set the CDIF1_PRED value
-    //
-    value32 = MmioRead32((UINTN) &ccmRegisters->CSCDR2);
-    // Clear LCDIF1_CLK_SEL, LCDIF1_PRED and LCDIF1_PRE_CLK_SEL
-    value32 &= ~0x0003FE00;
-    // Set the predivider value and derive clock from PLL5
-    value32 |= ((PreDividerLcdif1Val - 1) << 12) | (2 << 15);
-    MmioWrite32((UINTN) &ccmRegisters->CSCDR2, value32);
-
-    //
-    // set the post divider in CBCMR
-    //
-    value32 = MmioRead32((UINTN) &ccmRegisters->CBCMR);
-    // Clear LCDIF1_PODF
-    value32 &= ~0x03800000;
-    value32 |= ((PostDividerLcdif1Val - 1) << 23);
-    MmioWrite32((UINTN) &ccmRegisters->CBCMR, value32);
-
     // enable the PLL output
     videoControl.AsUint32 = 0;
     videoControl.ENABLE = 1;
     MmioWrite32((UINTN) &analogRegisters->PLL_VIDEO_SET, videoControl.AsUint32);
-    
-    // Ungate the LCD pixel clock
-    ccgr3.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[3]);
-    ccgr3.lcdif1_pix_clk_enable = IMX6SX_RUN_ONLY;
-    ccgr3.disp_axi_clk_enable = IMX6SX_RUN_ONLY;
-    MmioWrite32((UINTN) &ccmRegisters->CCGR[3], ccgr3.AsUint32);
-
-    // turn on LCD clocks
-    ImxClkPwrLcdClockEnable();
 }
 
 EFI_STATUS 
 ImxSetLcdIfClockRate (
+    UINT32 LcdIfBaseAddr,
     UINT32 ClockRate
     )
 {
+    volatile IMX_CCM_REGISTERS *ccmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
     BOOLEAN foundConfig = FALSE;
     UINT32 targetFreq;
     UINT32 preDivSelectCount;
     UINT32 postDivSelectCount;
-    UINT32 preDividerLcdif1[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
-    UINT32 postDividerLcdif1[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    UINT32 preDividerLcdif[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    UINT32 postDividerLcdif[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    UINT32 value32;
+
+    value32 = MmioRead32((UINTN) &ccmRegisters->CSCDR2);
+    if (LcdIfBaseAddr == IMX6SX_PHYSADDR_LCDIF1) {
+        if ((value32 & (0x07 << 9)) != 0) {
+            return EFI_SUCCESS;
+        }
+    } else {
+        if ((value32 & (0x07 << 0)) != 0) {
+            return EFI_SUCCESS;
+        }
+    }
 
     for (preDivSelectCount = 0;
-        preDivSelectCount < ARRAYSIZE (preDividerLcdif1);
+        preDivSelectCount < ARRAYSIZE (preDividerLcdif);
         ++preDivSelectCount) {
 
         for (postDivSelectCount = 0;
-            postDivSelectCount < ARRAYSIZE (postDividerLcdif1);
+            postDivSelectCount < ARRAYSIZE (postDividerLcdif);
             ++postDivSelectCount) {
 
             targetFreq =
                 ClockRate *
-                preDividerLcdif1[preDivSelectCount] *
-                postDividerLcdif1[postDivSelectCount] * 
+                preDividerLcdif[preDivSelectCount] *
+                postDividerLcdif[postDivSelectCount] *
                 1;
 
             //
@@ -678,14 +677,52 @@ ImxSetLcdIfClockRate (
         "PLL 5 setting (%d) Target Freq (%d) PreDiv %d PostDiv %d\n",
         ClockRate,
         targetFreq,
-        preDividerLcdif1[preDivSelectCount],
-        postDividerLcdif1[postDivSelectCount]
+        preDividerLcdif[preDivSelectCount],
+        postDividerLcdif[postDivSelectCount]
         ));
 
-    ImxSetClockRatePLL5(
-        targetFreq,
-        preDividerLcdif1[preDivSelectCount],
-        postDividerLcdif1[postDivSelectCount]);
+    ImxSetClockRatePLL5 (targetFreq);
+
+    // turn off LCD clocks
+    ImxClkPwrLcdClockDisable(LcdIfBaseAddr);
+
+    //
+    // select the video PLL in the LCDIF clock selector
+    // and set the CDIF1_PRED value
+    //
+    value32 = MmioRead32((UINTN) &ccmRegisters->CSCDR2);
+    if (LcdIfBaseAddr == IMX6SX_PHYSADDR_LCDIF1) {
+        // Clear LCDIF1_CLK_SEL, LCDIF1_PRED and LCDIF1_PRE_CLK_SEL
+        value32 &= ~0x0003FE00;
+        // Set the predivider value and derive clock from PLL5
+        value32 |= ((preDividerLcdif[preDivSelectCount] - 1) << 12) | (2 << 15);
+    } else {
+        // Clear LCDIF2_CLK_SEL, LCDIF1_PRED and LCDIF1_PRE_CLK_SEL
+        value32 &= ~0x000001FF;
+        // Set the predivider value and derive clock from PLL5
+        value32 |= ((preDividerLcdif[preDivSelectCount] - 1) << 3) | (2 << 6);
+    }
+    MmioWrite32((UINTN) &ccmRegisters->CSCDR2, value32);
+
+
+    if (LcdIfBaseAddr == IMX6SX_PHYSADDR_LCDIF1) {
+        // set the post divider in CBCMR
+        value32 = MmioRead32((UINTN) &ccmRegisters->CBCMR);
+        // Clear LCDIF1_PODF
+        value32 &= ~0x03800000;
+        value32 |= ((postDividerLcdif[postDivSelectCount] - 1) << 23);
+        MmioWrite32((UINTN) &ccmRegisters->CBCMR, value32);
+    } else {
+        // set the post divider in CSCMR1
+        value32 = MmioRead32((UINTN) &ccmRegisters->CSCMR1);
+        // Clear LCDIF2_PODF
+        value32 &= ~0x00700000;
+        value32 |= ((postDividerLcdif[postDivSelectCount] - 1) << 20);
+        MmioWrite32((UINTN) &ccmRegisters->CSCMR1, value32);
+    }
+
+    // turn on LCD clocks
+    ImxClkPwrLcdClockEnable(LcdIfBaseAddr);
 
     return EFI_SUCCESS;
 }

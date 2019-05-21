@@ -1,6 +1,7 @@
 /** @file
 *
 *  Copyright (c) Microsoft Corporation. All rights reserved.
+*  Copyright 2019 NXP
 *
 *  This program and the accompanying materials
 *  are licensed and made available under the terms and conditions of the BSD License
@@ -30,7 +31,11 @@
 
 // PCIe related base address
 #define PCIE_HOST_CONFIG_BASE_REG       FixedPcdGet32(PcdPcieHostConfigBase)
-#define PCIE_CTRL_PORT_LOGIG_BASE_REG   0x01FFC700
+#if defined(CPU_IMX6SX)
+  #define PCIE_CTRL_PORT_LOGIG_BASE_REG   0x08FFC700
+#else
+  #define PCIE_CTRL_PORT_LOGIG_BASE_REG   0x01FFC700
+#endif
 #define PCIE_DEVICE_CONFIG_BASE_REG     FixedPcdGet32(PcdPcieDeviceConfigBase)
 #define PCIE_DEVICE_CONFIG_SIZE         FixedPcdGet32(PcdPcieDeviceConfigSize)
 #define PCIE_IO_SPACE_BASE              FixedPcdGet32(PcdPcieIOBase)
