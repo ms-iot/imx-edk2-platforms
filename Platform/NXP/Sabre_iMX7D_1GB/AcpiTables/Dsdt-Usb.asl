@@ -19,6 +19,8 @@ Device (USB2)
   Name (_HID, "NXP010C")
   Name (_CID, "PNP0D20")
   Name (_UID, 0x2)
+  // Hardware revision 1 supports integrated Transaction Translator (TT) in PortSC register
+  Name (_HRV, 0x1)
   Name (_S0W, 0x3)
   Method (_STA) {
     Return (0xf)

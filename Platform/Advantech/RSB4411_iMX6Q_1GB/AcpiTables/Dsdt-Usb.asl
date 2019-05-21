@@ -18,6 +18,8 @@ Device (URS0)
 {
   Name (_HID, "PNP0C90")
   Name (_UID, 0x0)
+  // Hardware revision 1 supports integrated Transaction Translator (TT) in PortSC register
+  Name (_HRV, 0x1)
 
   // URS requires device to at least be wake-able from D2 state
   // WDF also requires that _DSW (enable & disable wake ability) to be present
@@ -239,6 +241,8 @@ Device (USB1)
     Name (_HID, "FSCL000C")
     Name (_CID, "PNP0D20")
     Name (_UID, 0x1)
+    // Hardware revision 1 supports integrated Transaction Translator (TT) in PortSC register
+    Name (_HRV, 0x1)
     // TODO: To enable USB to enter D3, set this to 3, and uncomment
     // the _DSW method below. _DSW will be called after the device enters D3.
     // It should enable an interrupt that should fire when a
