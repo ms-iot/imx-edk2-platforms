@@ -33,65 +33,6 @@
 // each enum named as IMX_<MODULE-NAME>_PADCFG contains configurations
 // for pads used by that module
 
-#define ENET_PAD_CTRL(alt) _IMX_MAKE_PADCFG(\
-                              IMX_SRE_FAST,\
-                              IMX_DSE_50_OHM,\
-                              IMX_SPEED_MAXIMUM,\
-                              IMX_ODE_DISABLE,\
-                              IMX_PKE_DISABLE,\
-                              IMX_PUE_PULL,\
-                              IMX_PUS_100K_OHM_PU,\
-                              IMX_HYS_DISABLED,\
-                              IMX_SION_DISABLED,\
-                              alt)
-
-typedef enum {
-    IMX_PAD_ENET1_MDIO_CTL = _IMX_MAKE_PADCFG_INPSEL(
-                              IMX_SRE_FAST,
-                              IMX_DSE_50_OHM,
-                              IMX_SPEED_LOW,
-                              IMX_ODE_ENABLE,
-                              IMX_PKE_DISABLE,
-                              IMX_PUE_PULL,
-                              IMX_PUS_100K_OHM_PU,
-                              IMX_HYS_DISABLED,
-                              IMX_SION_DISABLED,
-                              IMX_IOMUXC_GPIO1_IO06_ALT0_ENET1_MDIO,
-                              IOMUXC_USB_ENET1_MDIO_SELECT_INPUT,
-                              GPIO1_IO06_ALT0),
-
-    IMX_PAD_ENET1_REF_CLK_CTL = _IMX_MAKE_PADCFG_INPSEL(
-                              IMX_SRE_FAST,
-                              IMX_DSE_40_OHM,
-                              IMX_SPEED_LOW,
-                              IMX_ODE_DISABLE,
-                              IMX_PKE_DISABLE,
-                              IMX_PUE_KEEP,
-                              IMX_PUS_100K_OHM_PD,
-                              IMX_HYS_DISABLED,
-                              IMX_SION_ENABLED,
-                              IMX_IOMUXC_ENET1_TX_CLK_ALT4_ENET1_REF_CLK1,
-                              IOMUXC_USB_ENET1_CLK_SELECT_INPUT,
-                              ENET1_TX_CLK_ALT4),
-
-    IMX_PAD_ENET1_MDC_CTL   = ENET_PAD_CTRL(IMX_IOMUXC_GPIO1_IO07_ALT0_ENET1_MDC),
-
-    IMX_PAD_ENET1_TXD0_CTL  = ENET_PAD_CTRL(IMX_IOMUXC_ENET1_TX_DATA0_ALT0_ENET1_TDATA00),
-
-    IMX_PAD_ENET1_TXD1_CTL  = ENET_PAD_CTRL(IMX_IOMUXC_ENET1_TX_DATA1_ALT0_ENET1_TDATA01),
-
-    IMX_PAD_ENET1_TX_EN_CTL = ENET_PAD_CTRL(IMX_IOMUXC_ENET1_TX_EN_ALT0_ENET1_TX_EN),
-
-    IMX_PAD_ENET1_RX_ER_CTL = ENET_PAD_CTRL(IMX_IOMUXC_ENET1_RX_ER_ALT0_ENET1_RX_ER),
-
-    IMX_PAD_ENET1_RX_EN_CTL = ENET_PAD_CTRL(IMX_IOMUXC_ENET1_RX_EN_ALT0_ENET1_RX_EN),
-
-    IMX_PAD_ENET1_RXD0_CTL  = ENET_PAD_CTRL(IMX_IOMUXC_ENET1_RX_DATA0_ALT0_ENET1_RDATA00),
-
-    IMX_PAD_ENET1_RXD1_CTL  = ENET_PAD_CTRL(IMX_IOMUXC_ENET1_RX_DATA1_ALT0_ENET1_RDATA01), 
-
-} IMX_ENET_PADCFG;
-
 typedef enum {
     IMX_PAD_CFG_USB_OTG_PWR = _IMX_MAKE_PADCFG(
                               IMX_SRE_SLOW,
@@ -180,17 +121,6 @@ typedef enum {
 
 VOID EnetInit ()
 {
-  // Apply ENET pin-muxing configurations
-  ImxPadConfig(IMX_PAD_ENET1_MDIO      , IMX_PAD_ENET1_MDIO_CTL       );
-  ImxPadConfig(IMX_PAD_ENET1_MDC       , IMX_PAD_ENET1_MDC_CTL        );
-  ImxPadConfig(IMX_PAD_ENET1_TXD0      , IMX_PAD_ENET1_TXD0_CTL       );
-  ImxPadConfig(IMX_PAD_ENET1_TXD1      , IMX_PAD_ENET1_TXD1_CTL       );
-  ImxPadConfig(IMX_PAD_ENET1_TX_EN     , IMX_PAD_ENET1_TX_EN_CTL      );
-  ImxPadConfig(IMX_PAD_ENET1_RX_ER     , IMX_PAD_ENET1_RX_ER_CTL      );
-  ImxPadConfig(IMX_PAD_ENET1_RX_EN     , IMX_PAD_ENET1_RX_EN_CTL      );
-  ImxPadConfig(IMX_PAD_ENET1_RXD0      , IMX_PAD_ENET1_RXD0_CTL       );
-  ImxPadConfig(IMX_PAD_ENET1_RXD1      , IMX_PAD_ENET1_RXD1_CTL       );
-
   // Enable ENET PLL
   {
     UINT32 counter = 0;

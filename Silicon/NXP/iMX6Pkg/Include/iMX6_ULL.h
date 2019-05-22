@@ -1048,7 +1048,7 @@ typedef union {
     unsigned  ENABLE_125M : 1;            // 19
     unsigned  ENET2_125M_EN : 1;          // 20
     unsigned  ENET_25M_REF_EN : 1;        // 21
-    unsigned  Zero2 : 9;                 // 22-30
+    unsigned  Zero2 : 9;                  // 22-30
     unsigned  LOCK : 1;                   // 31
     // MSB
   };
