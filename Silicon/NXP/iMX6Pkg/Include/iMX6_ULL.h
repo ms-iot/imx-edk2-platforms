@@ -1035,19 +1035,21 @@ typedef union {
   UINT32 AsUint32;
   struct {
     // LSB
-    unsigned  DIV_SELECT : 2;       // 0-1
-    unsigned  Zero1 : 5;            // 2-6
-    unsigned  Reserved1 : 5;        // 7-11
-    unsigned  POWERDOWN : 1;        // 12
-    unsigned  ENABLE : 1;           // 13
-    unsigned  BYPASS_CLK_SRC : 2;   // 14-15
-    unsigned  BYPASS : 1;           // 16
-    unsigned  Reserved2 : 1;        // 17
-    unsigned  PFD_OFFSET_EN : 1;    // 18
-    unsigned  ENABLE_125M : 1;      // 19
-    unsigned  ENABLE_100M : 1;      // 20
-    unsigned  Zero2 : 10;           // 21-30
-    unsigned  LOCK : 1;             // 31
+    unsigned  ENET1_DIV_SELECT : 2;       // 0-1
+    unsigned  ENET2_DIV_SELECT : 2;       // 2-3
+    unsigned  Zero1 : 3;                  // 4-6
+    unsigned  Reserved1 : 5;              // 7-11
+    unsigned  POWERDOWN : 1;              // 12
+    unsigned  ENET1_125M_EN : 1;          // 13
+    unsigned  BYPASS_CLK_SRC : 2;         // 14-15
+    unsigned  BYPASS : 1;                 // 16
+    unsigned  Reserved2 : 1;              // 17
+    unsigned  PFD_OFFSET_EN : 1;          // 18
+    unsigned  ENABLE_125M : 1;            // 19
+    unsigned  ENET2_125M_EN : 1;          // 20
+    unsigned  ENET_25M_REF_EN : 1;        // 21
+    unsigned  Zero2 : 9;                  // 22-30
+    unsigned  LOCK : 1;                   // 31
     // MSB
   };
 } IMX_CCM_ANALOG_PLL_ENET_REG;
