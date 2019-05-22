@@ -46,10 +46,93 @@
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiDriverEntryPoint.h>
 #include <Library/UefiLib.h>
+#include <Library/UefiRuntimeServicesTableLib.h>
 
 #include <Protocol/Smbios.h>
 
 #include "PlatformSmbiosDxe.h"
+
+// TODO: Move to common header
+#define MAX_VARIABLE_SIZE 100
+
+/**
+
+  Retrieve an SMBIOS Override variable from UEFI variables.
+
+  @param[in] VariableName         Pointer to the string containing the key name.
+  @param[out] SmbiosEntry         Pointer to return the SMBIOS string.
+  @param[out] SmbiosEntryLen      Length of the string retrieved for SMBIOS var.
+  @param[in,out] SmbiosRecordLen  Pointer to the SMBIOS record length so this
+                                  function can increment it for the caller.
+  @retval  EFI_SUCCESS            SMBIOS string retrieved successfully.
+  @retval  EFI_OUT_OF_RESOURCES   Unable to allocate space for the buffer.
+  @retval  EFI_STATUS             Status of gRT->GetVariable ()
+
+**/
+EFI_STATUS
+RetrieveSmbiosVariableByGuid (
+  CONST CHAR16 *VariableName,
+  EFI_GUID *Guid,
+  CHAR16 **SmbiosEntry,
+  UINTN *SmbiosEntryLen
+  )
+{
+  CHAR16                *Data;
+  UINTN                 DataSize;
+  EFI_STATUS            Status;
+
+  DataSize = 0;
+  Status = gRT->GetVariable (
+                  (CHAR16 *) VariableName,
+                  Guid,
+                  NULL,
+                  &DataSize,
+                  NULL
+                  );
+
+  if (Status == EFI_BUFFER_TOO_SMALL) {
+    Data = AllocatePool (DataSize);
+    if (Data == NULL) {
+      return EFI_OUT_OF_RESOURCES;
+    }
+
+    // Variable data assumed to be stored as Unicode
+    Status = gRT->GetVariable (
+                    (CHAR16 *) VariableName,
+                    Guid,
+                    NULL,
+                    &DataSize,
+                    Data
+                    );
+
+    if (EFI_ERROR (Status)) {
+      FreePool (Data);
+      return Status;
+    }
+
+    *SmbiosEntry = Data;
+    *SmbiosEntryLen = StrnLenS (Data, MAX_VARIABLE_SIZE);
+  }
+
+  return Status;
+}
+
+EFI_STATUS
+RetrieveSmbiosVariable (
+  CONST CHAR16 *VariableName,
+  CHAR16 **SmbiosEntry,
+  UINTN *SmbiosEntryLen
+  )
+{
+  EFI_STATUS Status;
+  
+  Status = RetrieveSmbiosVariableByGuid (VariableName,
+                            &giMXPlatformSmbiosOverrideGuid,
+                            SmbiosEntry,
+                            SmbiosEntryLen);
+
+  return Status;
+}
 
 // Default SMBIOS Tables for i.MX6
 SMBIOS_TABLE_TYPE0 mBiosInfoType0 = {
@@ -617,23 +700,31 @@ SysInfoUpdateSmbiosType1 (
   )
 {
   CHAR16                *Family;
+  CHAR16                *FamilyOverride;
   GLOBAL_PAGE_DATA      *GlobalDataAddress;
   CHAR16                *Manufacturer;
+  CHAR16                *ManufacturerOverride;
   CHAR8                 *OptionalStrStart;
   CHAR16                *ProductName;
+  CHAR16                *ProductNameOverride;
   CHAR16                *SerialNumber;
   CHAR16                *SkuNumber;
+  CHAR16                *SkuNumberOverride;
   SMBIOS_TABLE_TYPE1    *SmbiosRecord;
   EFI_GUID              *SystemUuidFromPcd;
   EFI_GUID              *SystemUuid;
   CHAR16                *Version;
   UINT64                ProcessorSerialNumber;
   UINTN                 FamilyLen;
+  UINTN                 FamilyOverrideLen;
   UINT32                i;
   UINTN                 ManufacturerLen;
+  UINTN                 ManufacturerOverrideLen;
   UINTN                 ProductNameLen;
+  UINTN                 ProductNameOverrideLen;
   UINTN                 SerialNumberLen;
   UINTN                 SkuNumberLen;
+  UINTN                 SkuNumberOverrideLen;
   EFI_SMBIOS_HANDLE     SmbiosHandle;
   UINT32                SmbiosRecordLen;
   EFI_STATUS            Status;
@@ -645,22 +736,38 @@ SysInfoUpdateSmbiosType1 (
   SmbiosRecordLen = sizeof (SMBIOS_TABLE_TYPE1);
 
   // 04h - Manufacturer String
-  Manufacturer = (CHAR16 *)FixedPcdGetPtr (PcdSystemManufacturer);
-  ManufacturerLen = StrLen (Manufacturer);
-  if (ManufacturerLen == 0) {
-    DEBUG ((DEBUG_ERROR, "%a: PcdSystemManufacturer not filled\n", __FUNCTION__));
-    Status = EFI_INVALID_PARAMETER;
-    goto Exit;
+  Status = RetrieveSmbiosVariable (L"System Manufacturer",
+                                   &ManufacturerOverride,
+                                   &ManufacturerOverrideLen);
+  if (Status == EFI_SUCCESS) {
+    Manufacturer = ManufacturerOverride;
+    ManufacturerLen = ManufacturerOverrideLen;
+  } else { 
+    Manufacturer = (CHAR16 *)FixedPcdGetPtr (PcdSystemManufacturer);
+    ManufacturerLen = StrLen (Manufacturer);
+    if (ManufacturerLen == 0) {
+      DEBUG ((DEBUG_ERROR, "%a: PcdSystemManufacturer not filled\n", __FUNCTION__));
+      Status = EFI_INVALID_PARAMETER;
+      goto Exit;
+    }
   }
   SmbiosRecordLen += ManufacturerLen + 1;
 
   // 05h - Product Name String
-  ProductName = (CHAR16 *)FixedPcdGetPtr (PcdSystemProductName);
-  ProductNameLen = StrLen (ProductName);
-  if (ProductNameLen == 0) {
-    DEBUG ((DEBUG_ERROR, "%a: PcdSystemProductName not filled\n", __FUNCTION__));
-    Status = EFI_INVALID_PARAMETER;
-    goto Exit;
+  Status = RetrieveSmbiosVariable (L"System Product Name",
+                                   &ProductNameOverride,
+                                   &ProductNameOverrideLen);
+  if (Status == EFI_SUCCESS) {
+    ProductName = ProductNameOverride;
+    ProductNameLen = ProductNameOverrideLen;
+  } else { 
+    ProductName = (CHAR16 *)FixedPcdGetPtr (PcdSystemProductName);
+    ProductNameLen = StrLen (ProductName);
+    if (ProductNameLen == 0) {
+      DEBUG ((DEBUG_ERROR, "%a: PcdSystemProductName not filled\n", __FUNCTION__));
+      Status = EFI_INVALID_PARAMETER;
+      goto Exit;
+    }
   }
   SmbiosRecordLen += ProductNameLen + 1;
 
@@ -732,22 +839,38 @@ SysInfoUpdateSmbiosType1 (
   mSysInfoType1.Uuid = *SystemUuid;
 
   // 19h - SKU Number String
-  SkuNumber = (CHAR16 *)FixedPcdGetPtr (PcdSystemSkuNumber);
-  SkuNumberLen = StrLen (SkuNumber);
-  if (SkuNumberLen == 0) {
-    DEBUG ((DEBUG_ERROR, "%a: PcdSystemSkuNumber not filled\n", __FUNCTION__));
-    Status = EFI_INVALID_PARAMETER;
-    goto Exit;
+  Status = RetrieveSmbiosVariable (L"System SKU",
+                                   &SkuNumberOverride,
+                                   &SkuNumberOverrideLen);
+  if (Status == EFI_SUCCESS) {
+    SkuNumber = SkuNumberOverride;
+    SkuNumberLen = SkuNumberOverrideLen;
+  } else { 
+    SkuNumber = (CHAR16 *)FixedPcdGetPtr (PcdSystemSkuNumber);
+    SkuNumberLen = StrLen (SkuNumber);
+    if (SkuNumberLen == 0) {
+      DEBUG ((DEBUG_ERROR, "%a: PcdSystemSkuNumber not filled\n", __FUNCTION__));
+      Status = EFI_INVALID_PARAMETER;
+      goto Exit;
+    }
   }
   SmbiosRecordLen += SkuNumberLen + 1;
 
   // 1Ah - Family String
-  Family = (CHAR16 *)FixedPcdGetPtr (PcdSystemFamily);
-  FamilyLen = StrLen (Family);
-  if (FamilyLen == 0) {
-    DEBUG ((DEBUG_ERROR, "%a: PcdSystemFamily not filled\n", __FUNCTION__));
-    Status = EFI_INVALID_PARAMETER;
-    goto Exit;
+  Status = RetrieveSmbiosVariable (L"System Family",
+                                   &FamilyOverride,
+                                   &FamilyOverrideLen);
+  if (Status == EFI_SUCCESS) {
+    Family = FamilyOverride;
+    FamilyLen = FamilyOverrideLen;
+  } else { 
+    Family = (CHAR16 *)FixedPcdGetPtr (PcdSystemFamily);
+    FamilyLen = StrLen (Family);
+    if (FamilyLen == 0) {
+      DEBUG ((DEBUG_ERROR, "%a: PcdSystemFamily not filled\n", __FUNCTION__));
+      Status = EFI_INVALID_PARAMETER;
+      goto Exit;
+    }
   }
   SmbiosRecordLen += FamilyLen + 1;
 
@@ -794,6 +917,23 @@ Exit:
   if (SmbiosRecord != NULL) {
     FreePool (SmbiosRecord);
   }
+
+  if (ManufacturerOverride != NULL) {
+    FreePool (ManufacturerOverride);
+  }
+
+  if (ProductNameOverride != NULL) {
+    FreePool (ProductNameOverride);
+  }
+
+  if (SkuNumberOverride != NULL) {
+    FreePool (SkuNumberOverride);
+  }
+
+  if (FamilyOverride != NULL) {
+    FreePool (FamilyOverride);
+  }
+
   return Status;
 }
 
@@ -807,6 +947,7 @@ BoardInfoUpdateSmbiosType2 (
   CHAR16                *Manufacturer;
   CHAR8                 *OptionalStrStart;
   CHAR16                *ProductName;
+  CHAR16                *ProductNameOverride;
   CHAR16                *SerialNumber;
   SMBIOS_TABLE_TYPE2    *SmbiosRecord;
   CHAR16                *Version;
@@ -815,6 +956,7 @@ BoardInfoUpdateSmbiosType2 (
   UINTN                 LocationLen;
   UINTN                 ManufacturerLen;
   UINTN                 ProductNameLen;
+  UINTN                 ProductNameOverrideLen;
   UINTN                 SerialNumberLen;
   EFI_SMBIOS_HANDLE     SmbiosHandle;
   UINT32                SmbiosRecordLen;
@@ -836,12 +978,20 @@ BoardInfoUpdateSmbiosType2 (
   SmbiosRecordLen += ManufacturerLen + 1;
 
   // 05h - Product Name String
-  ProductName = (CHAR16 *)FixedPcdGetPtr (PcdBoardProductName);
-  ProductNameLen = StrLen (ProductName);
-  if (ProductNameLen == 0) {
-    DEBUG ((DEBUG_ERROR, "%a: PcdBoardProductName not filled\n", __FUNCTION__));
-    Status = EFI_INVALID_PARAMETER;
-    goto Exit;
+  Status = RetrieveSmbiosVariable (L"Baseboard Product",
+                                   &ProductNameOverride,
+                                   &ProductNameOverrideLen);
+  if (Status == EFI_SUCCESS) {
+    ProductName = ProductNameOverride;
+    ProductNameLen = ProductNameOverrideLen;
+  } else { 
+    ProductName = (CHAR16 *)FixedPcdGetPtr (PcdBoardProductName);
+    ProductNameLen = StrLen (ProductName);
+    if (ProductNameLen == 0) {
+      DEBUG ((DEBUG_ERROR, "%a: PcdBoardProductName not filled\n", __FUNCTION__));
+      Status = EFI_INVALID_PARAMETER;
+      goto Exit;
+    }
   }
   SmbiosRecordLen += ProductNameLen + 1;
 
@@ -930,6 +1080,9 @@ Exit:
   }
   if (SmbiosRecord != NULL) {
     FreePool (SmbiosRecord);
+  }
+  if (ProductNameOverride != NULL) {
+    FreePool (ProductNameOverride);
   }
   return Status;
 }

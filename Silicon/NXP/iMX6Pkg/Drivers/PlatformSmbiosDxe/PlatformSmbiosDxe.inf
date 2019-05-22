@@ -43,11 +43,13 @@
   UefiBootServicesTableLib
   UefiDriverEntryPoint
   UefiLib
+  UefiRuntimeServicesTableLib
 
 [Protocols]
   gEfiSmbiosProtocolGuid                        # PROTOCOL SOMETIMES_CONSUMED
 
 [Guids]
+  giMXPlatformSmbiosOverrideGuid
 
 [FixedPcd]
   gArmPlatformTokenSpaceGuid.PcdCoreCount
