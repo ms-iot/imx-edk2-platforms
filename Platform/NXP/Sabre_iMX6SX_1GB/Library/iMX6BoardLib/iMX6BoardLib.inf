@@ -44,7 +44,6 @@
 [Sources.common]
   $(BOARD_LIB_COMMON_DIR)/iMX6BoardHelper.S    | GCC
   $(BOARD_LIB_COMMON_DIR)/iMX6BoardMem.c
-#  $(BOARD_LIB_COMMON_DIR)/iMX6Common.c
   $(BOARD_LIB_COMMON_DIR)/iMX6QBoardCoreDef.c
   iMX6BoardInit.c
 

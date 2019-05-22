@@ -40,20 +40,6 @@ static void MmioClrBits32(UINT32 Addr, UINT32 Bits)
     MmioWrite32(Addr, MmioRead32(Addr) & ~Bits);
 }
 
-/*
-static void MmioClrBits16(UINT32 Addr, UINT16 Bits)
-{
-    MmioWrite16(Addr, MmioRead16(Addr) & ~Bits);
-}
-*/
-
-/**
-  This routine initializes PHY0(OTG).
-**/
-VOID EhciInit ()
-{
-}
-
 //
 // Prebaked pad configurations that include mux and drive settings where
 // each enum named as IMX_<MODULE-NAME>_PADCFG contains configurations
@@ -884,7 +870,6 @@ VOID InitializeAudmuxSX (UINT32 SsiPortNumber, UINT32 ExternalPortNumber)
     MmioWrite32 ((UINTN)&pAudmuxReg->mux[SsiPortNumber].Ptcr, SsiPtcr.AsUint32);
 }
 
-
 /** Audio init */
 VOID SetupAudio ()
 {
@@ -906,13 +891,6 @@ VOID SetupAudio ()
 
     // Set up Audmux where Ssi3 port = 7 and external port = 6
     InitializeAudmuxSX (AUDMUX_PORT7, AUDMUX_PORT6);
-}
-
-/**
-  Initalize LVDS
-**/
-VOID LvdsInit ()
-{
 }
 
 /**
@@ -1108,10 +1086,7 @@ RETURN_STATUS ArmPlatformInitialize(IN UINTN MpId)
     UartInit();
     SerialPortInitialize();
     SerialPortWrite((UINT8 *)SERIAL_DEBUG_PORT_INIT_MSG, (UINTN)sizeof (SERIAL_DEBUG_PORT_INIT_MSG));
-//  SerialPrint("\nSerial Port Init\n\r");
     I2cInit();
-//  HdmiInit();
-//  LcdInit();
     USBInit();
     SdhcInit();
     EnetInit();

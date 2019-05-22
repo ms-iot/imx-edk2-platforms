@@ -1,15 +1,21 @@
-//// 
-//  Microsoft Corporation
-//  SiArch
-//
-//  Portions Copyright (c) Microsoft Corporation
-//  Portions Copyright (c) Intel Corporation
-//  Portions Copyright (c) Apple
-//  Portions Copyright (c) ARM Ltd.
-//  Portions Copyright (c) Freescale
-//  Copyright 2019 NXP
-////
-
+/** @file
+*
+*  Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+*  Copyright (c) Intel Corporation
+*  Copyright (c) Apple
+*  Copyright (c) ARM Ltd.
+*  Copyright (c) Freescale
+*  Copyright 2019 NXP
+*
+*  This program and the accompanying materials
+*  are licensed and made available under the terms and conditions of the BSD License
+*  which accompanies this distribution.  The full text of the license may be found at
+*  http://opensource.org/licenses/bsd-license.php
+*
+*  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+*
+**/
 #include <Library/DebugLib.h>
 #include <Library/IoLib.h>
 
@@ -125,7 +131,7 @@ sConfigLCDIF(
     // set run bit
     MmioWrite32(IMX6SX_PHYSADDR_LCDIF2_RL_SET, IMX6SX_LCDIF_RL_RUN);
 
-#if 0
+#ifdef LCDIF_DEBUG
     DebugPrint(DEBUG_INFO, "RL                 %08X\n", MmioRead32(IMX6SX_PHYSADDR_LCDIF1_RL           ));
     DebugPrint(DEBUG_INFO, "CTRL1              %08X\n", MmioRead32(IMX6SX_PHYSADDR_LCDIF1_CTRL1        ));
     DebugPrint(DEBUG_INFO, "CTRL2              %08X\n", MmioRead32(IMX6SX_PHYSADDR_LCDIF1_CTRL2        ));
@@ -205,7 +211,7 @@ ConfigureLCD(
     sResetLCDIF();
 
     // Debug code to allocate as much bandwidth as possible to LCDIF
-#if 0
+#ifdef LCDIF_DEBUG
     MmioWrite32(IMX6SX_PHYSADDR_LCDIF1_CTRL2, 0x00800000);
     DebugPrint(DEBUG_INIT, "CTRL2 %08X\n", MmioRead32(IMX6SX_PHYSADDR_LCDIF1_CTRL2));
     MmioWrite32(IMX6SX_PHYSADDR_LCDIF1_THRES, (511 << 16) | (510));
