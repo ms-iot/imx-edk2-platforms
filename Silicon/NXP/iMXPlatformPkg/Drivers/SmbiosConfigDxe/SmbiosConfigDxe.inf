@@ -36,9 +36,11 @@
   PcdLib
   UefiDriverEntryPoint
   UefiBootServicesTableLib
+  UefiRuntimeServicesTableLib
 
 [Guids]
   gEfiFileInfoGuid  ## CONSUMES
+  giMXPlatformSmbiosOverrideGuid  ## CONSUMES
 
 [Protocols]
   gEfiSimpleFileSystemProtocolGuid  ## CONSUMES

@@ -23,14 +23,15 @@ typedef enum JsonParserState {
   StateValueDone,  
 } JSON_PARSER_STATE;
 
-#define MAX_KEY_SIZE 100
-#define MAX_VALUE_SIZE 100
+#define MAX_VARIABLE_SIZE 100
 
 typedef struct SmbiosOverrideNode {
   CHAR8 *Key;
   CHAR8 *Value;
   struct SmbiosOverrideNode *Next;
 } SMBIOS_OVERRIDE_NODE;
+
+STATIC CONST CHAR16 mSmbiosOverridePresent[] = L"SmbiosOverridePresent";
 
 STATIC SMBIOS_OVERRIDE_NODE *mSmbiosOverrideListHead;
 
@@ -140,7 +141,7 @@ GetNextKeyValuePair (
     Status = EFI_NOT_FOUND;
     goto Exit;
   }
-  if ((KeyLength > MAX_KEY_SIZE) || (ValueLength > MAX_VALUE_SIZE)) {
+  if ((KeyLength > MAX_VARIABLE_SIZE) || (ValueLength > MAX_VARIABLE_SIZE)) {
     Status = EFI_INVALID_PARAMETER;
     goto Exit;
   }
@@ -219,16 +220,16 @@ GetSmbiosOverride (
   SMBIOS_OVERRIDE_NODE *Node;
   EFI_STATUS Status;
   INTN CompareResult;
-  CHAR16 UnicodeDebugString[100];
+  CHAR16 UnicodeDebugString[MAX_VARIABLE_SIZE];
   
   Node = mSmbiosOverrideListHead;
   Status = EFI_NOT_FOUND;
   while (Node != NULL) {
-    CompareResult = AsciiStrnCmp (Node->Key, Key, AsciiStrLen(Key));
+    CompareResult = AsciiStrnCmp (Node->Key, Key, AsciiStrnSizeS(Key, MAX_VARIABLE_SIZE));
     if (CompareResult == 0) {
-      AsciiStrToUnicodeStrS (Node->Key, UnicodeDebugString, 100);
+      AsciiStrToUnicodeStrS (Node->Key, UnicodeDebugString, MAX_VARIABLE_SIZE);
       DEBUG ((DEBUG_INFO, "%a: Found Smbios Override Key = %s\n", __FUNCTION__, UnicodeDebugString));
-      AsciiStrToUnicodeStrS (Node->Value, UnicodeDebugString, 100);
+      AsciiStrToUnicodeStrS (Node->Value, UnicodeDebugString, MAX_VARIABLE_SIZE);
       DEBUG ((DEBUG_INFO, "%a: Smbios Override Value = %s\n", __FUNCTION__, UnicodeDebugString));
       *Value = Node->Value;
       Status = EFI_SUCCESS;
@@ -250,7 +251,7 @@ ValidateRevision1 (
   CHAR8 *Value;
   EFI_STATUS Status;
   INTN i;
-  CHAR16 UnicodeDebugString[100];
+  CHAR16 UnicodeDebugString[MAX_VARIABLE_SIZE];
 
   Status = EFI_NOT_FOUND;
 
@@ -262,7 +263,7 @@ ValidateRevision1 (
   }
 
   for (i = 0; i < MAX_SMBIOS_KEY_REV_1; i++) {
-    AsciiStrToUnicodeStrS (mSmbiosKeyRev1[i], UnicodeDebugString, 100);
+    AsciiStrToUnicodeStrS (mSmbiosKeyRev1[i], UnicodeDebugString, MAX_VARIABLE_SIZE);
     Status = GetSmbiosOverride(mSmbiosKeyRev1[i], &Value);
     if (EFI_ERROR (Status)) {
       DEBUG ((DEBUG_ERROR, "%a: Failed to find Smbios Key %s\n", __FUNCTION__, UnicodeDebugString));
@@ -284,7 +285,7 @@ Exit:
 
 EFI_STATUS
 EFIAPI
-ValidateBuffer (
+ValidateBufferAndStoreInList (
   CHAR8* Buffer,
   UINTN BufferSize
   )
@@ -350,7 +351,7 @@ ValidateBuffer (
     goto Exit;
   }
   
-  CompareResult = AsciiStrnCmp (Signature, Value, AsciiStrLen (Signature));
+  CompareResult = AsciiStrnCmp (Signature, Value, AsciiStrnSizeS (Signature, MAX_VARIABLE_SIZE));
   if (CompareResult != 0) {
     DEBUG ((DEBUG_ERROR, "%a: Smbios Override signature incorrect \n", __FUNCTION__));
     Status = EFI_NOT_FOUND;
@@ -385,8 +386,8 @@ DumpListInfo (
 {
   SMBIOS_OVERRIDE_NODE *Node;
   UINTN Count;
-  UINT16 UnicodeKey[100];
-  UINT16 UnicodeValue[100];
+  UINT16 UnicodeKey[MAX_VARIABLE_SIZE];
+  UINT16 UnicodeValue[MAX_VARIABLE_SIZE];
 
   Count = 0;
   Node = mSmbiosOverrideListHead;
@@ -522,8 +523,10 @@ GetSmbiosOverrideData (
     goto Exit;
   }
 
-//  DEBUG ((DEBUG_INFO, "%a: Buffer contains %s\n", __FUNCTION__, Buffer));
-  ValidateBuffer (Buffer, BufferSize);
+  Status = ValidateBufferAndStoreInList (Buffer, BufferSize);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: Buffer Validation failed (Status=%r)\n", __FUNCTION__, Status));
+  }
 
   DumpListInfo();
 
@@ -557,11 +560,26 @@ Exit:
 
 }
 
-BOOLEAN
+EFI_STATUS
+EFIAPI
 CheckSmbiosOverridePresent (
   )
 {
-  return FALSE;
+  UINTN DataSize;
+  EFI_STATUS Status;
+
+  DataSize = 0;
+  Status = gRT->GetVariable ((CHAR16 *)mSmbiosOverridePresent,
+                  &giMXPlatformSmbiosOverrideGuid,
+                  NULL,
+                  &DataSize,
+                  NULL);
+
+  if (Status == EFI_BUFFER_TOO_SMALL) {
+    return EFI_SUCCESS;
+  }
+
+  return EFI_NOT_READY;
 }
 
 EFI_STATUS
@@ -569,7 +587,84 @@ EFIAPI
 SetSmbiosOverridePresent (
   )
 {
+  UINT8 Data;
+  EFI_STATUS Status;
+
+  Data = 1;
+  Status = gRT->SetVariable ((CHAR16 *)mSmbiosOverridePresent,
+                  &giMXPlatformSmbiosOverrideGuid,
+                  EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS |
+                  EFI_VARIABLE_RUNTIME_ACCESS,
+                  1,
+                  (VOID *)&Data);
+        
   return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI
+StoreSmbiosOverrideVariable (
+  CHAR16* Key,
+  CHAR16* Value
+  )
+{
+  EFI_STATUS Status;
+
+  Status = gRT->SetVariable (Key,
+                &giMXPlatformSmbiosOverrideGuid,
+                EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS |
+                EFI_VARIABLE_RUNTIME_ACCESS,
+                StrnSizeS (Value, MAX_VARIABLE_SIZE),
+                (VOID *) Value);
+
+  return Status;
+}
+
+EFI_STATUS
+EFIAPI
+StoreAllSmbiosOverrideVariables (
+  )
+{
+  CHAR16 UnicodeKey[MAX_VARIABLE_SIZE];
+  CHAR16 UnicodeValue[MAX_VARIABLE_SIZE];
+  EFI_STATUS Status;
+  SMBIOS_OVERRIDE_NODE *Node;
+
+  Node = mSmbiosOverrideListHead;
+  Status = EFI_NOT_READY;
+
+  while (Node != NULL) {
+    AsciiStrToUnicodeStrS (Node->Key, UnicodeKey, MAX_VARIABLE_SIZE);
+    AsciiStrToUnicodeStrS (Node->Value, UnicodeValue, MAX_VARIABLE_SIZE);
+    Status = StoreSmbiosOverrideVariable (UnicodeKey, UnicodeValue);
+    if (EFI_ERROR (Status)) {
+      goto Exit;
+    }
+    Node = Node->Next;
+  }
+  Status = EFI_SUCCESS;
+Exit:
+  return Status;
+}
+
+VOID
+FreeSmbiosOverrideList(
+  )
+{
+  SMBIOS_OVERRIDE_NODE *Node;
+  SMBIOS_OVERRIDE_NODE *NodeToFree;
+
+  Node = mSmbiosOverrideListHead;
+  mSmbiosOverrideListHead = NULL;
+
+  while (Node != NULL) {
+    NodeToFree = Node;
+    Node = Node->Next;
+
+    FreePool (NodeToFree->Key);
+    FreePool (NodeToFree->Value);
+    FreePool (NodeToFree);
+  }  
 }
 
 EFI_STATUS
@@ -579,29 +674,39 @@ SmbiosConfigDxeInitialize (
   IN EFI_SYSTEM_TABLE *SystemTable
   )
 {
-  BOOLEAN Locked;
   EFI_STATUS Status;
 
-  DEBUG ((DEBUG_ERROR, "%a: Enter\n", __FUNCTION__));
-
   // Check if an Smbios override config was previously set
-  Locked = CheckSmbiosOverridePresent();
-  if (Locked == TRUE) {
-    Status = EFI_SUCCESS;
+  Status = CheckSmbiosOverridePresent();
+  if (Status == EFI_SUCCESS) {
+    DEBUG ((DEBUG_INFO, "%a: Smbios Override Locked\n", __FUNCTION__));
+    goto Exit;
+  }
+  DEBUG ((DEBUG_INFO, "%a: Smbios Override Unlocked\n", __FUNCTION__));
+
+  // Lock down config no matter the result
+  Status = SetSmbiosOverridePresent();
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: Failed to set SmbiosOverridePresent (Status=%r)\n", __FUNCTION__, Status));
     goto Exit;
   }
 
-  // Lock down config no matter the result
-  SetSmbiosOverridePresent();
-
   // Read Smbios Override file from filesystem
   Status = GetSmbiosOverrideData();
-
-  // Validate Smbios override data
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: Failed to read Smbios Override Data (Status=%r)\n", __FUNCTION__, Status));
+    goto Exit;  
+  }
 
   // Store override data in NV variable
+  Status = StoreAllSmbiosOverrideVariables();
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: Failed store to NV (Status=%r)\n", __FUNCTION__, Status));
+    goto Exit;
+  }
 
 Exit:
+  FreeSmbiosOverrideList();
 
   return Status;
 }
