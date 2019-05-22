@@ -19,6 +19,8 @@ Device(URS0)
 {
    Name(_HID, "PNP0C90")
    Name(_UID, 0x0)
+   // Hardware revision 1 supports integrated Transaction Translator (TT) in PortSC register
+   Name (_HRV, 0x1)
 
    // URS requires device to at least be wake-able from D2 state
    // WDF also requires that _DSW (enable & disable wake ability) to be present
@@ -269,6 +271,8 @@ Device (USB1)
     Name (_CID, "PNP0D20")
     Name (_UID, 0x1)
     Name (_S0W, 0x0)
+    // Hardware revision 1 supports integrated Transaction Translator (TT) in PortSC register
+    Name (_HRV, 0x1)
 
     // USB Host controller registers
     OperationRegion (USBH, SystemMemory, 0x02184000, 0x1000)
