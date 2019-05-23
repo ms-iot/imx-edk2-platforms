@@ -61,6 +61,11 @@
   giMX6TokenSpaceGuid.PcdUSBOTGBase|0x02184000|UINT32|0x11
 
   #
+  # GOP
+  #
+  giMX6TokenSpaceGuid.PcdLCDIFBase|0x021C8000|UINT32|0x12
+
+  #
   # ARM System Reset Controller (SRC)
   #
   giMX6TokenSpaceGuid.PcdSrcBase|0x020D8000|UINT32|0x2B

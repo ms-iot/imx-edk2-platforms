@@ -206,4 +206,10 @@ typedef enum {
   IMX_CLK_GATE_MAX,
 } IMX_CLK_GATE;
 
+EFI_STATUS
+ImxSetLcdIfClockRate (
+  IN  UINT32  ClockRate
+  );
+
+
 #endif  /* _IMX6_CLK_PWR_SDL_H_ */

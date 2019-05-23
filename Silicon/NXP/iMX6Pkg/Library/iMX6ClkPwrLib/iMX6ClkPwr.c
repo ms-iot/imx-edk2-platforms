@@ -1398,6 +1398,218 @@ ImxClkPwrValidateClocks (
   return Invalid ? EFI_DEVICE_ERROR : EFI_SUCCESS;
 }
 
+VOID ImxClkPwrLcdClockDisable ()
+{
+    IMX_CCM_CCGR2_REG value32; 
+    volatile IMX_CCM_REGISTERS *ccmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+
+    value32.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[2]);
+    value32.lcd_clk_enable = IMX6ULL_CCM_CLOCK_OFF;
+    MmioWrite32((UINTN) &ccmRegisters->CCGR[2], value32.AsUint32);
+}
+
+VOID ImxClkPwrLcdClockEnable ()
+{
+    IMX_CCM_CCGR2_REG value32; 
+    volatile IMX_CCM_REGISTERS *ccmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+
+    value32.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[2]);
+//    value32 |= (IMX6SX_RUN_ONLY << IMX6SX_SHL_CCM_CCGR2_LCD);
+    value32.lcd_clk_enable = IMX6ULL_RUN_ONLY;
+    MmioWrite32((UINTN) &ccmRegisters->CCGR[2], value32.AsUint32);
+}
+
+VOID IMXSetVideoPllClockRate(
+  UINT32 TargetClockRate,
+  UINT32 PreDividerLcdif1Val,
+  UINT32 PostDividerLcdif1Val
+  )
+{
+    IMX_CCM_CCGR3_REG ccgr3;
+    UINT32 value32;
+    IMX_CCM_PLL_VIDEO_CTRL_REG videoControl;
+    volatile IMX_CCM_REGISTERS *ccmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+    volatile IMX_CCM_ANALOG_REGISTERS *analogRegisters = (IMX_CCM_ANALOG_REGISTERS *) IMX_CCM_ANALOG_BASE;
+
+    // turn off LCD clocks
+    ImxClkPwrLcdClockDisable();
+
+    // gate the LCD pixel and AXI clocks CCGR3.CG5
+    ccgr3.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[3]);
+    ccgr3.lcdif1_pix_clk_enable = IMX6ULL_CCM_CLOCK_OFF;
+    //ccgr3.disp_axi_clk_enable = IMX6SX_CCM_CLOCK_OFF;
+    MmioWrite32((UINTN) &ccmRegisters->CCGR[3], ccgr3.AsUint32);
+
+    //
+    // set the divider for the source clock to the video PLL to divide by 1 
+    //
+    MmioWrite32((UINTN) &analogRegisters->MISC0_CLR, 0x80000000);
+
+    //
+    // fire up the video PLL to the correct frequency
+    // before division
+    //
+
+    videoControl.AsUint32 = 0;
+    videoControl.POST_DIV_SELECT = 0x03;
+    videoControl.BYPASS = 0x01;
+    videoControl.POWERDOWN = 0x01;
+    videoControl.DIV_SELECT = 0x7f;
+    MmioWrite32((UINTN) &analogRegisters->PLL_VIDEO_CLR, videoControl.AsUint32);
+
+ /*
+   MmioWrite32((UINTN) &analogRegisters->PLL_VIDEO_CLR,
+        IMX6SX_ANALOG_PLL_VIDEO_POST_DIV_SELECT_MASK |
+        IMX6SX_ANALOG_PLL_VIDEO_BYPASS |
+        IMX6SX_ANALOG_PLL_VIDEO_POWERDOWN |
+        IMX6SX_ANALOG_PLL_VIDEO_DIV_SELECT_MASK);
+*/
+
+    //
+    // PLL output frequency = (Reference Freq) * (DIV_SELECT + NUM / DENOM)
+    //
+    // Use clock rate as denominator for simple fractional calculation.
+    // This way we just need to figure out the target clock rate ratio
+    // to the 24MHz reference.
+    //
+    {
+        IMX_CCM_PLL_VIDEO_CTRL_REG pllVideoCtrlReg;
+        UINT32 denom = IMX_REF_CLK_24M_FREQ;
+        UINT32 divSelect = TargetClockRate / IMX_REF_CLK_24M_FREQ;
+        UINT32 numerator = TargetClockRate % IMX_REF_CLK_24M_FREQ;
+
+        pllVideoCtrlReg.AsUint32 = MmioRead32((UINTN) &analogRegisters->PLL_VIDEO);
+
+        ASSERT (numerator < denom);
+        ASSERT ((divSelect >= 27) && (divSelect <= 54));
+
+        pllVideoCtrlReg.DIV_SELECT = divSelect;
+        pllVideoCtrlReg.POST_DIV_SELECT = IMX_POST_DIV_SELECT_DIVIDE_2;
+
+        DEBUG ((
+            DEBUG_INFO,
+            "PLL 5 divSelect (%d) numerator (%d) denom %d\n",
+            divSelect,
+            numerator,
+            denom
+            ));
+
+        MmioWrite32((UINTN) &analogRegisters->PLL_VIDEO, pllVideoCtrlReg.AsUint32);
+        MmioWrite32((UINTN) &analogRegisters->PLL_VIDEO_NUM, numerator);
+        MmioWrite32((UINTN) &analogRegisters->PLL_VIDEO_DENOM, denom);
+    }
+
+    // wait for PLL to lock
+    do {
+        videoControl.AsUint32 = MmioRead32((UINTN) &analogRegisters->PLL_VIDEO);
+    } while (!(videoControl.LOCK));
+
+    //
+    // select the video PLL in the LCDIF clock selector
+    // and set the CDIF1_PRED value
+    //
+    value32 = MmioRead32((UINTN) &ccmRegisters->CSCDR2);
+    // Clear LCDIF1_CLK_SEL, LCDIF1_PRED and LCDIF1_PRE_CLK_SEL
+    value32 &= ~0x0003FE00;
+    // Set the predivider value and derive clock from PLL5
+    value32 |= ((PreDividerLcdif1Val - 1) << 12) | (2 << 15);
+    MmioWrite32((UINTN) &ccmRegisters->CSCDR2, value32);
+
+    //
+    // set the post divider in CBCMR
+    //
+    value32 = MmioRead32((UINTN) &ccmRegisters->CBCMR);
+    // Clear LCDIF1_PODF
+    value32 &= ~0x03800000;
+    value32 |= ((PostDividerLcdif1Val - 1) << 23);
+    MmioWrite32((UINTN) &ccmRegisters->CBCMR, value32);
+
+    // enable the PLL output
+    videoControl.AsUint32 = 0;
+    videoControl.ENABLE = 1;
+    MmioWrite32((UINTN) &analogRegisters->PLL_VIDEO_SET, videoControl.AsUint32);
+
+    // Ungate the LCD pixel clock
+    ccgr3.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[3]);
+    ccgr3.lcdif1_pix_clk_enable = IMX6ULL_RUN_ONLY;
+    //ccgr3.disp_axi_clk_enable = IMX6ULL_RUN_ONLY;
+    MmioWrite32((UINTN) &ccmRegisters->CCGR[3], ccgr3.AsUint32);
+
+    // turn on LCD clocks
+    ImxClkPwrLcdClockEnable();
+}
+
+
+EFI_STATUS
+ImxSetLcdIfClockRate (
+    UINT32 ClockRate
+    )   
+{
+    BOOLEAN foundConfig = FALSE;
+    UINT32 targetFreq;
+    UINT32 preDivSelectCount;
+    UINT32 postDivSelectCount;
+    UINT32 preDividerLcdif1[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    UINT32 postDividerLcdif1[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+
+    for (postDivSelectCount = 0;
+        postDivSelectCount < ARRAYSIZE (postDividerLcdif1);
+        ++postDivSelectCount) {
+
+        for (preDivSelectCount = 0;
+            preDivSelectCount < ARRAYSIZE (preDividerLcdif1);
+            ++preDivSelectCount) {
+
+            //
+            // Need to verify the meaning of post div and test div values
+            //
+            targetFreq =
+                ClockRate *
+                preDividerLcdif1[preDivSelectCount] *
+                postDividerLcdif1[postDivSelectCount] *
+                1 *
+		2; // IMX_POST_DIV_SEL_DIVIDE_2
+
+            //
+            // The valid range for PLL loop divider is 27-54 so we
+            // need to target freq need to fit within the valid range.
+            //
+            if ((targetFreq >= PLL5_MIN_FREQ) &&
+                (targetFreq <= PLL5_MAX_FREQ)) {
+                foundConfig = TRUE;
+                break;
+            }   
+        }
+
+        if (foundConfig == TRUE) {
+            break;
+        }   
+    }
+
+    if (foundConfig == FALSE) {
+        DEBUG((DEBUG_ERROR, "No valid configuration found for clock rate %d\n", ClockRate));
+        ASSERT(FALSE);
+        return EFI_INVALID_PARAMETER;
+    }
+
+    DEBUG ((
+        DEBUG_INFO,
+        "Video PLL setting (%d) Target Freq (%d) PreDiv %d PostDiv %d\n",
+        ClockRate,
+        targetFreq,
+        preDividerLcdif1[preDivSelectCount],
+        postDividerLcdif1[postDivSelectCount]
+        ));
+
+//    IMXSetVideoPllClockRate(
+//        targetFreq,
+//        preDividerLcdif1[preDivSelectCount],
+//        postDividerLcdif1[postDivSelectCount]);
+
+    return EFI_SUCCESS;
+}
+
+
 /**
   Reset/invalidate the clock tree cache.
 
@@ -1880,3 +2092,4 @@ ImxClkPwrGetClockInfo (
 {
   return ImxpGetClockInfo (&mImxpClockPwrCache, ClockId, ClockInfo);
 }
+

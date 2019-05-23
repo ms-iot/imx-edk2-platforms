@@ -166,7 +166,11 @@
   Tcg2PhysicalPresenceLib|SecurityPkg/Library/DxeTcg2PhysicalPresenceLib/DxeTcg2PhysicalPresenceLib.inf
   Tcg2PpVendorLib|SecurityPkg/Library/Tcg2PpVendorLibNull/Tcg2PpVendorLibNull.inf
 
+  # iMX platform
   #
+  iMXI2cLib|Silicon/NXP/iMXPlatformPkg/Library/iMXI2cLib/iMXI2cLib.inf
+  #
+
   # iMX6 Specifics
   #
   iMXIoMuxLib|Silicon/NXP/iMX6Pkg/Library/iMX6IoMuxLib/iMX6IoMuxLib.inf
@@ -850,6 +854,15 @@
   giMXPlatformTokenSpaceGuid.PcdGlobalDataBaseAddress|$(GLOBAL_DATA_BASE_ADDRESS)
   giMXPlatformTokenSpaceGuid.PcdGlobalDataSize|0x1000
 
+########################
+#
+# giMX6TokenSpaceGuid PCDs
+#
+########################
+[PcdsFixedAtBuild.common]
+
+  giMX6TokenSpaceGuid.PcdLCDIFBase|0x021C8000
+
 ################################################################################
 #
 # [Components] Section
@@ -935,6 +948,15 @@
   MdeModulePkg/Bus/Usb/UsbMassStorageDxe/UsbMassStorageDxe.inf
   MdeModulePkg/Bus/Usb/UsbKbDxe/UsbKbDxe.inf
   MdeModulePkg/Bus/Usb/UsbMouseDxe/UsbMouseDxe.inf
+!endif
+
+  # Display Support
+!if $(CONFIG_HEADLESS) == FALSE
+  MdeModulePkg/Universal/Console/ConPlatformDxe/ConPlatformDxe.inf
+  MdeModulePkg/Universal/Console/ConSplitterDxe/ConSplitterDxe.inf
+  MdeModulePkg/Universal/Console/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
+  Silicon/NXP/iMX6Pkg/Drivers/LcdifGop/LcdifGop.inf
+  MdeModulePkg/Logo/LogoDxe.inf
 !endif
 
 !if $(CONFIG_PCIE) == TRUE
