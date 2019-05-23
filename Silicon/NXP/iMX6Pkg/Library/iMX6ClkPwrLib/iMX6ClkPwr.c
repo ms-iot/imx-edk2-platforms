@@ -195,8 +195,8 @@ ImxCcmConfigureGpuClockTree (
   volatile IMX_CCM_REGISTERS  *CcmRegisters;
   IMX_CCM_CBCMR_REG           CbcmrReg;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-  CbcmrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CBCMR);
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
+  CbcmrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCMR);
 
   CbcmrReg.gpu2d_axi_clk_sel = IMX_CCM_GPU2D_AXI_CLK_SEL_AXI;
   CbcmrReg.gpu3d_axi_clk_sel = IMX_CCM_GPU3D_AXI_CLK_SEL_AXI;
@@ -208,7 +208,7 @@ ImxCcmConfigureGpuClockTree (
   CbcmrReg.gpu3d_shader_podf = 0;
 
   ImxpClkPwrCacheReset ();
-  MmioWrite32 ((UINTN) &CcmRegisters->CBCMR, CbcmrReg.AsUint32);
+  MmioWrite32 ((UINTN)&CcmRegisters->CBCMR, CbcmrReg.AsUint32);
 }
 
 /**
@@ -225,7 +225,7 @@ ImxCcmConfigureIPUDIxClockTree (
   volatile IMX_CCM_REGISTERS  *CcmRegisters;
   IMX_CCM_CHSCCDR_REG         ChscddrReg;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
   ChscddrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CHSCCDR);
 
   // Setup muxing to pre-mux
@@ -256,7 +256,7 @@ ImxCcmConfigureIPULDBxClockTree (
   volatile IMX_CCM_REGISTERS *CcmRegisters;
   IMX_CCM_CS2CDR_REG Cs2cdrReg;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
   Cs2cdrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CS2CDR);
 
   Cs2cdrReg.ldb_di0_clk_sel = 0x0;
@@ -357,8 +357,8 @@ ImxpGetPll2PfdClkInfo (
   UINT32                            PfdFractionalDivideValue;
   EFI_STATUS                        Status;
 
-  CcmAnalogRegisters = (IMX_CCM_ANALOG_REGISTERS *) IMX_CCM_ANALOG_BASE;
-  Pfd528Reg.AsUint32 = MmioRead32 ((UINTN) &CcmAnalogRegisters->PFD_528);
+  CcmAnalogRegisters = (IMX_CCM_ANALOG_REGISTERS *)IMX_CCM_ANALOG_BASE;
+  Pfd528Reg.AsUint32 = MmioRead32 ((UINTN)&CcmAnalogRegisters->PFD_528);
   switch (PfdIndex) {
   case IMX_PLL_PFD0:
     PfdFractionalDivideValue = Pfd528Reg.PFD0_FRAC;
@@ -379,10 +379,11 @@ ImxpGetPll2PfdClkInfo (
     return Status;
   }
 
-  // The resulting frequency shall be 528*18/PFDn_FRAC
-  // where PFD0_FRAC is in the range 12-35.
+  // PLL2 is 528MHz. From the reference manual, the resulting frequency shall
+  // be 528*18/PFDn_FRAC where PFDn_FRAC is in the range 12-35.
   ASSERT ((PfdFractionalDivideValue >= 12) && (PfdFractionalDivideValue <= 35));
-  ClockInfo->Frequency = (UINT32) ((UINT64) ParentInfo.Frequency * 18 / PfdFractionalDivideValue);
+  ClockInfo->Frequency = (UINT32)((UINT64)ParentInfo.Frequency *
+                            PLL2_FREQUENCY_MULITPLIER / PfdFractionalDivideValue);
   ClockInfo->Parent = IMX_PLL2_MAIN_CLK;
 
   return EFI_SUCCESS;
@@ -400,8 +401,8 @@ ImxpGetAxiClkRootInfo (
   IMX_CLOCK_INFO              ParentInfo;
   EFI_STATUS                  Status;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-  CbcdrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CBCDR);
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
+  CbcdrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCDR);
 
   if (CbcdrReg.axi_sel == IMX_CCM_AXI_SEL_PERIPH_CLK) {
     Parent = IMX_PERIPH_CLK;
@@ -432,8 +433,8 @@ ImxpGetGpu2dCoreClkInfo (
   IMX_CLOCK_INFO              ParentInfo;
   EFI_STATUS                  Status;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-  CbcmrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CBCMR);
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
+  CbcmrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCMR);
   switch (CbcmrReg.gpu2d_core_clk_sel) {
   case IMX_CCM_GPU2D_CORE_CLK_SEL_AXI:
     Parent = IMX_AXI_CLK_ROOT;
@@ -482,8 +483,8 @@ ImxpGetGpu3dCoreClkInfo (
   IMX_CLOCK_INFO              ParentInfo;
   EFI_STATUS                  Status;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-  CbcmrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CBCMR);
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
+  CbcmrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCMR);
   switch (CbcmrReg.gpu3d_core_clk_sel) {
   case IMX_CCM_GPU3D_CORE_CLK_SEL_MMDC_CH0_AXI:
     Parent = IMX_MMDC_CH0_CLK_ROOT;
@@ -532,8 +533,8 @@ ImxpGetGpu3dShaderClkInfo (
   IMX_CLOCK_INFO              ParentInfo;
   EFI_STATUS                  Status;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-  CbcmrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CBCMR);
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
+  CbcmrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCMR);
   switch (CbcmrReg.gpu3d_shader_clk_sel) {
   case IMX_CCM_GPU3D_SHADER_CLK_SEL_MMDC_CH0_AXI:
     Parent = IMX_MMDC_CH0_CLK_ROOT;
@@ -587,8 +588,8 @@ ImxpGetPeriphClk2Info (
   IMX_CLOCK_INFO ParentInfo;
   EFI_STATUS Status;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-  CbcmrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CBCMR);
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
+  CbcmrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCMR);
   switch (CbcmrReg.periph_clk2_sel) {
   case IMX_CCM_PERIPH_CLK2_SEL_PLL3_SW_CLK:
     Parent = IMX_PLL3_SW_CLK;
@@ -604,7 +605,7 @@ ImxpGetPeriphClk2Info (
     return EFI_INVALID_PARAMETER;
   }
 
-  CbcdrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CBCDR);
+  CbcdrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCDR);
   Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
@@ -627,8 +628,8 @@ ImxpGetPeriphClkInfo (
   IMX_CLOCK_INFO              ParentInfo;
   EFI_STATUS                  Status;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-  CbcdrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CBCDR);
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
+  CbcdrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCDR);
 
   // NOTE: periph_clk_sel is OR'd with PLL_bypass_en2 (from jtag) to
   //       produce the input value to the MUX. We assume PLL_bypass_en2 is 0.
@@ -660,13 +661,13 @@ ImxpGetMmdcCh0ClkRootInfo (
   IMX_CLOCK_INFO              ParentInfo;
   EFI_STATUS                  Status;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
   Status = ImxpGetClockInfo (Cache, IMX_PERIPH_CLK, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
 
-  CbcdrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CBCDR);
+  CbcdrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCDR);
   ClockInfo->Frequency = ParentInfo.Frequency / (1 + CbcdrReg.mmdc_ch0_axi_podf);
   ClockInfo->Parent = IMX_PERIPH_CLK;
   return EFI_SUCCESS;
@@ -684,8 +685,8 @@ ImxpGetGpu2dAxiClkRootInfo (
   IMX_CLOCK_INFO              ParentInfo;
   EFI_STATUS                  Status;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-  CbcmrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CBCMR);
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
+  CbcmrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCMR);
   if (CbcmrReg.gpu2d_axi_clk_sel == IMX_CCM_GPU2D_AXI_CLK_SEL_AXI) {
     Parent = IMX_AXI_CLK_ROOT;
   } else {
@@ -715,8 +716,8 @@ ImxpGetGpu3dAxiClkRootInfo (
   IMX_CLOCK_INFO              ParentInfo;
   EFI_STATUS                  Status;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-  CbcmrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CBCMR);
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
+  CbcmrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCMR);
   if (CbcmrReg.gpu3d_axi_clk_sel == IMX_CCM_GPU3D_AXI_CLK_SEL_AXI) {
     Parent = IMX_AXI_CLK_ROOT;
   } else {
@@ -746,33 +747,33 @@ ImxEnableGpuVpuPowerDomain (
   IMX_PMU_REG_CORE_REG                PmuCoreReg;
   IMX_GPC_PGC_PUPSCR_REG              PupscrReg;
 
-  AnalogRegisters = (IMX_CCM_ANALOG_REGISTERS *) IMX_CCM_ANALOG_BASE;
-  GpcRegisters = (IMX_GPC_REGISTERS *) IMX_GPC_BASE;
+  AnalogRegisters = (IMX_CCM_ANALOG_REGISTERS *)IMX_CCM_ANALOG_BASE;
+  GpcRegisters = (IMX_GPC_REGISTERS *)IMX_GPC_BASE;
   GpuPgcRegisters = &GpcRegisters->PGC_GPU;
 
   // Configure GPC/PGC PUPSCR Register SW2ISO bits
-  PupscrReg.AsUint32 = MmioRead32 ((UINTN) &GpuPgcRegisters->PUPSCR);
+  PupscrReg.AsUint32 = MmioRead32 ((UINTN)&GpuPgcRegisters->PUPSCR);
   PupscrReg.SW = IMX_GPC_PGC_PUPSCR_SW_DEFAULT;
   PupscrReg.SW2ISO = IMX_GPC_PGC_PUPSCR_SW2ISO_DEFAULT;
-  MmioWrite32 ((UINTN) &GpuPgcRegisters->PUPSCR, PupscrReg.AsUint32);
+  MmioWrite32 ((UINTN)&GpuPgcRegisters->PUPSCR, PupscrReg.AsUint32);
 
   // Turn on LDO_PU to 1.250V
   PmuCoreReg.AsUint32 = 0;
   PmuCoreReg.REG1_TARG = 0x1f;
-  MmioWrite32 ((UINTN) &AnalogRegisters->PMU_REG_CORE_CLR, PmuCoreReg.AsUint32);
+  MmioWrite32 ((UINTN)&AnalogRegisters->PMU_REG_CORE_CLR, PmuCoreReg.AsUint32);
   PmuCoreReg.REG1_TARG = 22;
-  MmioWrite32 ((UINTN) &AnalogRegisters->PMU_REG_CORE_SET, PmuCoreReg.AsUint32);
+  MmioWrite32 ((UINTN)&AnalogRegisters->PMU_REG_CORE_SET, PmuCoreReg.AsUint32);
   MicroSecondDelay (100);
 
   // Assert power up request
-  GpcCntrReg.AsUint32 = MmioRead32 ((UINTN) &GpcRegisters->CNTR);
+  GpcCntrReg.AsUint32 = MmioRead32 ((UINTN)&GpcRegisters->CNTR);
   GpcCntrReg.gpu_vpu_pdn_req = 0;
   GpcCntrReg.gpu_vpu_pup_req = 1;
-  MmioWrite32 ((UINTN) &GpcRegisters->CNTR, GpcCntrReg.AsUint32);
+  MmioWrite32 ((UINTN)&GpcRegisters->CNTR, GpcCntrReg.AsUint32);
 
   // Wait for power up request to complete
   do {
-    GpcCntrReg.AsUint32 = MmioRead32 ((UINTN) &GpcRegisters->CNTR);
+    GpcCntrReg.AsUint32 = MmioRead32 ((UINTN)&GpcRegisters->CNTR);
   } while (GpcCntrReg.gpu_vpu_pup_req != 0);
 }
 
@@ -787,29 +788,29 @@ ImxDisableGpuVpuPowerDomain (
   IMX_GPC_CNTR_REG                GpcCntrReg;
   IMX_GPC_PGC_PDNSCR_REG          PdnscrReg;
 
-  GpcRegisters = (IMX_GPC_REGISTERS *) IMX_GPC_BASE;
+  GpcRegisters = (IMX_GPC_REGISTERS *)IMX_GPC_BASE;
   GpuPgcRegisters = &GpcRegisters->PGC_GPU;
 
   // Configure GPC/PGC PDNSCR Register ISO bits
-  PdnscrReg.AsUint32 = MmioRead32 ((UINTN) &GpuPgcRegisters->PDNSCR);
+  PdnscrReg.AsUint32 = MmioRead32 ((UINTN)&GpuPgcRegisters->PDNSCR);
   PdnscrReg.ISO = IMX_GPC_PGC_PDNSCR_ISO_DEFAULT;
   PdnscrReg.ISO2SW = IMX_GPC_PGC_PDNSCR_ISO2SW_DEFAULT;
-  MmioWrite32 ((UINTN) &GpuPgcRegisters->PDNSCR, PdnscrReg.AsUint32);
+  MmioWrite32 ((UINTN)&GpuPgcRegisters->PDNSCR, PdnscrReg.AsUint32);
 
   // Configure GPC/PGC CTRL[PCR] bit to allow power down of the blocks
-  CtrlReg.AsUint32 = MmioRead32 ((UINTN) &GpuPgcRegisters->CTRL);
+  CtrlReg.AsUint32 = MmioRead32 ((UINTN)&GpuPgcRegisters->CTRL);
   CtrlReg.PCR = 1;    // Enable powering down of the blocks
-  MmioWrite32 ((UINTN) &GpuPgcRegisters->CTRL, CtrlReg.AsUint32);
+  MmioWrite32 ((UINTN)&GpuPgcRegisters->CTRL, CtrlReg.AsUint32);
 
   // Assert power down request
-  GpcCntrReg.AsUint32 = MmioRead32 ((UINTN) &GpcRegisters->CNTR);
+  GpcCntrReg.AsUint32 = MmioRead32 ((UINTN)&GpcRegisters->CNTR);
   GpcCntrReg.gpu_vpu_pdn_req = 1;
   GpcCntrReg.gpu_vpu_pup_req = 0;
-  MmioWrite32 ((UINTN) &GpcRegisters->CNTR, GpcCntrReg.AsUint32);
+  MmioWrite32 ((UINTN)&GpcRegisters->CNTR, GpcCntrReg.AsUint32);
 
   // Wait for power down request to complete
   do {
-    GpcCntrReg.AsUint32 = MmioRead32 ((UINTN) &GpcRegisters->CNTR);
+    GpcCntrReg.AsUint32 = MmioRead32 ((UINTN)&GpcRegisters->CNTR);
   } while (GpcCntrReg.gpu_vpu_pdn_req != 0);
 }
 
@@ -940,7 +941,8 @@ ImxClkPwrGpuEnable (
   // Precondition: clock and power should be disabled
   ASSERT (ImxClkPwrGetClockGate (IMX_GPU3D_CLK_ENABLE) == IMX_CLOCK_GATE_STATE_OFF);
   ASSERT (ImxClkPwrGetClockGate (IMX_GPU2D_CLK_ENABLE) == IMX_CLOCK_GATE_STATE_OFF);
-  ASSERT (ImxClkPwrGetClockGate (IMX_OPENVGAXICLK_CLK_ROOT_ENABLE) == IMX_CLOCK_GATE_STATE_OFF);
+  ASSERT (ImxClkPwrGetClockGate (IMX_OPENVGAXICLK_CLK_ROOT_ENABLE) ==
+                                  IMX_CLOCK_GATE_STATE_OFF);
 #endif
 
   // Ensure clocks are gated
@@ -981,8 +983,7 @@ ImxClkPwrIpuDIxEnable (
   ImxCcmConfigureIPUDIxClockTree();
   ImxClkPwrSetClockGate (IMX_IPU1_DI0_CLK_ENABLE, IMX_CCM_CCGR_ON);
 
-  // Setup PLL to 65MHz as expected from UBOOT although transition
-  // might be so fast that UBOOT screen would not be displayed
+  // Setup PLL to 65MHz
   ImxSetPll5ReferenceRate (65000000);
   return EFI_SUCCESS;
 }
@@ -1067,7 +1068,7 @@ ImxSetPll5ReferenceRate (
           PostDivSelectValue[PostDivSelectCount]
         ));
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
   ChscddrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CHSCCDR);
 #if !defined(CPU_IMX6ULL)
   ImxClkPwrSetClockGate (IMX_IPU1_DI0_CLK_ENABLE, IMX_CCM_CCGR_OFF);
@@ -1097,12 +1098,12 @@ ImxClkPwrClkOut1Enable (
   volatile IMX_CCM_REGISTERS  *CcmRegisters;
   IMX_CCM_CCOSR_REG           CcosrReg;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
   if ((Divider < 1) || (Divider > 8)) {
     return EFI_INVALID_PARAMETER;
   }
 
-  CcosrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CCOSR);
+  CcosrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CCOSR);
   switch (Clock) {
   case IMX_OSC_CLK:
     CcosrReg.CLKO2_SEL = IMX_CCM_CLKO2_SEL_OSC_CLK;
@@ -1178,7 +1179,7 @@ ImxClkPwrClkOut1Enable (
     return EFI_UNSUPPORTED;
   }
 
-  MmioWrite32 ((UINTN) &CcmRegisters->CCOSR, CcosrReg.AsUint32);
+  MmioWrite32 ((UINTN)&CcmRegisters->CCOSR, CcosrReg.AsUint32);
   return EFI_SUCCESS;
 }
 
@@ -1190,11 +1191,11 @@ ImxClkPwrClkOut1Disable (
   volatile IMX_CCM_REGISTERS  *CcmRegisters;
   IMX_CCM_CCOSR_REG           CcosrReg;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-  CcosrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CCOSR);
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
+  CcosrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CCOSR);
   CcosrReg.CLKO1_EN = 0;
   CcosrReg.CLKO2_EN = 0;
-  MmioWrite32 ((UINTN) &CcmRegisters->CCOSR, CcosrReg.AsUint32);
+  MmioWrite32 ((UINTN)&CcmRegisters->CCOSR, CcosrReg.AsUint32);
 }
 
 EFI_STATUS
@@ -1281,7 +1282,7 @@ ImxClkPwrSetClockGate (
   IMX_CCGR_INDEX              Index;
   UINTN                       StartBit;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
 
   // Extract register index
   Index = ImxCcgrIndexFromClkGate (ClockGate);
@@ -1289,7 +1290,7 @@ ImxClkPwrSetClockGate (
   EndBit = StartBit + 1;
 
   MmioBitFieldWrite32 (
-    (UINTN) &CcmRegisters->CCGR[Index.RegisterIndex],
+    (UINTN)&CcmRegisters->CCGR[Index.RegisterIndex],
     StartBit,
     EndBit,
     State);
@@ -1315,7 +1316,7 @@ ImxClkPwrShouldSkipTZASC1 (
 #if defined(CPU_IMX6D) || defined(CPU_IMX6Q) || defined(CPU_IMX6DP) || defined(CPU_IMX6QP)
   IoMuxMmioBasePtr = (IMX_IOMUXC_GPR_REGISTERS *)IOMUXC_GPR_BASE_ADDRESS;
 
-  IomuxGPR9 = MmioRead32 ((UINTN) &IoMuxMmioBasePtr->GPR9);
+  IomuxGPR9 = MmioRead32 ((UINTN)&IoMuxMmioBasePtr->GPR9);
   if (IomuxGPR9 & IMX_IOMUXC_TZASC1_BYP) {
     // TZASC-1 is active.
     Skip = TRUE;
@@ -1362,12 +1363,12 @@ ImxClkPwrSetClockGates (
   UINTN                       i;
   IMX_CCGR_INDEX              Index;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
 
   // Read all CCGR registers to local copy
   UINT32 ccgrRegisters[ARRAY_SIZE (CcmRegisters->CCGR)];
   for (i = 0; i < ARRAY_SIZE (ccgrRegisters); ++i) {
-    ccgrRegisters[i] = MmioRead32 ((UINTN) &CcmRegisters->CCGR[i]);
+    ccgrRegisters[i] = MmioRead32 ((UINTN)&CcmRegisters->CCGR[i]);
   }
 
   // Compute new CCGR register values
@@ -1384,7 +1385,7 @@ ImxClkPwrSetClockGates (
 
   // Write back to registers
   for (i = 0; i < ARRAY_SIZE (ccgrRegisters); ++i) {
-    MmioWrite32 ((UINTN) &CcmRegisters->CCGR[i], ccgrRegisters[i]);
+    MmioWrite32 ((UINTN)&CcmRegisters->CCGR[i], ccgrRegisters[i]);
   }
 }
 
@@ -1404,13 +1405,13 @@ ImxClkPwrGetClockGate (
   UINTN                       StartBit;
   UINT32                      Value;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
   Index = ImxCcgrIndexFromClkGate (ClockGate);
   StartBit = Index.GateNumber * 2;
   EndBit = StartBit + 1;
 
   Value = MmioBitFieldRead32 (
-            (UINTN) &CcmRegisters->CCGR[Index.RegisterIndex],
+            (UINTN)&CcmRegisters->CCGR[Index.RegisterIndex],
             StartBit,
             EndBit);
 
@@ -1435,7 +1436,7 @@ ImxpGetPll3MainClkInfo (
   IMX_CCM_ANALOG_PLL_USB1_REG         PllUsb1Reg;
   EFI_STATUS                          Status;
 
-  CcmAnalogRegisters = (IMX_CCM_ANALOG_REGISTERS *) IMX_CCM_ANALOG_BASE;
+  CcmAnalogRegisters = (IMX_CCM_ANALOG_REGISTERS *)IMX_CCM_ANALOG_BASE;
   PllUsb1Reg.AsUint32 = MmioRead32 ((UINTN)&CcmAnalogRegisters->PLL_USB1);
   Parent = ImxClkFromBypassClkSource (PllUsb1Reg.BYPASS_CLK_SRC);
 
@@ -1444,6 +1445,9 @@ ImxpGetPll3MainClkInfo (
     return Status;
   }
 
+  // Per the reference manual, DIV_SELECT controls the PLL Loop Divider.
+  // 0 - Fout=Fref*20
+  // 1 - Fout=Fref*22
   if (PllUsb1Reg.DIV_SELECT == 0) {
     ClockInfo->Frequency = ParentInfo.Frequency * 20;
   } else {
@@ -1467,7 +1471,7 @@ ImxpGetPll3PfdClkInfo (
   UINT32                              PfdFractionalDivideValue;
   EFI_STATUS                          Status;
 
-  CcmAnalogRegisters = (IMX_CCM_ANALOG_REGISTERS *) IMX_CCM_ANALOG_BASE;
+  CcmAnalogRegisters = (IMX_CCM_ANALOG_REGISTERS *)IMX_CCM_ANALOG_BASE;
   Pfd480Reg.AsUint32 = MmioRead32 ((UINTN)&CcmAnalogRegisters->PFD_480);
   switch (PfdIndex) {
   case IMX_PLL_PFD0:
@@ -1492,10 +1496,12 @@ ImxpGetPll3PfdClkInfo (
     return Status;
   }
 
-  // The resulting frequency shall be 480*18/PFDn_FRAC
-  // where PFD0_FRAC is in the range 12-35.
+  // PLL3 is 480MHz. According to the Reference Manual, the resulting
+  // frequency is 480*18/PFDn_FRAC where PFDn_FRAC is in the
+  // range 12-35.
   ASSERT ((PfdFractionalDivideValue >= 12) && (PfdFractionalDivideValue <= 35));
-  ClockInfo->Frequency = (UINT32)((UINT64)ParentInfo.Frequency * 18 / PfdFractionalDivideValue);
+  ClockInfo->Frequency = (UINT32)((UINT64)ParentInfo.Frequency *
+                            PLL3_FREQUENCY_MULTIPLIER / PfdFractionalDivideValue);
   ClockInfo->Parent = IMX_PLL3_MAIN_CLK;
   return EFI_SUCCESS;
 }
@@ -1512,8 +1518,8 @@ ImxpGetPll3SwClkInfo (
   IMX_CLOCK_INFO              ParentInfo;
   EFI_STATUS                  Status;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-  CcsrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CCSR);
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
+  CcsrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CCSR);
   if (CcsrReg.pll3_sw_clk_sel == IMX_CCM_PLL3_SW_CLK_SEL_PLL3_MAIN_CLK) {
     Parent = IMX_PLL3_MAIN_CLK;
   } else {
@@ -1544,8 +1550,8 @@ ImxpGetPll1MainClkInfo  (
   IMX_CCM_ANALOG_PLL_ARM_REG          PllArmReg;
   EFI_STATUS                          Status;
 
-  CcmAnalogRegisters = (IMX_CCM_ANALOG_REGISTERS *) IMX_CCM_ANALOG_BASE;
-  PllArmReg.AsUint32 = MmioRead32 ((UINTN) &CcmAnalogRegisters->PLL_ARM);
+  CcmAnalogRegisters = (IMX_CCM_ANALOG_REGISTERS *)IMX_CCM_ANALOG_BASE;
+  PllArmReg.AsUint32 = MmioRead32 ((UINTN)&CcmAnalogRegisters->PLL_ARM);
   Parent = ImxClkFromBypassClkSource (PllArmReg.BYPASS_CLK_SRC);
   Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
@@ -1575,8 +1581,8 @@ ImxpGetPll2MainClkInfo (
   IMX_CCM_ANALOG_PLL_SYS_REG          PllSysReg;
   EFI_STATUS                          Status;
 
-  CcmAnalogRegisters = (IMX_CCM_ANALOG_REGISTERS *) IMX_CCM_ANALOG_BASE;
-  PllSysReg.AsUint32 = MmioRead32 ((UINTN) &CcmAnalogRegisters->PLL_SYS);
+  CcmAnalogRegisters = (IMX_CCM_ANALOG_REGISTERS *)IMX_CCM_ANALOG_BASE;
+  PllSysReg.AsUint32 = MmioRead32 ((UINTN)&CcmAnalogRegisters->PLL_SYS);
   // Determine the reference clock source
   Parent = ImxClkFromBypassClkSource (PllSysReg.BYPASS_CLK_SRC);
 
@@ -1591,10 +1597,12 @@ ImxpGetPll2MainClkInfo (
     return EFI_SUCCESS;
   }
 
+  // Per the reference manual, DIV_SELECT controls the PLL Loop Divider.
+  // 0 - Fout=Fref*20
+  // 1 - Fout=Fref*22
   if (PllSysReg.DIV_SELECT == 0) {
     ClockInfo->Frequency = ParentInfo.Frequency * 20;
   } else {
-    ASSERT (PllSysReg.DIV_SELECT == 1);
     ClockInfo->Frequency = ParentInfo.Frequency * 22;
   }
 
@@ -1613,13 +1621,13 @@ ImxpGetArmClkRootInfo (
   IMX_CLOCK_INFO              Pll1Info;
   EFI_STATUS                  Status;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
   Status = ImxpGetClockInfo (Cache, IMX_PLL1_MAIN_CLK, &Pll1Info);
   if (EFI_ERROR (Status)) {
     return Status;
   }
 
-  CacrrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CACRR);
+  CacrrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CACRR);
   ClockInfo->Frequency = Pll1Info.Frequency / (1 + CacrrReg.arm_podf);
   ClockInfo->Parent = IMX_PLL1_MAIN_CLK;
   return EFI_SUCCESS;
@@ -1637,8 +1645,8 @@ ImxpGetPrePeriphClkInfo (
   IMX_CLOCK_INFO              ParentInfo;
   EFI_STATUS                  Status;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
-  CbcmrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CBCMR);
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
+  CbcmrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCMR);
 
   switch (CbcmrReg.pre_periph_clk_sel) {
   case IMX_CCM_PRE_PERIPH_CLK_SEL_PLL2:
@@ -1693,13 +1701,13 @@ ImxpGetAhbClkRootInfo (
   IMX_CLOCK_INFO              ParentInfo;
   EFI_STATUS                  Status;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
   Status = ImxpGetClockInfo (Cache, IMX_PERIPH_CLK, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
 
-  CbcdrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CBCDR);
+  CbcdrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCDR);
   ClockInfo->Frequency = ParentInfo.Frequency / (1 + CbcdrReg.ahb_podf);
   ClockInfo->Parent = IMX_PERIPH_CLK;
 
@@ -1717,13 +1725,13 @@ ImxpGetIpgClkRootInfo (
   IMX_CLOCK_INFO              ParentInfo;
   EFI_STATUS                  Status;
 
-  CcmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
+  CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
   Status = ImxpGetClockInfo (Cache, IMX_AHB_CLK_ROOT, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
 
-  CbcdrReg.AsUint32 = MmioRead32 ((UINTN) &CcmRegisters->CBCDR);
+  CbcdrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCDR);
   ClockInfo->Frequency = ParentInfo.Frequency / (1 + CbcdrReg.ipg_podf);
   ClockInfo->Parent = IMX_AHB_CLK_ROOT;
 

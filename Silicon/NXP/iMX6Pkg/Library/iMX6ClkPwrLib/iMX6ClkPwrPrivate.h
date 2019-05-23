@@ -18,7 +18,10 @@
 
 #include <Base.h>
 
-#define BITS_PER_UINTN  (8 * sizeof(UINTN))
+#define PLL2_FREQUENCY_MULITPLIER 18
+#define PLL3_FREQUENCY_MULTIPLIER 18
+
+#define BITS_PER_UINTN  (8 * sizeof (UINTN))
 
 typedef enum {
   IMX_PLL_PFD0,
