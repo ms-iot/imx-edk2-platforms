@@ -21,8 +21,6 @@
 #define PLL2_FREQUENCY_MULITPLIER 18
 #define PLL3_FREQUENCY_MULTIPLIER 18
 
-#define BITS_PER_UINTN  (8 * sizeof (UINTN))
-
 typedef enum {
   IMX_PLL_PFD0,
   IMX_PLL_PFD1,
@@ -40,19 +38,9 @@ typedef struct {
   UINT16 GateNumber;      // Gate number within register (0-15)
 } IMX_CCGR_INDEX;
 
-typedef struct {
-  UINTN Valid[(IMX_CLK_MAX + BITS_PER_UINTN ) / BITS_PER_UINTN ];
-  IMX_CLOCK_INFO Table[IMX_CLK_MAX];
-} IMX_CLOCK_TREE_CACHE;
-
 IMX_CCGR_INDEX
 ImxpCcgrIndexFromClkGate (
   IN  IMX_CLK_GATE    ClockGate
-  );
-
-VOID
-ImxpClkPwrCacheReset (
-  VOID
   );
 
 VOID
@@ -78,7 +66,6 @@ ImxSetClockRatePLL5 (
 
 EFI_STATUS
 ImxpGetClockInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   IN      IMX_CLK               ClockId,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
@@ -90,117 +77,98 @@ ImxpGetOsc24ClkInfo (
 
 EFI_STATUS
 ImxpGetPll1MainClkInfo  (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetPll2MainClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetPll2PfdClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   IN      IMX_PLL_PFD           PfdIndex,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetPll3MainClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetPll3PfdClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   IN      IMX_PLL_PFD           PfdIndex,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetPll3SwClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetAxiClkRootInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetPeriphClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetPrePeriphClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetPeriphClk2Info (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetArmClkRootInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetMmdcCh0ClkRootInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetAhbClkRootInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetIpgClkRootInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetGpu2dAxiClkRootInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetGpu3dAxiClkRootInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetGpu2dCoreClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetGpu3dCoreClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 
 EFI_STATUS
 ImxpGetGpu3dShaderClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   );
 

@@ -23,8 +23,6 @@
 #include <iMX6ClkPwr.h>
 #include "iMX6ClkPwrPrivate.h"
 
-STATIC IMX_CLOCK_TREE_CACHE mImxClockPwrCache;   // Cached clock value
-
 STATIC CONST IMX_CCGR_INDEX mImxCcgrIndexMap[] = {
   {0, 0},  // MX6_AIPS_TZ1_CLK_ENABLE
   {0, 1},  // MX6_AIPS_TZ2_CLK_ENABLE
@@ -207,7 +205,6 @@ ImxCcmConfigureGpuClockTree (
   CbcmrReg.gpu3d_core_podf = 0;
   CbcmrReg.gpu3d_shader_podf = 0;
 
-  ImxpClkPwrCacheReset ();
   MmioWrite32 ((UINTN)&CcmRegisters->CBCMR, CbcmrReg.AsUint32);
 }
 
@@ -346,7 +343,6 @@ ImxSetClockRatePLL5 (
 
 EFI_STATUS
 ImxpGetPll2PfdClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   IN      IMX_PLL_PFD           PfdIndex,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
@@ -374,7 +370,7 @@ ImxpGetPll2PfdClkInfo (
     return EFI_INVALID_PARAMETER;
   }
 
-  Status = ImxpGetClockInfo (Cache, IMX_PLL2_MAIN_CLK, &ParentInfo);
+  Status = ImxpGetClockInfo (IMX_PLL2_MAIN_CLK, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -391,7 +387,6 @@ ImxpGetPll2PfdClkInfo (
 
 EFI_STATUS
 ImxpGetAxiClkRootInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -411,7 +406,7 @@ ImxpGetAxiClkRootInfo (
     Parent = IMX_AXI_ALT;
   }
 
-  Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
+  Status = ImxpGetClockInfo (Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -423,7 +418,6 @@ ImxpGetAxiClkRootInfo (
 
 EFI_STATUS
 ImxpGetGpu2dCoreClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -453,7 +447,7 @@ ImxpGetGpu2dCoreClkInfo (
     return EFI_INVALID_PARAMETER;
   }
 
-  Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
+  Status = ImxpGetClockInfo (Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -473,7 +467,6 @@ ImxpGetGpu2dCoreClkInfo (
 
 EFI_STATUS
 ImxpGetGpu3dCoreClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -503,7 +496,7 @@ ImxpGetGpu3dCoreClkInfo (
     return EFI_UNSUPPORTED;
   }
 
-  Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
+  Status = ImxpGetClockInfo (Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -523,7 +516,6 @@ ImxpGetGpu3dCoreClkInfo (
 
 EFI_STATUS
 ImxpGetGpu3dShaderClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -553,7 +545,7 @@ ImxpGetGpu3dShaderClkInfo (
     return EFI_INVALID_PARAMETER;
   }
 
-  Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
+  Status = ImxpGetClockInfo (Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -577,7 +569,6 @@ ImxpGetGpu3dShaderClkInfo (
 
 EFI_STATUS
 ImxpGetPeriphClk2Info (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -606,7 +597,7 @@ ImxpGetPeriphClk2Info (
   }
 
   CbcdrReg.AsUint32 = MmioRead32 ((UINTN)&CcmRegisters->CBCDR);
-  Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
+  Status = ImxpGetClockInfo (Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -618,7 +609,6 @@ ImxpGetPeriphClk2Info (
 
 EFI_STATUS
 ImxpGetPeriphClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -640,7 +630,7 @@ ImxpGetPeriphClkInfo (
     Parent = IMX_PERIPH_CLK2;
   }
 
-  Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
+  Status = ImxpGetClockInfo (Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -652,7 +642,6 @@ ImxpGetPeriphClkInfo (
 
 EFI_STATUS
 ImxpGetMmdcCh0ClkRootInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -662,7 +651,7 @@ ImxpGetMmdcCh0ClkRootInfo (
   EFI_STATUS                  Status;
 
   CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
-  Status = ImxpGetClockInfo (Cache, IMX_PERIPH_CLK, &ParentInfo);
+  Status = ImxpGetClockInfo (IMX_PERIPH_CLK, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -675,7 +664,6 @@ ImxpGetMmdcCh0ClkRootInfo (
 
 EFI_STATUS
 ImxpGetGpu2dAxiClkRootInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -694,7 +682,7 @@ ImxpGetGpu2dAxiClkRootInfo (
     Parent = IMX_AHB_CLK_ROOT;
   }
 
-  Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
+  Status = ImxpGetClockInfo (Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -706,7 +694,6 @@ ImxpGetGpu2dAxiClkRootInfo (
 
 EFI_STATUS
 ImxpGetGpu3dAxiClkRootInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -725,7 +712,7 @@ ImxpGetGpu3dAxiClkRootInfo (
     Parent = IMX_AHB_CLK_ROOT;
   }
 
-  Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
+  Status = ImxpGetClockInfo (Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -816,22 +803,11 @@ ImxDisableGpuVpuPowerDomain (
 
 EFI_STATUS
 ImxpGetClockInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   IN      IMX_CLK               ClockId,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
-  UINTN       CacheValidBits;
   EFI_STATUS  Status;
-
-  ASSERT (ClockId < ARRAY_SIZE (Cache->Table));
-
-  // First try to satisfy from cache
-  CacheValidBits = Cache->Valid[ClockId / BITS_PER_UINTN ];
-  if (CacheValidBits & (1 << (ClockId % BITS_PER_UINTN ))) {
-    *ClockInfo = Cache->Table[ClockId];
-    return EFI_SUCCESS;
-  }
 
   switch (ClockId) {
   case IMX_OSC_CLK:
@@ -839,76 +815,76 @@ ImxpGetClockInfo (
     Status = EFI_SUCCESS;
     break;
   case IMX_PLL1_MAIN_CLK:
-    Status = ImxpGetPll1MainClkInfo (Cache, ClockInfo);
+    Status = ImxpGetPll1MainClkInfo (ClockInfo);
     break;
   case IMX_PLL2_MAIN_CLK:
-    Status = ImxpGetPll2MainClkInfo (Cache, ClockInfo);
+    Status = ImxpGetPll2MainClkInfo (ClockInfo);
     break;
   case IMX_PLL2_PFD0:
-    Status = ImxpGetPll2PfdClkInfo (Cache, IMX_PLL_PFD0, ClockInfo);
+    Status = ImxpGetPll2PfdClkInfo (IMX_PLL_PFD0, ClockInfo);
     break;
   case IMX_PLL2_PFD1:
-    Status = ImxpGetPll2PfdClkInfo (Cache, IMX_PLL_PFD1, ClockInfo);
+    Status = ImxpGetPll2PfdClkInfo (IMX_PLL_PFD1, ClockInfo);
     break;
   case IMX_PLL2_PFD2:
-    Status = ImxpGetPll2PfdClkInfo (Cache, IMX_PLL_PFD2, ClockInfo);
+    Status = ImxpGetPll2PfdClkInfo (IMX_PLL_PFD2, ClockInfo);
     break;
   case IMX_PLL3_MAIN_CLK:
-    Status = ImxpGetPll3MainClkInfo (Cache, ClockInfo);
+    Status = ImxpGetPll3MainClkInfo (ClockInfo);
     break;
   case IMX_PLL3_PFD0:
-    Status = ImxpGetPll3PfdClkInfo (Cache, IMX_PLL_PFD0, ClockInfo);
+    Status = ImxpGetPll3PfdClkInfo (IMX_PLL_PFD0, ClockInfo);
     break;
   case IMX_PLL3_PFD1:
-    Status = ImxpGetPll3PfdClkInfo (Cache, IMX_PLL_PFD1, ClockInfo);
+    Status = ImxpGetPll3PfdClkInfo (IMX_PLL_PFD1, ClockInfo);
     break;
   case IMX_PLL3_PFD2:
-    Status = ImxpGetPll3PfdClkInfo (Cache, IMX_PLL_PFD2, ClockInfo);
+    Status = ImxpGetPll3PfdClkInfo (IMX_PLL_PFD2, ClockInfo);
     break;
   case IMX_PLL3_PFD3:
-    Status = ImxpGetPll3PfdClkInfo (Cache, IMX_PLL_PFD3, ClockInfo);
+    Status = ImxpGetPll3PfdClkInfo (IMX_PLL_PFD3, ClockInfo);
     break;
   case IMX_PLL3_SW_CLK:
-    Status = ImxpGetPll3SwClkInfo (Cache, ClockInfo);
+    Status = ImxpGetPll3SwClkInfo (ClockInfo);
     break;
   case IMX_AXI_CLK_ROOT:
-    Status = ImxpGetAxiClkRootInfo (Cache, ClockInfo);
+    Status = ImxpGetAxiClkRootInfo (ClockInfo);
     break;
   case IMX_PERIPH_CLK2:
-    Status = ImxpGetPeriphClk2Info (Cache, ClockInfo);
+    Status = ImxpGetPeriphClk2Info (ClockInfo);
     break;
   case IMX_PERIPH_CLK:
-    Status = ImxpGetPeriphClkInfo (Cache, ClockInfo);
+    Status = ImxpGetPeriphClkInfo (ClockInfo);
     break;
   case IMX_PRE_PERIPH_CLK:
-    Status = ImxpGetPrePeriphClkInfo (Cache, ClockInfo);
+    Status = ImxpGetPrePeriphClkInfo (ClockInfo);
     break;
   case IMX_ARM_CLK_ROOT:
-    Status = ImxpGetArmClkRootInfo (Cache, ClockInfo);
+    Status = ImxpGetArmClkRootInfo (ClockInfo);
     break;
   case IMX_MMDC_CH0_CLK_ROOT:
-    Status = ImxpGetMmdcCh0ClkRootInfo (Cache, ClockInfo);
+    Status = ImxpGetMmdcCh0ClkRootInfo (ClockInfo);
     break;
   case IMX_AHB_CLK_ROOT:
-    Status = ImxpGetAhbClkRootInfo (Cache, ClockInfo);
+    Status = ImxpGetAhbClkRootInfo (ClockInfo);
     break;
   case IMX_IPG_CLK_ROOT:
-    Status = ImxpGetIpgClkRootInfo (Cache, ClockInfo);
+    Status = ImxpGetIpgClkRootInfo (ClockInfo);
     break;
   case IMX_GPU2D_AXI_CLK_ROOT:
-    Status = ImxpGetGpu2dAxiClkRootInfo (Cache, ClockInfo);
+    Status = ImxpGetGpu2dAxiClkRootInfo (ClockInfo);
     break;
   case IMX_GPU3D_AXI_CLK_ROOT:
-    Status = ImxpGetGpu3dAxiClkRootInfo (Cache, ClockInfo);
+    Status = ImxpGetGpu3dAxiClkRootInfo (ClockInfo);
     break;
   case IMX_GPU2D_CORE_CLK_ROOT:
-    Status = ImxpGetGpu2dCoreClkInfo (Cache, ClockInfo);
+    Status = ImxpGetGpu2dCoreClkInfo (ClockInfo);
     break;
   case IMX_GPU3D_CORE_CLK_ROOT:
-    Status = ImxpGetGpu3dCoreClkInfo (Cache, ClockInfo);
+    Status = ImxpGetGpu3dCoreClkInfo (ClockInfo);
     break;
   case IMX_GPU3D_SHADER_CLK_ROOT:
-    Status = ImxpGetGpu3dShaderClkInfo (Cache, ClockInfo);
+    Status = ImxpGetGpu3dShaderClkInfo (ClockInfo);
     break;
   default:
     return EFI_UNSUPPORTED;
@@ -918,9 +894,6 @@ ImxpGetClockInfo (
     return Status;
   }
 
-  // Update the cache
-  Cache->Table[ClockId] = *ClockInfo;
-  Cache->Valid[ClockId / BITS_PER_UINTN ] |= (1 << (ClockId % BITS_PER_UINTN ));
   return EFI_SUCCESS;
 }
 
@@ -1251,21 +1224,6 @@ ImxClkPwrValidateClocks (
 }
 
 /**
-  Reset/invalidate the clock tree cache.
-
-  The clock tree cache must be invalidated whenever the clock tree is modified,
-  e.g. when changing PLL configuration, clock mux, or divider.
-
-**/
-VOID
-ImxpClkPwrCacheReset (
-  VOID
-  )
-{
-  SetMem (&mImxClockPwrCache.Valid, sizeof (mImxClockPwrCache.Valid), 0);
-}
-
-/**
   Configure clock gating for the specified clock signal.
 
   @param[in]  ClockGate   Specific clock signal to configure.
@@ -1426,7 +1384,6 @@ ImxClkPwrGetClockGate (
 
 EFI_STATUS
 ImxpGetPll3MainClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -1440,7 +1397,7 @@ ImxpGetPll3MainClkInfo (
   PllUsb1Reg.AsUint32 = MmioRead32 ((UINTN)&CcmAnalogRegisters->PLL_USB1);
   Parent = ImxClkFromBypassClkSource (PllUsb1Reg.BYPASS_CLK_SRC);
 
-  Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
+  Status = ImxpGetClockInfo (Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -1460,7 +1417,6 @@ ImxpGetPll3MainClkInfo (
 
 EFI_STATUS
 ImxpGetPll3PfdClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   IN      IMX_PLL_PFD           PfdIndex,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
@@ -1491,7 +1447,7 @@ ImxpGetPll3PfdClkInfo (
     return EFI_INVALID_PARAMETER;
   }
 
-  Status = ImxpGetClockInfo (Cache, IMX_PLL3_MAIN_CLK, &ParentInfo);
+  Status = ImxpGetClockInfo (IMX_PLL3_MAIN_CLK, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -1508,7 +1464,6 @@ ImxpGetPll3PfdClkInfo (
 
 EFI_STATUS
 ImxpGetPll3SwClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -1528,7 +1483,7 @@ ImxpGetPll3SwClkInfo (
     return EFI_UNSUPPORTED;
   }
 
-  Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
+  Status = ImxpGetClockInfo (Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -1540,7 +1495,6 @@ ImxpGetPll3SwClkInfo (
 
 EFI_STATUS
 ImxpGetPll1MainClkInfo  (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -1553,7 +1507,7 @@ ImxpGetPll1MainClkInfo  (
   CcmAnalogRegisters = (IMX_CCM_ANALOG_REGISTERS *)IMX_CCM_ANALOG_BASE;
   PllArmReg.AsUint32 = MmioRead32 ((UINTN)&CcmAnalogRegisters->PLL_ARM);
   Parent = ImxClkFromBypassClkSource (PllArmReg.BYPASS_CLK_SRC);
-  Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
+  Status = ImxpGetClockInfo (Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -1571,7 +1525,6 @@ ImxpGetPll1MainClkInfo  (
 
 EFI_STATUS
 ImxpGetPll2MainClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -1586,7 +1539,7 @@ ImxpGetPll2MainClkInfo (
   // Determine the reference clock source
   Parent = ImxClkFromBypassClkSource (PllSysReg.BYPASS_CLK_SRC);
 
-  Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
+  Status = ImxpGetClockInfo (Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -1612,7 +1565,6 @@ ImxpGetPll2MainClkInfo (
 
 EFI_STATUS
 ImxpGetArmClkRootInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -1622,7 +1574,7 @@ ImxpGetArmClkRootInfo (
   EFI_STATUS                  Status;
 
   CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
-  Status = ImxpGetClockInfo (Cache, IMX_PLL1_MAIN_CLK, &Pll1Info);
+  Status = ImxpGetClockInfo (IMX_PLL1_MAIN_CLK, &Pll1Info);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -1635,7 +1587,6 @@ ImxpGetArmClkRootInfo (
 
 EFI_STATUS
 ImxpGetPrePeriphClkInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -1666,7 +1617,7 @@ ImxpGetPrePeriphClkInfo (
     return EFI_INVALID_PARAMETER;
   }
 
-  Status = ImxpGetClockInfo (Cache, Parent, &ParentInfo);
+  Status = ImxpGetClockInfo (Parent, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -1692,7 +1643,6 @@ ImxpGetOsc24ClkInfo (
 
 EFI_STATUS
 ImxpGetAhbClkRootInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -1702,7 +1652,7 @@ ImxpGetAhbClkRootInfo (
   EFI_STATUS                  Status;
 
   CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
-  Status = ImxpGetClockInfo (Cache, IMX_PERIPH_CLK, &ParentInfo);
+  Status = ImxpGetClockInfo (IMX_PERIPH_CLK, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -1716,7 +1666,6 @@ ImxpGetAhbClkRootInfo (
 
 EFI_STATUS
 ImxpGetIpgClkRootInfo (
-  IN OUT  IMX_CLOCK_TREE_CACHE  *Cache,
   OUT     IMX_CLOCK_INFO        *ClockInfo
   )
 {
@@ -1726,7 +1675,7 @@ ImxpGetIpgClkRootInfo (
   EFI_STATUS                  Status;
 
   CcmRegisters = (IMX_CCM_REGISTERS *)IMX_CCM_BASE;
-  Status = ImxpGetClockInfo (Cache, IMX_AHB_CLK_ROOT, &ParentInfo);
+  Status = ImxpGetClockInfo (IMX_AHB_CLK_ROOT, &ParentInfo);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -1744,5 +1693,5 @@ ImxClkPwrGetClockInfo (
   OUT IMX_CLOCK_INFO  *ClockInfo
   )
 {
-  return ImxpGetClockInfo (&mImxClockPwrCache, ClockId, ClockInfo);
+  return ImxpGetClockInfo (ClockId, ClockInfo);
 }
