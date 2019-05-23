@@ -146,24 +146,6 @@ GetPreferredTiming(
     OUT IMX_DISPLAY_TIMING* PreferredTiming
     )
 {
-//    EFI_STATUS status;
-//    BOOLEAN validEdid;
-//    IMX_DETAILED_TIMING_DESCRIPTOR* edidPreferredTiming;
-
-//    validEdid = ReadEDID(sgInst.EdidData);
-//    if (!validEdid) {
-//        goto DefaultTiming;
-//    }
-
-//    edidPreferredTiming =
-//        (IMX_DETAILED_TIMING_DESCRIPTOR*)&sgInst.EdidData[IMX_EDID_DTD_1_OFFSET];
-
-//    status = ImxConvertDTDToDisplayTiming(edidPreferredTiming, PreferredTiming);
-//    if (status != EFI_SUCCESS) {
-//        DebugPrint(DEBUG_ERROR, "Conversion to display timing failed\n");
-//        goto DefaultTiming;
-//    }
-
     *PreferredTiming = Hannstar_XGA;
 	
     //

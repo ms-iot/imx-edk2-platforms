@@ -1074,6 +1074,28 @@ VOID UartInit()
 }
 
 /**
+  Reset LCD controller.
+**/
+VOID LcdReset ()
+{
+    UINT32 value32;
+    DEBUG((DEBUG_INFO,"ResetLCDIF2 controller\n"));
+
+    // reset LCD controller (dancing bits reset procedure)
+    MmioWrite32(IMX6SX_PHYSADDR_LCDIF2_RL_CLR, IMX6SX_LCDIF_RL_SFTRST);
+    do
+    {
+        value32 = MmioRead32(IMX6SX_PHYSADDR_LCDIF2_RL);
+    } while (value32 & IMX6SX_LCDIF_RL_SFTRST);
+    MmioWrite32(IMX6SX_PHYSADDR_LCDIF2_RL_CLR, IMX6SX_LCDIF_RL_CLKGATE);
+    MmioWrite32(IMX6SX_PHYSADDR_LCDIF2_RL_SET, IMX6SX_LCDIF_RL_SFTRST);
+    do
+    {
+        value32 = MmioRead32(IMX6SX_PHYSADDR_LCDIF2_RL);
+    } while (!(value32 & IMX6SX_LCDIF_RL_CLKGATE));
+}
+
+/**
   Initialize controllers that must setup at the early stage.
 **/
 RETURN_STATUS ArmPlatformInitialize(IN UINTN MpId)
@@ -1092,6 +1114,7 @@ RETURN_STATUS ArmPlatformInitialize(IN UINTN MpId)
     EnetInit();
     PcieInit();
     SetupAudio();
+    LcdReset();
     return RETURN_SUCCESS;
 }
 

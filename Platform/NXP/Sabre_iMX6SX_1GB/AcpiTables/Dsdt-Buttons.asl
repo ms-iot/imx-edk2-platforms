@@ -19,17 +19,13 @@ Device(BTNS)
 {
   Name (_HID, "ACPI0011")
   Name (_CRS, ResourceTemplate () {
-    // PWR_BTN_SNS - EIM_D29 - GPIO3_IO29 (ACTIVE_LOW)
-    // Index 0: Power Button
-    GpioInt (Edge, ActiveBoth, Exclusive, PullUp, 0, "\\_SB.GPIO", ,) { 93 }
-
-    // KEY_VOL_UP - KEY_COL7 - GPIO_4 - GPIO1_IO4 (ACTIVE_LOW)
+    // KEY_VOL_UP - SW4 - signal KEY_FUNC1 routed to pin CSI_DATA_04 - GPIO_1 - GPIO1_IO18 (ACTIVE_LOW)
     // Index 1: Volume Up Button
-    GpioInt (Edge, ActiveBoth, Exclusive, PullUp, 0, "\\_SB.GPIO", ,) { 4 }
+    GpioInt (Edge, ActiveBoth, Shared, PullDown, 0, "\\_SB.GPIO", ,) { 18 }
 
-    // KEY_VOL_DN - KEY_ROW7 - GPIO_5 - GPIO1_IO5 (ACTIVE_LOW)
+    // KEY_VOL_DN - SW5 - signal KEY_FUNC1 routed to pin CSI_DATA_05 - GPIO_1 - GPIO1_IO19 (ACTIVE_LOW)
     // Index 2: Volume Down Button
-    GpioInt (Edge, ActiveBoth, Exclusive, Pullup, 0, "\\_SB.GPIO", ,) { 5 }
+    GpioInt (Edge, ActiveBoth, Shared, PullDown, 0, "\\_SB.GPIO", ,) { 19 }
   })
   Name (_DSD, Package (2) {
     //UUID for HID Button Descriptors:

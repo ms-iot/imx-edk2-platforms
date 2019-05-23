@@ -44,7 +44,16 @@ Device(RHPX)
                             // Resource usage
                             // DescriptorName: creates name for offset of resource descriptor
     )                       // Vendor Data
+
+    // GPIO1_IO18 PAD_CSI_DATA04
+    GpioIO(Shared, PullDown, 0, 0, IoRestrictionNone, "\\_SB.GPIO", 0, ResourceConsumer, , ) { 18 }
+    GpioInt(Edge, ActiveBoth, Shared, PullDown, 0, "\\_SB.GPIO",) { 18 }
+
+    // GPIO1_IO19 PAD_CSI_DATA05
+    GpioIO(Shared, PullDown, 0, 0, IoRestrictionNone, "\\_SB.GPIO", 0, ResourceConsumer, , ) { 19 }
+    GpioInt(Edge, ActiveBoth, Shared, PullDown, 0, "\\_SB.GPIO",) { 19 }
   })
+
   Name(_DSD, Package() {
     ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
     Package() {
@@ -58,6 +67,11 @@ Device(RHPX)
       Package(2) { "SPI5-MinClockInHz", 115 },                              // 115 Hz
       Package(2) { "SPI5-MaxClockInHz", 8000000 },                          // 8 MHz
       Package(2) { "SPI5-SupportedDataBitLengths", Package() { 8,16,32 }},  // Data bit length
+      // GPIO Pin Count and supported drive modes
+      Package (2) { "GPIO-PinCount", 204 },
+      Package (2) { "GPIO-UseDescriptorPinNumbers", 1 },
+      // Supported Drive Modes: InputHighImpedance, InputPullUp, InputPullDown, OutputCmos
+      Package (2) { "GPIO-SupportedDriveModes", 0xf },
     }
   })
 }
