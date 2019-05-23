@@ -21,7 +21,7 @@
 
 #include <iMX6.h>
 #include <iMX6ClkPwr.h>
-#include "iMX6ClkPwr_private.h"
+#include "iMX6ClkPwrPrivate.h"
 
 STATIC IMX_CLOCK_TREE_CACHE mImxClockPwrCache;   // Cached clock value
 
