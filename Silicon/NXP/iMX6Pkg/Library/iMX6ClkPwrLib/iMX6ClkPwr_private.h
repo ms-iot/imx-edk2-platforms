@@ -16,11 +16,9 @@
 #ifndef _IMX6_CLK_PWR_PRIVATE_H_
 #define _IMX6_CLK_PWR_PRIVATE_H_
 
-#ifndef ARRAYSIZE
-#define ARRAYSIZE(a) (sizeof(a) / sizeof(a[0]))
-#endif // ARRAYSIZE
+#include <Base.h>
 
-#define _BITS_PER_UINTN (8 * sizeof(UINTN))
+#define BITS_PER_UINTN  (8 * sizeof(UINTN))
 
 typedef enum {
   IMX_PLL_PFD0,
@@ -40,7 +38,7 @@ typedef struct {
 } IMX_CCGR_INDEX;
 
 typedef struct {
-  UINTN Valid[(IMX_CLK_MAX + _BITS_PER_UINTN) / _BITS_PER_UINTN];
+  UINTN Valid[(IMX_CLK_MAX + BITS_PER_UINTN ) / BITS_PER_UINTN ];
   IMX_CLOCK_INFO Table[IMX_CLK_MAX];
 } IMX_CLOCK_TREE_CACHE;
 
@@ -52,11 +50,6 @@ ImxpCcgrIndexFromClkGate (
 VOID
 ImxpClkPwrCacheReset (
   VOID
-  );
-
-IMX_CLK
-ImxpClkFromBypassClkSource (
-  IN  IMX_PLL_BYPASS_CLK_SRC    BypassClockSource
   );
 
 VOID

@@ -99,9 +99,4 @@ EFI_STATUS
 ImxClkPwrValidateClocks (
   );
 
-CONST CHAR16
-*StringFromImxClk (
-  IN IMX_CLK Value
-  );
-
 #endif // _IMX6_CLK_PWR_H_
