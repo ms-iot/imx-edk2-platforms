@@ -156,7 +156,7 @@ VOID LcdifBoardInitialize (
 RETURN_STATUS LcdifBoardQueryEdidTiming (
     OUT IMX_DISPLAY_TIMING* PreferredTiming
     );
-#endif
+#endif // HDMI_I2C
 //
 // Query for preferred timing
 //
@@ -178,9 +178,9 @@ GetPreferredTiming (
         *PreferredTiming = DefaultTiming;
 
     }
-#else
+#else // no define HDMI_I2C
         *PreferredTiming = DefaultTiming;
-#endif
+#endif // HDMI_I2C
 
     PreferredTiming->PixelRepetition = 1;
     PreferredTiming->PixelFormat = PIXEL_FORMAT_BGRA32;
@@ -215,7 +215,7 @@ LcdifGopInitialize (
     //
 #if  HDMI_I2C
     LcdifBoardInitialize();
-#endif
+#endif // HDMI_I2C
     DEBUG ((DEBUG_INIT, "LcdifInitialize returned\n"));
     //
     // Retrieve the preferred timing

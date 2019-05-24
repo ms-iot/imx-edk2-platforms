@@ -12,9 +12,6 @@
 
 [Sources.common]
   LcdifGop.c
-#  define HDMI_I2C
-#  LcdifBoard.c
-#
   Lcdif.c
 
 [Packages]

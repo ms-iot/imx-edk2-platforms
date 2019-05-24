@@ -239,21 +239,7 @@ VOID LcdifBoardConfigureDisplay (
     DEBUG((DEBUG_INIT, "SIL164_REG_CONTROL2: 0x%04x\n", i2cData));
     DEBUG_CODE_END();
 }
-/*
-typedef enum {
-  IMX_PAD_CFG_GPIO_0_CCM_CLKO1 = _IMX_MAKE_PADCFG(
-                              IMX_SRE_FAST,
-                              IMX_DSE_50_OHM,
-                              IMX_SPEED_MAXIMUM,
-                              IMX_ODE_DISABLE,
-                              IMX_PKE_DISABLE,
-                              IMX_PUE_PULL,
-                              IMX_PUS_100K_OHM_PU,
-                              IMX_HYS_DISABLED,
-                              IMX_SION_DISABLED,
-                              IMX_IOMUXC_GPIO_0_ALT0_CCM_CLKO1)
-} IMX_CCM_PADCFG;
-*/
+
 typedef enum {
 
     IMX_PAD_UART5_TX_DATA_I2C2_SCL = _IMX_MAKE_PADCFG(

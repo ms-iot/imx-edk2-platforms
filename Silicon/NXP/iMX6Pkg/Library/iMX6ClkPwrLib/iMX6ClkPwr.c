@@ -1414,7 +1414,6 @@ VOID ImxClkPwrLcdClockEnable ()
     volatile IMX_CCM_REGISTERS *ccmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
 
     value32.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[2]);
-//    value32 |= (IMX6SX_RUN_ONLY << IMX6SX_SHL_CCM_CCGR2_LCD);
     value32.lcd_clk_enable = IMX6ULL_RUN_ONLY;
     MmioWrite32((UINTN) &ccmRegisters->CCGR[2], value32.AsUint32);
 }
@@ -1437,7 +1436,6 @@ VOID IMXSetVideoPllClockRate(
     // gate the LCD pixel and AXI clocks CCGR3.CG5
     ccgr3.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[3]);
     ccgr3.lcdif1_pix_clk_enable = IMX6ULL_CCM_CLOCK_OFF;
-    //ccgr3.disp_axi_clk_enable = IMX6SX_CCM_CLOCK_OFF;
     MmioWrite32((UINTN) &ccmRegisters->CCGR[3], ccgr3.AsUint32);
 
     //
@@ -1456,14 +1454,6 @@ VOID IMXSetVideoPllClockRate(
     videoControl.POWERDOWN = 0x01;
     videoControl.DIV_SELECT = 0x7f;
     MmioWrite32((UINTN) &analogRegisters->PLL_VIDEO_CLR, videoControl.AsUint32);
-
- /*
-   MmioWrite32((UINTN) &analogRegisters->PLL_VIDEO_CLR,
-        IMX6SX_ANALOG_PLL_VIDEO_POST_DIV_SELECT_MASK |
-        IMX6SX_ANALOG_PLL_VIDEO_BYPASS |
-        IMX6SX_ANALOG_PLL_VIDEO_POWERDOWN |
-        IMX6SX_ANALOG_PLL_VIDEO_DIV_SELECT_MASK);
-*/
 
     //
     // PLL output frequency = (Reference Freq) * (DIV_SELECT + NUM / DENOM)
@@ -1601,10 +1591,10 @@ ImxSetLcdIfClockRate (
         postDividerLcdif1[postDivSelectCount]
         ));
 
-//    IMXSetVideoPllClockRate(
-//        targetFreq,
-//        preDividerLcdif1[preDivSelectCount],
-//        postDividerLcdif1[postDivSelectCount]);
+    IMXSetVideoPllClockRate(
+        targetFreq,
+        preDividerLcdif1[preDivSelectCount],
+        postDividerLcdif1[postDivSelectCount]);
 
     return EFI_SUCCESS;
 }

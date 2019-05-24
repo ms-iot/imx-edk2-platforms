@@ -1,6 +1,6 @@
 /** @file
 *
-*  Copyright (c) Microsoft Corporation. All rights reserved.
+*  Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 *
 *  This program and the accompanying materials
 *  are licensed and made available under the terms and conditions of the BSD License
@@ -30,7 +30,7 @@ VOID LcdifBoardConfigureDisplay (
     IMX_DISPLAY_TIMING* Timing,
     VOID* FrameBuffer
     );
-#endif
+#endif // HDMI_I2C
 
 EFI_STATUS
 LcdifInitDisplay (
@@ -161,7 +161,7 @@ LcdifInitDisplay (
             { MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_CTRL2) };
 
         lcdifCtrl2Reg.BURST_LEN_8 = 0; // Burst of 16
-        lcdifCtrl2Reg.OUTSTANDING_REQS = 0x02; // REQ_4 �
+        lcdifCtrl2Reg.OUTSTANDING_REQS = 0x02; // REQ_4
 
         MmioWrite32(
             LcdifBase + IMX_LCDIF_OFFSET_CTRL2, lcdifCtrl2Reg.AsUint32);
@@ -266,7 +266,8 @@ LcdifConfigureDisplay (
     LcdifBoardConfigureDisplay(
         Timing,
         FrameBuffer);
-#endif
+#endif // HDMI_I2C
 Exit:
     return status;
 }
+

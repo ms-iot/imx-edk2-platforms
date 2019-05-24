@@ -211,5 +211,4 @@ ImxSetLcdIfClockRate (
   IN  UINT32  ClockRate
   );
 
-
 #endif  /* _IMX6_CLK_PWR_SDL_H_ */
