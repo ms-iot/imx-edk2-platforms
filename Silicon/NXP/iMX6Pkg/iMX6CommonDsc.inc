@@ -177,6 +177,8 @@
   iMX6AudioLib|Silicon/NXP/iMX6Pkg/Library/iMX6AudioLib/iMX6AudioLib.inf
 !if $(IMX_FAMILY) == IMX6SX
   iMX6ClkPwrLib|Silicon/NXP/iMX6Pkg/Library/iMX6SxClkPwrLib/iMX6SxClkPwrLib.inf
+!elseif $(IMX_FAMILY) == IMX6ULL
+  iMX6ClkPwrLib|Silicon/NXP/iMX6Pkg/Library/iMX6ULLClkPwrLib/iMX6ULLClkPwrLib.inf
 !else
   iMX6ClkPwrLib|Silicon/NXP/iMX6Pkg/Library/iMX6ClkPwrLib/iMX6ClkPwrLib.inf
 !endif
