@@ -3,6 +3,7 @@
 *  Header defining the iMX6 SoloX constants (Base addresses, sizes, flags)
 *
 *  Copyright (c) 2018 Microsoft Corporation. All rights reserved.
+*  Copyright 2019 NXP
 *
 *  This program and the accompanying materials
 *  are licensed and made available under the terms and conditions of the BSD License
@@ -342,6 +343,35 @@ typedef union {
 typedef union {
   UINT32 AsUint32;
   struct {
+    UINT32 reserved1 : 1;                // 0
+    UINT32 DISP_MUX_DCIC1_CTRL : 1;      // 1 DCIC1 Input Select.
+    UINT32 DISP_MUX_DCIC2_CTRL : 1;      // 2 DCIC2 Input Select.
+    UINT32 DISP_MUX_LDB_CTRL : 1;        // 3 LDB Input Select.
+    UINT32 CSI1_MUX_CTRL : 2;            // 4-5 CSI1 input mux control
+    UINT32 WDOG1_MASK : 1;               // 6 WDOG1 Timeout Mask
+    UINT32 WDOG2_MASK : 1;               // 7 WDOG2 Timeout Mask
+    UINT32 LCDIF_HANDSHAKE_CSI1 : 2;     // 8-9 CSI1 Input Handshake Select
+    UINT32 LCDIF_HANDSHAKE_CSI2 : 2;     // 10-11 CSI2 Input Handshake Select
+    UINT32 LCDIF_HANDSHAKE_LCDIF1 : 2;   // 12-13 LCDIF1 Input Handshake Select
+    UINT32 LCDIF_HANDSHAKE_LCDIF2 : 2;   // 14-15 LCDIF2 Input Handshake Select
+    UINT32 LCDIF_HANDSHAKE_PXP : 2;      // 16-17 PXP Input Handshake Select
+    UINT32 PCIE_PERST : 1;               // 18
+    UINT32 PCIE_BTNRST : 1;              // 19
+    UINT32 WDOG3_MASK : 1;               // 20 WDOG3 Timeout Mask
+    UINT32 LCDIF1_CSI_VSYNC_SEL : 1;     // 21 LCDIF1 VSYNC Select
+    UINT32 LCDIF2_CSI_VSYNC_SEL : 1;     // 22 LCDIF2 VSYNC Select
+    UINT32 reserved2 : 3;                // 23-25
+    UINT32 VADC_TO_CSI_CAPTURE_EN : 1;   // 26 VADC to CSI Capture Circuit Enable
+    UINT32 CSI2_MUX_CTRL : 2;            // 27-28 CSI2 input mux control
+    UINT32 VREF_1M_CLK_GPT : 1;          // 29 GPT 1MHz clock source select
+    UINT32 REF_1M_CLK_EPIT1 : 1;         // 30 EPIT1 1MHz clock source select
+    UINT32 REF_1M_CLK_EPIT2 : 1;         // 30 EPIT2 1MHz clock source select
+  };
+} IMX_IOMUXC_GPR5_REG;
+
+typedef union {
+  UINT32 AsUint32;
+  struct {
     UINT32 PCS_TX_DEEMPH_GEN1 : 6;        // 0-5 PCIe_PHY - This static value sets
                                           //   the launch amplitude of the transmitter
                                           //   when pipe0_tx_swing is set to
@@ -371,8 +401,8 @@ typedef union {
 typedef union {
   UINT32 AsUint32;
   struct {
-    UINT32 reserved0 : 2;               // 0-1
-    UINT32 uSDHC_DBG_MUX : 2;           // 2-3 uSDHC debug bus IO mux control
+    UINT32 PCIE_RX0_EQ : 3;             // 0-2 PCIE_RX0_EQ - control pcie phy's rx0_eq bits
+    UINT32 reserved0 : 1;               // 3
     UINT32 LOS_LEVEL : 5;               // 4-8 PCIe_PHY - Loss-of-Signal Detector
                                         //   Sensitivity Level Control Function:
                                         //   Sets the sensitivity level for the
@@ -402,11 +432,18 @@ typedef union {
                                         //   what part of diag_status_bus will be
                                         //   reflected on the 32 bits of the iomux
     UINT32 PCIe_CTL_7 : 3;              // 21-23 PCIe control of diagnostic bus select
-    UINT32 ARMP_APB_CLK_EN : 1;         // 24 ARM platform APB clock enable
-    UINT32 ARMP_ATB_CLK_EN : 1;         // 25 ARM platform ATB clock enable
-    UINT32 ARMP_AHB_CLK_EN : 1;         // 26 ARM platform AHB clock enable
-    UINT32 ARMP_IPG_CLK_EN : 1;         // 27 ARM platform IPG clock enable
-    UINT32 reserved1 : 4;               // 28-31
+    UINT32 SYS_INT : 1;                 // 24 SYS_INT - When SYS_INT goes from low to high,
+                                        // the core generates an Assert_INTx Message.
+    UINT32 APP_REQ_ENTR_L1 : 1;         // 25 PCIe_CTL - Application Request to Enter L1.
+    UINT32 APP_REQ_EXIT_L1 : 1;         // 26 PCIe_CTL - PCIe_CTL - Application Request to Exit L1.
+    UINT32 GPR_PCIE_CTRL_CFG_L1_AUX_CLK_SWITCH_CORE_CLK_GATE_EN : 1; // 27
+    UINT32 APP_READY_ENTR_L23 : 1;      // 28 PCIe_CTL - Application Ready to Enter L23.
+    UINT32 APP_CLK_REQ_N : 1;           // 29 PCIe_CTL (CLK LOGIC CONTROLLER GLUE) - Indicates
+                                        // that application logic is ready to have
+                                        // reference clock removed.
+    UINT32 TEST_POWERDOWN : 1;          // 30 PCIe_PHY - All Circuits Power-Down Control Function:
+                                        // Powers down all circuitry in the PHY for IDDQ testing.
+    UINT32 GPR_PCIE_CTRL_CFG_L1_MAC_POWERDOWN_OVERRIDE_TO_P2_EN : 1; // 31 GPR_PCIE_CTRL_CFG_L1_MAC_POWERDOWN_OVERRIDE_TO_P2_EN
   };
 } IMX_IOMUXC_GPR12_REG;
 
@@ -1724,6 +1761,85 @@ typedef struct {
   IMX_USBANA_USB_REGISTERS USBANA[IMX_USBPHY_COUNT];
   UINT32 USB_ANALOG_DIGPROG;                // 0xC0 Chip Silicon Version
 } IMX_USBANA_REGISTERS;
+
+// Audmux memory map structures
+#define AUDMUX_BASE                   0x021d8000
+#define AUDMUX_ASYNCHRONOUS_MODE      0
+#define AUDMUX_SYNCHRONOUS_MODE       1
+#define AUDMUX_INPUT                  0
+#define AUDMUX_OUTPUT                 1
+#define AUDMUX_NORMAL_MODE            0
+#define AUDMUX_INTERNAL_NETWORK_MODE  1
+#define AUDMUX_TRSE_NOSWITCH          0
+#define AUDMUX_TRSE_SWITCH            1
+
+// Port numbers are 0-based
+typedef enum
+{
+  AUDMUX_PORT1 = 0,
+  AUDMUX_PORT2,
+  AUDMUX_PORT3,
+  AUDMUX_PORT4,
+  AUDMUX_PORT5,
+  AUDMUX_PORT6,
+  AUDMUX_PORT7,
+  AUDMUX_PORT_MAX
+} AUDMUX_PORT_NUMBERS;
+
+typedef union {
+  UINT32 AsUint32;
+  struct {
+    UINT32 reserved : 11;   // 0-10
+    UINT32 SYN : 1;         // 11
+    UINT32 RCSEL : 4;       // 12-15
+    UINT32 RCLKDIR : 1;     // 16
+    UINT32 RFSEL : 4;       // 17-20
+    UINT32 RFS_DIR : 1;     // 21
+    UINT32 TCSEL : 4;       // 22-25
+    UINT32 TCLKDIR : 1;     // 26
+    UINT32 TFSEL : 4;       // 27-30
+    UINT32 TFS_DIR : 1;     // 31
+  };
+} AUDMUX_PTCR_REG;
+
+typedef union {
+  UINT32 AsUint32;
+  struct {
+    UINT32 INMMASK : 8;     // 0-7
+    UINT32 MODE : 1;        // 8
+    UINT32 reserved1 : 3;   // 9-11
+    UINT32 TXRXEN : 1;      // 12
+    UINT32 RXDSEL : 3;      // 13-15
+    UINT32 reserved2 : 16;  // 16-31
+  };
+} AUDMUX_PDCR_REG;
+
+typedef struct {
+  UINT32 Audmux_Ptcr1;
+  UINT32 Audmux_Pdcr1;
+  UINT32 Audmux_Ptcr2;
+  UINT32 Audmux_Pdcr2;
+  UINT32 Audmux_Ptcr3;
+  UINT32 Audmux_Pdcr3;
+  UINT32 Audmux_Ptcr4;
+  UINT32 Audmux_Pdcr4;
+  UINT32 Audmux_Ptcr5;
+  UINT32 Audmux_Pdcr5;
+  UINT32 Audmux_Ptcr6;
+  UINT32 Audmux_Pdcr6;
+  UINT32 Audmux_Ptcr7;
+  UINT32 Audmux_Pdcr7;
+} AUDMUX_REGISTERS;
+
+typedef struct {
+  UINT32 Ptcr;
+  UINT32 Pdcr;
+} AUDMUX_REG_ITEM;
+
+typedef struct {
+  AUDMUX_REG_ITEM mux[AUDMUX_PORT_MAX];
+} AUDMUX_REGISTER_ARRAY;
+
 
 #pragma pack(pop)
 

@@ -1,0 +1,60 @@
+#/** @file
+#*
+#*  Copyright (c) 2019 Microsoft Corporation. All rights reserved.
+#*  Copyright (c) Intel Corporation
+#*  Copyright (c) Apple
+#*  Copyright (c) ARM Ltd.
+#*  Copyright (c) Freescale
+#*  Copyright 2019 NXP
+#*
+#*  This program and the accompanying materials
+#*  are licensed and made available under the terms and conditions of the BSD License
+#*  which accompanies this distribution.  The full text of the license may be found at
+#*  http://opensource.org/licenses/bsd-license.php
+#*
+#*  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#*
+#**/
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = Imx6sxGraphicsOutputDxe
+  FILE_GUID                      = 2DAB50A6-1980-4494-AC14-BBC9CCB83CF3
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = GraphicsOutputDxeInitialize
+
+[Sources.common]
+  GraphicsOutputDxe.c
+  Lcdif.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  Silicon/NXP/iMX6Pkg/iMX6Pkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  ArmPkg/ArmPkg.dec
+
+[LibraryClasses]
+  DebugLib
+  BaseMemoryLib
+  MemoryAllocationLib
+  UefiDriverEntryPoint
+  UefiRuntimeServicesTableLib
+  TimerLib
+  iMX6ClkPwrLib
+  iMXDisplayLib
+
+[Protocols]
+  gEfiGraphicsOutputProtocolGuid
+  gEfiDevicePathProtocolGuid
+  gEfiDevicePathToTextProtocolGuid
+
+[Depex]
+  gEfiCpuArchProtocolGuid AND gEfiTimerArchProtocolGuid
+
+[Pcd]
+  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution
+  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoVerticalResolution
+  giMX6TokenSpaceGuid.PcdFrameBufferBase
+  giMX6TokenSpaceGuid.PcdFrameBufferSize

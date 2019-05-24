@@ -3,6 +3,7 @@
 *  Header defining IMX6 SoloX Muxing definitions
 *
 *  Copyright (c) 2018 Microsoft Corporation. All rights reserved.
+*  Copyright 2019 NXP
 *
 *  This program and the accompanying materials
 *  are licensed and made available under the terms and conditions of the BSD License
@@ -17,6 +18,35 @@
 #define _IMX6_IOMUX_SX_H_
 
 // SELECT INPUT defines
+
+// IOMUXC_ENET1_IPP_IND_MAC0_MDIO_SELECT_INPUT
+#define GPIO1_IO05_ALT4    0
+#define ENET1_TX_CLK_ALT1  1
+
+// IOMUXC_ENET1_IPP_IND_MAC0_RXCLK_SELECT_INPUT
+#define GPIO1_IO05_ALT2    0
+#define ENET1_MDIO_ALT0    1 
+#define ENET2_CRS_ALT1     2
+
+// IOMUXC_ENET1_IPP_IND_MAC0_RXCLK_SELECT_INPUT
+#define ENET1_RX_CLK_ALT0  0    
+#define RGMII1_RXC_ALT0    1
+
+// IOMUXC_ENET2_IPP_IND_MAC0_MDIO_SELECT_INPUT
+#define GPIO1_IO04_ALT4    0
+#define ENET2_TX_CLK_ALT1  1
+
+// IOMUXC_ENET2_IPP_IND_MAC0_RXCLK_SELECT_INPUT
+#define GPIO1_IO07_ALT2    0
+#define ENET1_CRS_ALT1     1 
+#define ENET1_MDIO_ALT1    2
+#define KEY_ROW4_ALT1      2
+
+// IOMUXC_ENET2_IPP_IND_MAC0_RXCLK_SELECT_INPUT
+#define ENET2_RX_CLK_ALT0  0    
+#define RGMII2_RXC_ALT0    1
+
+
 // IMX_PAD register defines.
 typedef enum {
   // Pad Control Register (IOMUXC_SW_PAD_CTL_PAD_GPIO1_IO00)

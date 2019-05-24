@@ -178,7 +178,7 @@ InitLCD(
     DEBUG((DEBUG_INFO,"InitLCD\n"));
 
     // turn on LCD clocks
-    ImxClkPwrLcdClockEnable();
+    ImxClkPwrLcdClockEnable(IMX6SX_PHYSADDR_LCDIF1);
 
     // set run bit
     MmioWrite32(IMX6SX_PHYSADDR_LCDIF1_RL_SET, IMX6SX_LCDIF_RL_RUN);
@@ -196,7 +196,7 @@ ConfigureLCD(
 
     DEBUG((DEBUG_INFO,"ConfigureLCD\n"));
 
-    status = ImxSetLcdIfClockRate(Timing->PixelClock);
+    status = ImxSetLcdIfClockRate(IMX6SX_PHYSADDR_LCDIF1, Timing->PixelClock);
     if (EFI_ERROR(status)) {
         DebugPrint(DEBUG_ERROR, "ConfigureLCD - ImxClkPwrLcdIfEnable failed");
         return status;
