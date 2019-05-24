@@ -950,15 +950,6 @@
   MdeModulePkg/Bus/Usb/UsbMouseDxe/UsbMouseDxe.inf
 !endif
 
-  # Display Support
-!if $(CONFIG_HEADLESS) == FALSE
-  MdeModulePkg/Universal/Console/ConPlatformDxe/ConPlatformDxe.inf
-  MdeModulePkg/Universal/Console/ConSplitterDxe/ConSplitterDxe.inf
-  MdeModulePkg/Universal/Console/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
-  Silicon/NXP/iMX6Pkg/Drivers/LcdifGop/LcdifGop.inf
-  MdeModulePkg/Logo/LogoDxe.inf
-!endif
-
 !if $(CONFIG_PCIE) == TRUE
   # PCIe support
   Silicon/NXP/iMX6Pkg/Drivers/PciExpress/iMX6PciExpress.inf

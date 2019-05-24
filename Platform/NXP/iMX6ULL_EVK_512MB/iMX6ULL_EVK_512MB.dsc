@@ -57,6 +57,16 @@
 [LibraryClasses.common]
   ArmPlatformLib|$(BOARD_DIR)/Library/iMX6BoardLib/iMX6BoardLib.inf
 [Components.common]
+
+  # Display Support
+!if $(CONFIG_HEADLESS) == FALSE
+  MdeModulePkg/Universal/Console/ConPlatformDxe/ConPlatformDxe.inf
+  MdeModulePkg/Universal/Console/ConSplitterDxe/ConSplitterDxe.inf
+  MdeModulePkg/Universal/Console/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
+  Silicon/NXP/iMX6Pkg/Drivers/LcdifGop/LcdifGop.inf
+  MdeModulePkg/Logo/LogoDxe.inf
+!endif
+
   #
   # ACPI Support
   #

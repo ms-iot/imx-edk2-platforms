@@ -121,14 +121,6 @@
   }
 !endif
 
-!if $(CONFIG_HEADLESS) == FALSE
-  INF MdeModulePkg/Universal/Console/ConPlatformDxe/ConPlatformDxe.inf
-  INF MdeModulePkg/Universal/Console/ConSplitterDxe/ConSplitterDxe.inf
-  INF MdeModulePkg/Universal/Console/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
-  INF Silicon/NXP/iMX6Pkg/Drivers/LcdifGop/LcdifGop.inf
-  INF MdeModulePkg/Logo/LogoDxe.inf
-!endif
-
 !if $(CONFIG_MEASURED_BOOT) == TRUE
   INF Platform/Microsoft/OpteeClientPkg/Drivers/AuthVarOpteeRuntimeDxe/AuthVarsDxe.inf
 !else
