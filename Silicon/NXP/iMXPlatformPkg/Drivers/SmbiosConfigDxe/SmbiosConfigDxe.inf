@@ -46,6 +46,7 @@
   gEfiSimpleFileSystemProtocolGuid  ## CONSUMES
 
 [Pcd]
+  giMXPlatformTokenSpaceGuid.PcdSmbiosOverrideEnable
   giMXPlatformTokenSpaceGuid.PcdSmbiosOverrideDevicePath
 
 [Depex]

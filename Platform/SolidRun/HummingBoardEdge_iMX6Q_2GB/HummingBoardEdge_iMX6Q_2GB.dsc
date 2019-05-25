@@ -153,3 +153,9 @@ giMXPlatformTokenSpaceGuid.PcdKdUartInstance|1                # UART1
 giMX6TokenSpaceGuid.PcdPcieResetGpio|TRUE
 giMX6TokenSpaceGuid.PcdPcieResetGpioBankNumber|2
 giMX6TokenSpaceGuid.PcdPcieResetGpioIoNumber|11
+
+#
+# Enable Smbios Dynamic Override
+#
+giMXPlatformTokenSpaceGuid.PcdSmbiosOverrideEnable|TRUE
+giMXPlatformTokenSpaceGuid.PcdSmbiosOverrideDevicePath|L"VenHw(AAFB8DAA-7340-43AC-8D49-0CCE14812489,02000000)/SD(0x0)/HD(2,MBR,0xAE420040,0x2000,0x20000)"

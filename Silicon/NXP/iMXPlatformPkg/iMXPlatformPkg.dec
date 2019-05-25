@@ -119,7 +119,11 @@
   #
   giMXPlatformTokenSpaceGuid.PcdGpioBankMemoryRange|16384|UINT32|0x15
 
-  giMXPlatformTokenSpaceGuid.PcdSmbiosOverrideDevicePath|L"VenHw(AAFB8DAA-7340-43AC-8D49-0CCE14812489,02000000)/SD(0x0)/HD(2,MBR,0xAE420040,0x2000,0x20000)"|VOID*|0x16
-  #giMXPlatformTokenSpaceGuid.PcdSmbiosOverrideDevicePath|L""|VOID*|0x16
+
+  #
+  # Smbios Override
+  #
+  giMXPlatformTokenSpaceGuid.PcdSmbiosOverrideDevicePath|L""|VOID*|0x16
+  giMXPlatformTokenSpaceGuid.PcdSmbiosOverrideEnable|FALSE|BOOLEAN|0x17
 
 [PcdsFeatureFlag.common]

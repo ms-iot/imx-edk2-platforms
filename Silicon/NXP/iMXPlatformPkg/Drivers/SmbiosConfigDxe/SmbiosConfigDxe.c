@@ -33,7 +33,7 @@ typedef struct SmbiosOverrideNode {
 
 STATIC CONST CHAR16 mSmbiosOverridePresent[] = L"SmbiosOverridePresent";
 
-STATIC SMBIOS_OVERRIDE_NODE *mSmbiosOverrideListHead;
+STATIC SMBIOS_OVERRIDE_NODE *mSmbiosOverrideListHead = NULL;
 
 /**
 
@@ -648,7 +648,7 @@ Exit:
 }
 
 VOID
-FreeSmbiosOverrideList(
+FreeSmbiosOverrideList (
   )
 {
   SMBIOS_OVERRIDE_NODE *Node;
@@ -676,8 +676,13 @@ SmbiosConfigDxeInitialize (
 {
   EFI_STATUS Status;
 
+  if (FixedPcdGet32 (PcdSmbiosOverrideEnable) == FALSE) {
+    DEBUG ((DEBUG_INFO, "%a: PcdSmbiosOverride Not Enabled\n", __FUNCTION__));
+    return EFI_SUCCESS;
+  }
+
   // Check if an Smbios override config was previously set
-  Status = CheckSmbiosOverridePresent();
+  Status = CheckSmbiosOverridePresent ();
   if (Status == EFI_SUCCESS) {
     DEBUG ((DEBUG_INFO, "%a: Smbios Override Locked\n", __FUNCTION__));
     goto Exit;
@@ -685,28 +690,28 @@ SmbiosConfigDxeInitialize (
   DEBUG ((DEBUG_INFO, "%a: Smbios Override Unlocked\n", __FUNCTION__));
 
   // Lock down config no matter the result
-  Status = SetSmbiosOverridePresent();
+  Status = SetSmbiosOverridePresent ();
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "%a: Failed to set SmbiosOverridePresent (Status=%r)\n", __FUNCTION__, Status));
     goto Exit;
   }
 
   // Read Smbios Override file from filesystem
-  Status = GetSmbiosOverrideData();
+  Status = GetSmbiosOverrideData ();
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "%a: Failed to read Smbios Override Data (Status=%r)\n", __FUNCTION__, Status));
     goto Exit;  
   }
 
   // Store override data in NV variable
-  Status = StoreAllSmbiosOverrideVariables();
+  Status = StoreAllSmbiosOverrideVariables ();
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "%a: Failed store to NV (Status=%r)\n", __FUNCTION__, Status));
     goto Exit;
   }
 
 Exit:
-  FreeSmbiosOverrideList();
+  FreeSmbiosOverrideList ();
 
   return Status;
 }
