@@ -57,13 +57,14 @@
 
 /**
 
-  Retrieve an SMBIOS Override variable from UEFI variables.
+  Retrieve an SMBIOS Override variable by GUID from UEFI variables.
 
   @param[in] VariableName         Pointer to the string containing the key name.
-  @param[out] SmbiosEntry         Pointer to return the SMBIOS string.
-  @param[out] SmbiosEntryLen      Length of the string retrieved for SMBIOS var.
-  @param[in,out] SmbiosRecordLen  Pointer to the SMBIOS record length so this
-                                  function can increment it for the caller.
+  @param[out] Guid                Guid that the variable is stored under.
+  @param[out] SmbiosEntry         Pointer to a pointer containing the Smbios record output.
+                                  To be allocated by this function.
+  @param[in,out] SmbiosEntryLen   Pointer to the SMBIOS record length.
+
   @retval  EFI_SUCCESS            SMBIOS string retrieved successfully.
   @retval  EFI_OUT_OF_RESOURCES   Unable to allocate space for the buffer.
   @retval  EFI_STATUS             Status of gRT->GetVariable ()
@@ -117,6 +118,20 @@ RetrieveSmbiosVariableByGuid (
   return Status;
 }
 
+/**
+
+  Retrieve an SMBIOS Override variable from UEFI NV variables.
+
+  @param[in] VariableName         Pointer to the string containing the key name.
+  @param[out] SmbiosEntry         Pointer to a pointer containing the Smbios record output.
+                                  To be allocated by this function.
+  @param[in,out] SmbiosEntryLen   Pointer to the SMBIOS record length.
+
+  @retval  EFI_SUCCESS            SMBIOS string retrieved successfully.
+  @retval  EFI_OUT_OF_RESOURCES   Unable to allocate space for the buffer.
+  @retval  EFI_STATUS             Status of gRT->GetVariable ()
+
+**/
 EFI_STATUS
 RetrieveSmbiosVariable (
   CONST CHAR16 *VariableName,
