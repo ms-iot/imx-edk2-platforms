@@ -111,7 +111,6 @@
   UefiUsbLib|MdePkg/Library/UefiUsbLib/UefiUsbLib.inf
 !endif
   PciLib|MdePkg/Library/BasePciLibCf8/BasePciLibCf8.inf
-  NetLib|MdeModulePkg/Library/DxeNetLib/DxeNetLib.inf
 
   #
   # UEFI Services and Runtime
@@ -800,7 +799,6 @@
       NULL|ShellPkg/Library/UefiShellLevel1CommandsLib/UefiShellLevel1CommandsLib.inf
       NULL|ShellPkg/Library/UefiShellLevel2CommandsLib/UefiShellLevel2CommandsLib.inf
       NULL|ShellPkg/Library/UefiShellLevel3CommandsLib/UefiShellLevel3CommandsLib.inf
-      NULL|ShellPkg/Library/UefiShellNetwork1CommandsLib/UefiShellNetwork1CommandsLib.inf
       PrintLib|MdePkg/Library/BasePrintLib/BasePrintLib.inf
 
     <PcdsFixedAtBuild>
