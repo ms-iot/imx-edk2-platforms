@@ -745,6 +745,10 @@ SysInfoUpdateSmbiosType1 (
   EFI_STATUS            Status;
   UINTN                 VersionLen;
 
+  FamilyOverride = NULL;
+  ManufacturerOverride = NULL;
+  ProductNameOverride = NULL;
+  SkuNumberOverride = NULL;
   SerialNumber = NULL;
   SmbiosRecord = NULL;
   SystemUuid = NULL;
@@ -932,23 +936,18 @@ Exit:
   if (SmbiosRecord != NULL) {
     FreePool (SmbiosRecord);
   }
-
   if (ManufacturerOverride != NULL) {
     FreePool (ManufacturerOverride);
   }
-
   if (ProductNameOverride != NULL) {
     FreePool (ProductNameOverride);
   }
-
   if (SkuNumberOverride != NULL) {
     FreePool (SkuNumberOverride);
   }
-
   if (FamilyOverride != NULL) {
     FreePool (FamilyOverride);
   }
-
   return Status;
 }
 
@@ -978,6 +977,7 @@ BoardInfoUpdateSmbiosType2 (
   EFI_STATUS            Status;
   UINTN                 VersionLen;
 
+  ProductNameOverride = NULL;
   SerialNumber = NULL;
   SmbiosRecord = NULL;
   SmbiosRecordLen = sizeof (SMBIOS_TABLE_TYPE2);
