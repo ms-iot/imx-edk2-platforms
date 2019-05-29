@@ -16,6 +16,26 @@
 #ifndef _PLATFORM_SMBIOS_DXE_H_
 #define _PLATFORM_SMBIOS_DXE_H_
 
+#include <Guid/SmBios.h>
+
+#include <IndustryStandard/SmBios.h>
+
+#include <Library/ArmLib.h>
+#include <Library/BaseLib.h>
+#include <Library/BaseMemoryLib.h>
+#include <Library/DebugLib.h>
+#include <Library/IoLib.h>
+#include <Library/MemoryAllocationLib.h>
+#include <Library/PrintLib.h>
+#include <Library/UefiBootServicesTableLib.h>
+#include <Library/UefiDriverEntryPoint.h>
+#include <Library/UefiLib.h>
+#include <Library/UefiRuntimeServicesTableLib.h>
+
+#include <Protocol/Smbios.h>
+
+#include <iMXVarStore.h>
+
 #define OCOTP_BANK_0_WORD_1 0x021BC410
 #define OCOTP_BANK_0_WORD_2 0x021BC420
 

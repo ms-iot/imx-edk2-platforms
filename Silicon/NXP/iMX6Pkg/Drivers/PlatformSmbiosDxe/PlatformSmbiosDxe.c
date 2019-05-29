@@ -32,28 +32,7 @@
 
 **/
 
-#include <Guid/SmBios.h>
-
-#include <IndustryStandard/SmBios.h>
-
-#include <Library/ArmLib.h>
-#include <Library/BaseLib.h>
-#include <Library/BaseMemoryLib.h>
-#include <Library/DebugLib.h>
-#include <Library/IoLib.h>
-#include <Library/MemoryAllocationLib.h>
-#include <Library/PrintLib.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Library/UefiDriverEntryPoint.h>
-#include <Library/UefiLib.h>
-#include <Library/UefiRuntimeServicesTableLib.h>
-
-#include <Protocol/Smbios.h>
-
 #include "PlatformSmbiosDxe.h"
-
-// TODO: Move to common header
-#define MAX_VARIABLE_SIZE 100
 
 /**
 

@@ -27,7 +27,7 @@
 
 #include <Protocol/SimpleFileSystem.h>
 
-#define MAX_VARIABLE_SIZE 100
+#include <iMXVarStore.h>
 
 typedef enum JsonParserState {
   StateFindKey,
