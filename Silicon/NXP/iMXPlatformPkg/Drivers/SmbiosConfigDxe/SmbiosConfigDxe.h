@@ -27,4 +27,21 @@
 
 #include <Protocol/SimpleFileSystem.h>
 
+#define MAX_VARIABLE_SIZE 100
+
+typedef enum JsonParserState {
+  StateFindKey,
+  StateReadKey,
+  StateKeyDone,
+  StateFindValue,
+  StateReadValue,
+  StateValueDone,  
+} JSON_PARSER_STATE;
+
+typedef struct SmbiosOverrideNode {
+  CHAR8 *Key;
+  CHAR8 *Value;
+  struct SmbiosOverrideNode *Next;
+} SMBIOS_OVERRIDE_NODE;
+
 #endif  // _SMBIOS_CONFIG_DXE_H_

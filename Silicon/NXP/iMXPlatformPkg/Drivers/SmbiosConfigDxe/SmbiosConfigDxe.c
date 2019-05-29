@@ -14,22 +14,12 @@
 
 #include "SmbiosConfigDxe.h"
 
-typedef enum JsonParserState {
-  StateFindKey,
-  StateReadKey,
-  StateKeyDone,
-  StateFindValue,
-  StateReadValue,
-  StateValueDone,  
-} JSON_PARSER_STATE;
-
-#define MAX_VARIABLE_SIZE 100
-
-typedef struct SmbiosOverrideNode {
-  CHAR8 *Key;
-  CHAR8 *Value;
-  struct SmbiosOverrideNode *Next;
-} SMBIOS_OVERRIDE_NODE;
+#define MAX_SMBIOS_KEY_REV_1 5
+CHAR8* mSmbiosKeyRev1[MAX_SMBIOS_KEY_REV_1] = {"System Manufacturer",
+                                               "System Product Name",
+                                               "System SKU",
+                                               "System Family",
+                                               "Baseboard Product"};
 
 STATIC CONST CHAR16 mSmbiosOverridePresent[] = L"SmbiosOverridePresent";
 
@@ -41,12 +31,12 @@ STATIC SMBIOS_OVERRIDE_NODE *mSmbiosOverrideListHead = NULL;
   given offset.
 
   This routine scans through the provided buffer starting at the given offset.
-  If finds the first '"' character and records this location as the start of the Key.
-  Then it contineus scanning to find the next '"' instance, which denotes the KeyLength.
+  It finds the first '"' character and records its location as the start of the Key.
+  Then it continues scanning to find the next '"' instance. The length denotes the KeyLength.
 
   We repeat these steps to find the Value position and length.
 
-  At any point if a failure is detected, the algorithm bails.
+  At any point if a failure is detected, the algorithm bails with an error.
 
   If we successfully find both Key and Value positions and lengths, then allocate/copy
   these to their respective buffers and return to the caller.
@@ -172,13 +162,6 @@ Exit:
   return Status;
 }
 
-#define MAX_SMBIOS_KEY_REV_1 5
-CHAR8* mSmbiosKeyRev1[MAX_SMBIOS_KEY_REV_1] = {"System Manufacturer",
-                                               "System Product Name",
-                                               "System SKU",
-                                               "System Family",
-                                               "Baseboard Product"};
-
 EFI_STATUS
 EFIAPI
 GetNextJsonKeyword (
@@ -225,7 +208,7 @@ GetSmbiosOverride (
   Node = mSmbiosOverrideListHead;
   Status = EFI_NOT_FOUND;
   while (Node != NULL) {
-    CompareResult = AsciiStrnCmp (Node->Key, Key, AsciiStrnSizeS(Key, MAX_VARIABLE_SIZE));
+    CompareResult = AsciiStrnCmp (Node->Key, Key, AsciiStrnSizeS (Key, MAX_VARIABLE_SIZE));
     if (CompareResult == 0) {
       AsciiStrToUnicodeStrS (Node->Key, UnicodeDebugString, MAX_VARIABLE_SIZE);
       DEBUG ((DEBUG_INFO, "%a: Found Smbios Override Key = %s\n", __FUNCTION__, UnicodeDebugString));
@@ -255,19 +238,19 @@ ValidateRevision1 (
 
   Status = EFI_NOT_FOUND;
 
-  // Remove Signature and Revision
-  Count -= 2;
-  if (Count != MAX_SMBIOS_KEY_REV_1) {
+  // Validate number of entries
+  // We add 2 to include Signature and Revision entries in our count
+  if (Count > (MAX_SMBIOS_KEY_REV_1 + 2)) {
     Status = EFI_NOT_FOUND;
     goto Exit;
   }
 
   for (i = 0; i < MAX_SMBIOS_KEY_REV_1; i++) {
     AsciiStrToUnicodeStrS (mSmbiosKeyRev1[i], UnicodeDebugString, MAX_VARIABLE_SIZE);
-    Status = GetSmbiosOverride(mSmbiosKeyRev1[i], &Value);
+    Status = GetSmbiosOverride (mSmbiosKeyRev1[i], &Value);
     if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_ERROR, "%a: Failed to find Smbios Key %s\n", __FUNCTION__, UnicodeDebugString));
-      goto Exit;
+      DEBUG ((DEBUG_INFO, "%a: Failed to find Smbios Key %s\n", __FUNCTION__, UnicodeDebugString));
+      continue;
     }
     DEBUG ((DEBUG_INFO, "%a: Found %s\n", __FUNCTION__, UnicodeDebugString));
   }
@@ -278,7 +261,10 @@ Exit:
 
 /**
 
-  @retval EFI_SUCCESS
+  Checks the Buffer for valid SMBIOS override parameters and adds valid values to a global list
+
+  @retval EFI_SUCCESS             SMBIOS override parameters were valid and the contents were
+                                  added to the global list.
   @retval EFI_INVALID_PARAMETER   File does not conform to our expected Json Format
   @retval EFI_NOT_FOUND           All expected Json keys could not be found
 **/
@@ -345,7 +331,7 @@ ValidateBufferAndStoreInList (
   }
 
   // Check Signature
-  Status = GetSmbiosOverride("Signature", &Value);
+  Status = GetSmbiosOverride ("Signature", &Value);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "%a: Smbios Override signature entry not found\n", __FUNCTION__));
     goto Exit;
@@ -368,7 +354,7 @@ ValidateBufferAndStoreInList (
   Revision = AsciiStrDecimalToUintn (Value);
   switch (Revision) {
     case 1:
-    Status = ValidateRevision1(Count);
+    Status = ValidateRevision1 (Count);
     break;
     default:
     DEBUG ((DEBUG_ERROR, "%a: Revision not supported\n", __FUNCTION__));
@@ -426,6 +412,9 @@ GetSmbiosOverrideData (
   MediaHandle = NULL;
   Fs = NULL;
 
+  //
+  // Find file using Pcd device path
+  //
   DevicePathText = (CONST CHAR16 *) FixedPcdGetPtr(PcdSmbiosOverrideDevicePath);
   if ((DevicePathText == NULL) || (*DevicePathText == L'\0')) {
     Status = EFI_INVALID_PARAMETER;
@@ -486,7 +475,7 @@ GetSmbiosOverrideData (
   }
 
   //
-  // Get File Info
+  // Read File Info
   // 
   FileInfoSize = sizeof(EFI_FILE_INFO) + 1024;
   FileInfo = AllocateZeroPool (FileInfoSize);
