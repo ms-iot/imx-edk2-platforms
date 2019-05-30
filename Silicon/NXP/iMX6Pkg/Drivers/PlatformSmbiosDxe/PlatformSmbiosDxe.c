@@ -734,7 +734,7 @@ SysInfoUpdateSmbiosType1 (
   SmbiosRecordLen = sizeof (SMBIOS_TABLE_TYPE1);
 
   // 04h - Manufacturer String
-  Status = RetrieveSmbiosVariable (L"System Manufacturer",
+  Status = RetrieveSmbiosVariable (IMX_VARIABLE_SMBIOS_MANUFACTURER,
                                    &ManufacturerOverride,
                                    &ManufacturerOverrideLen);
   if (Status == EFI_SUCCESS) {
@@ -743,16 +743,16 @@ SysInfoUpdateSmbiosType1 (
   } else { 
     Manufacturer = (CHAR16 *)FixedPcdGetPtr (PcdSystemManufacturer);
     ManufacturerLen = StrLen (Manufacturer);
-    if (ManufacturerLen == 0) {
-      DEBUG ((DEBUG_ERROR, "%a: PcdSystemManufacturer not filled\n", __FUNCTION__));
-      Status = EFI_INVALID_PARAMETER;
-      goto Exit;
-    }
+  }
+  if (ManufacturerLen == 0) {
+    DEBUG ((DEBUG_ERROR, "%a: PcdSystemManufacturer not filled\n", __FUNCTION__));
+    Status = EFI_INVALID_PARAMETER;
+    goto Exit;
   }
   SmbiosRecordLen += ManufacturerLen + 1;
 
   // 05h - Product Name String
-  Status = RetrieveSmbiosVariable (L"System Product Name",
+  Status = RetrieveSmbiosVariable (IMX_VARIABLE_SMBIOS_PRODUCT_NAME,
                                    &ProductNameOverride,
                                    &ProductNameOverrideLen);
   if (Status == EFI_SUCCESS) {
@@ -761,11 +761,11 @@ SysInfoUpdateSmbiosType1 (
   } else { 
     ProductName = (CHAR16 *)FixedPcdGetPtr (PcdSystemProductName);
     ProductNameLen = StrLen (ProductName);
-    if (ProductNameLen == 0) {
-      DEBUG ((DEBUG_ERROR, "%a: PcdSystemProductName not filled\n", __FUNCTION__));
-      Status = EFI_INVALID_PARAMETER;
-      goto Exit;
-    }
+  }
+  if (ProductNameLen == 0) {
+    DEBUG ((DEBUG_ERROR, "%a: PcdSystemProductName not filled\n", __FUNCTION__));
+    Status = EFI_INVALID_PARAMETER;
+    goto Exit;
   }
   SmbiosRecordLen += ProductNameLen + 1;
 
@@ -837,7 +837,7 @@ SysInfoUpdateSmbiosType1 (
   mSysInfoType1.Uuid = *SystemUuid;
 
   // 19h - SKU Number String
-  Status = RetrieveSmbiosVariable (L"System SKU",
+  Status = RetrieveSmbiosVariable (IMX_VARIABLE_SMBIOS_SKU,
                                    &SkuNumberOverride,
                                    &SkuNumberOverrideLen);
   if (Status == EFI_SUCCESS) {
@@ -846,16 +846,16 @@ SysInfoUpdateSmbiosType1 (
   } else { 
     SkuNumber = (CHAR16 *)FixedPcdGetPtr (PcdSystemSkuNumber);
     SkuNumberLen = StrLen (SkuNumber);
-    if (SkuNumberLen == 0) {
-      DEBUG ((DEBUG_ERROR, "%a: PcdSystemSkuNumber not filled\n", __FUNCTION__));
-      Status = EFI_INVALID_PARAMETER;
-      goto Exit;
-    }
+  }
+  if (SkuNumberLen == 0) {
+    DEBUG ((DEBUG_ERROR, "%a: PcdSystemSkuNumber not filled\n", __FUNCTION__));
+    Status = EFI_INVALID_PARAMETER;
+    goto Exit;
   }
   SmbiosRecordLen += SkuNumberLen + 1;
 
   // 1Ah - Family String
-  Status = RetrieveSmbiosVariable (L"System Family",
+  Status = RetrieveSmbiosVariable (IMX_VARIABLE_SMBIOS_FAMILY,
                                    &FamilyOverride,
                                    &FamilyOverrideLen);
   if (Status == EFI_SUCCESS) {
@@ -864,11 +864,11 @@ SysInfoUpdateSmbiosType1 (
   } else { 
     Family = (CHAR16 *)FixedPcdGetPtr (PcdSystemFamily);
     FamilyLen = StrLen (Family);
-    if (FamilyLen == 0) {
-      DEBUG ((DEBUG_ERROR, "%a: PcdSystemFamily not filled\n", __FUNCTION__));
-      Status = EFI_INVALID_PARAMETER;
-      goto Exit;
-    }
+  }
+  if (FamilyLen == 0) {
+    DEBUG ((DEBUG_ERROR, "%a: PcdSystemFamily not filled\n", __FUNCTION__));
+    Status = EFI_INVALID_PARAMETER;
+    goto Exit;
   }
   SmbiosRecordLen += FamilyLen + 1;
 
@@ -972,7 +972,7 @@ BoardInfoUpdateSmbiosType2 (
   SmbiosRecordLen += ManufacturerLen + 1;
 
   // 05h - Product Name String
-  Status = RetrieveSmbiosVariable (L"Baseboard Product",
+  Status = RetrieveSmbiosVariable (IMX_VARIABLE_SMBIOS_BASEBOARD_PRODUCT,
                                    &ProductNameOverride,
                                    &ProductNameOverrideLen);
   if (Status == EFI_SUCCESS) {
@@ -981,11 +981,11 @@ BoardInfoUpdateSmbiosType2 (
   } else { 
     ProductName = (CHAR16 *)FixedPcdGetPtr (PcdBoardProductName);
     ProductNameLen = StrLen (ProductName);
-    if (ProductNameLen == 0) {
-      DEBUG ((DEBUG_ERROR, "%a: PcdBoardProductName not filled\n", __FUNCTION__));
-      Status = EFI_INVALID_PARAMETER;
-      goto Exit;
-    }
+  }
+  if (ProductNameLen == 0) {
+    DEBUG ((DEBUG_ERROR, "%a: PcdBoardProductName not filled\n", __FUNCTION__));
+    Status = EFI_INVALID_PARAMETER;
+    goto Exit;
   }
   SmbiosRecordLen += ProductNameLen + 1;
 

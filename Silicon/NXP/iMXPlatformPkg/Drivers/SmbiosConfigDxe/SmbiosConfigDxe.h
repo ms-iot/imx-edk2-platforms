@@ -29,14 +29,13 @@
 
 #include <iMXVarStore.h>
 
-typedef enum JsonParserState {
-  StateFindKey,
+typedef enum IniParserState {
   StateReadKey,
-  StateKeyDone,
-  StateFindValue,
   StateReadValue,
-  StateValueDone,  
-} JSON_PARSER_STATE;
+  StateReadWindowsNewLine,
+  StateValueDone,
+  StateError,
+} INI_PARSER_STATE;
 
 typedef struct SmbiosOverrideNode {
   CHAR8 *Key;

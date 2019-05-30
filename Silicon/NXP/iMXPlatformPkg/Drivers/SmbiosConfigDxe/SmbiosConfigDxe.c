@@ -41,10 +41,12 @@ STATIC SMBIOS_OVERRIDE_NODE *mSmbiosOverrideListHead = NULL;
   If we successfully find both Key and Value positions and lengths, then allocate/copy
   these to their respective buffers and return to the caller.
 
+  @retval EFI_INVALID_PARAMETER   Bad parameter passed into this function
+
 **/
 EFI_STATUS
 EFIAPI
-GetNextKeyValuePair (
+GetNextIniKeyValuePair (
   CHAR8 *Buffer,
   UINTN *Offset,
   UINTN BufferSize,
@@ -56,22 +58,31 @@ GetNextKeyValuePair (
   UINTN CurrentOffset;
   UINTN KeyLength;
   UINTN ValueLength;
-  JSON_PARSER_STATE State;
+  INI_PARSER_STATE State;
   CHAR8 *KeyStart;
   CHAR8 *ValueStart;
   CHAR8 *TempKey;
   CHAR8 *TempValue;
 
+  if ((Buffer == NULL) || (Offset == NULL) ||
+      (Key == NULL) || (Value == NULL)) {
+    Status = EFI_INVALID_PARAMETER;
+    goto Exit;
+  }
+
   CurrentOffset = *Offset;
   KeyLength = 0;
   ValueLength = 0;
-  Status = EFI_NOT_FOUND;
-  State = StateFindKey;
+  Status = EFI_INVALID_PARAMETER;
+  State = StateReadKey;
   KeyStart = NULL;
   ValueStart = NULL;
   TempKey = NULL;
   TempValue = NULL;
 
+  //
+  // Loop until end of file or we find a valid key/value pair
+  //
   while (CurrentOffset < BufferSize) {
     if (State == StateValueDone) {
       Status = EFI_SUCCESS;
@@ -79,43 +90,45 @@ GetNextKeyValuePair (
     }
 
     switch (State) {
-      case StateFindKey:
-        if (Buffer[CurrentOffset] == '"') {
-          State = StateReadKey;
-        }
-      break;
       case StateReadKey:
         if (KeyStart == NULL) {
           KeyStart = &Buffer[CurrentOffset];
         }
-        if (Buffer[CurrentOffset] == '"') {
-          State = StateKeyDone;
+        if (Buffer[CurrentOffset] == '=') {
+          State = StateReadValue;
         } else {
           KeyLength++;
         }
       break;
-      case StateKeyDone:
-        if (Buffer[CurrentOffset] == ':') {
-          State = StateFindValue;
-        }
-      break;
-      case StateFindValue:
-        if (Buffer[CurrentOffset] == '"') {
-          State = StateReadValue;
-        }
-      break;
+
       case StateReadValue:
         if (ValueStart == NULL) {
           ValueStart = &Buffer[CurrentOffset];
         }
-        if (Buffer[CurrentOffset] == '"') {
+
+        //
+        // Need to handle both Unix LF (\n) and Windows CRLF (\r\n) line endings
+        //
+        if (Buffer[CurrentOffset] == '\r') {
+          State = StateReadWindowsNewLine;
+        } else if (Buffer[CurrentOffset] == '\n') {
           State = StateValueDone;
         } else {
           ValueLength++;
         }
       break;
+
+      case StateReadWindowsNewLine:
+        if (Buffer[CurrentOffset] == '\n') {
+          State = StateValueDone;
+        } else {
+          State = StateError;
+        }
+      break;
+
+      case StateError:
       default:
-        DEBUG ((DEBUG_ERROR, "%a: Reached an unknown state %d\n", __FUNCTION__, State));
+        DEBUG ((DEBUG_ERROR, "%a: Reached an unknown/bad state %d\n", __FUNCTION__, State));
         Status = EFI_NOT_FOUND;
         goto Exit;
     }
@@ -128,68 +141,52 @@ GetNextKeyValuePair (
 
   // Bounds check on Key and Value
   if ((KeyLength == 0) || (ValueLength == 0)) {
-    Status = EFI_NOT_FOUND;
+    Status = EFI_INVALID_PARAMETER;
     goto Exit;
   }
+
   if ((KeyLength > MAX_VARIABLE_SIZE) || (ValueLength > MAX_VARIABLE_SIZE)) {
     Status = EFI_INVALID_PARAMETER;
     goto Exit;
   }
-  
-  TempKey = AllocatePool(KeyLength + 1);
+
+  // Make key entry
+  TempKey = AllocatePool (KeyLength + 1);
   if (TempKey == NULL) {
     Status = EFI_OUT_OF_RESOURCES;
     goto Exit;
   }
-  CopyMem(TempKey, KeyStart, KeyLength);
+
+  CopyMem (TempKey, KeyStart, KeyLength);
   TempKey[KeyLength] = '\0';
   KeyLength++;
+  DEBUG ((DEBUG_ERROR, "%a: End Key Length %d\n", __FUNCTION__, KeyLength));
 
+  // Make value entry
   TempValue = AllocatePool (ValueLength + 1);
   if (TempValue == NULL) {
     Status = EFI_OUT_OF_RESOURCES;
     goto Exit;
   }
+
   CopyMem (TempValue, ValueStart, ValueLength);
   TempValue[ValueLength] = '\0';
   ValueLength++;
+  DEBUG ((DEBUG_ERROR, "%a: End Value Length %d\n", __FUNCTION__, ValueLength));
 
   *Key = TempKey;
   *Value = TempValue;
   *Offset = CurrentOffset;
 
 Exit:
-  return Status;
-}
-
-EFI_STATUS
-EFIAPI
-GetNextJsonKeyword (
-  CHAR8 *Buffer,
-  UINTN *Offset,
-  UINTN BufferSize,
-  CHAR8 *OutChar
-  )
-{
-  UINTN CurrentOffset;
-  EFI_STATUS Status;
-
-  Status = EFI_NOT_FOUND;
-  CurrentOffset = *Offset;
-
-  while (CurrentOffset < BufferSize) {
-    if ((Buffer[CurrentOffset] == '{') ||
-        (Buffer[CurrentOffset] == '}') ||
-        (Buffer[CurrentOffset] == '"') ||
-        (Buffer[CurrentOffset] == ',')) {
-      *OutChar = Buffer[CurrentOffset];
-      Status = EFI_SUCCESS;
-      break;
+  if (EFI_ERROR (Status)) {
+    if (TempKey != NULL) {
+      FreePool (TempKey);
     }
-    CurrentOffset++;
+    if (TempValue != NULL) {
+      FreePool (TempValue);
+    }
   }
-  *Offset = CurrentOffset;
-
   return Status;
 }
 
@@ -255,112 +252,6 @@ ValidateRevision1 (
     DEBUG ((DEBUG_INFO, "%a: Found %s\n", __FUNCTION__, UnicodeDebugString));
   }
   Status = EFI_SUCCESS;
-Exit:
-  return Status;
-}
-
-/**
-
-  Checks the Buffer for valid SMBIOS override parameters and adds valid values to a global list
-
-  @retval EFI_SUCCESS             SMBIOS override parameters were valid and the contents were
-                                  added to the global list.
-  @retval EFI_INVALID_PARAMETER   File does not conform to our expected Json Format
-  @retval EFI_NOT_FOUND           All expected Json keys could not be found
-**/
-
-EFI_STATUS
-EFIAPI
-ValidateBufferAndStoreInList (
-  CHAR8* Buffer,
-  UINTN BufferSize
-  )
-{
-  EFI_STATUS Status;
-  CHAR8 *Key;
-  CHAR8 *Value;
-  UINTN Offset;
-  UINTN Count;
-  CHAR8 NextChar;
-  CONST STATIC CHAR8 Signature[] = "SmbiosOverrideConfigurationTable";
-  INTN CompareResult;
-  SMBIOS_OVERRIDE_NODE *NewNode;
-  UINT64 Revision;
-
-  Key = NULL;
-  Value = NULL;
-  // Fill Linked List with File data
-  Offset = 0;
-  Count = 0;
-  Status = GetNextJsonKeyword(Buffer, &Offset, BufferSize, &NextChar);
-  if (EFI_ERROR (Status)) {
-    Status = EFI_INVALID_PARAMETER;
-    goto Exit;
-  }
-  if (NextChar != '{') {
-    Status = EFI_INVALID_PARAMETER;
-    goto Exit;
-  }
-
-  while (TRUE) {
-    Status = GetNextJsonKeyword (Buffer, &Offset, BufferSize, &NextChar);
-    if (EFI_ERROR (Status)) {
-      Status = EFI_INVALID_PARAMETER;
-      goto Exit;
-    }
-    if (NextChar == '}') {
-      Status = EFI_SUCCESS;
-      break;
-    }
-    Status = GetNextKeyValuePair (Buffer, &Offset, BufferSize, &Key, &Value);
-    if (EFI_ERROR (Status)) {
-      Status = EFI_INVALID_PARAMETER;
-      goto Exit;
-    }
-    DEBUG ((DEBUG_INFO, "%a: Found new Key/Value pair\n", __FUNCTION__));
-    NewNode = AllocatePool (sizeof (SMBIOS_OVERRIDE_NODE));
-    if (NewNode == NULL) {
-      Status = EFI_OUT_OF_RESOURCES;
-      goto Exit; 
-    }
-    NewNode->Key = Key;
-    NewNode->Value = Value;
-    NewNode->Next = mSmbiosOverrideListHead;
-    mSmbiosOverrideListHead = NewNode;
-    Count++;
-  }
-
-  // Check Signature
-  Status = GetSmbiosOverride ("Signature", &Value);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: Smbios Override signature entry not found\n", __FUNCTION__));
-    goto Exit;
-  }
-  
-  CompareResult = AsciiStrnCmp (Signature, Value, AsciiStrnSizeS (Signature, MAX_VARIABLE_SIZE));
-  if (CompareResult != 0) {
-    DEBUG ((DEBUG_ERROR, "%a: Smbios Override signature incorrect \n", __FUNCTION__));
-    Status = EFI_NOT_FOUND;
-    goto Exit;
-  }
-
-  // Check revision
-  Status = GetSmbiosOverride ("Revision", &Value);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: Revision entry not found\n", __FUNCTION__));
-    goto Exit;
-  }
-  
-  Revision = AsciiStrDecimalToUintn (Value);
-  switch (Revision) {
-    case 1:
-    Status = ValidateRevision1 (Count);
-    break;
-    default:
-    DEBUG ((DEBUG_ERROR, "%a: Revision not supported\n", __FUNCTION__));
-    Status = EFI_NOT_FOUND;
-    break;
-  }
 
 Exit:
   return Status;
@@ -385,6 +276,94 @@ DumpListInfo (
     Count++;
     Node = Node->Next;
   }
+}
+
+/**
+
+  Checks the Buffer for valid SMBIOS override parameters and adds valid values to a global list
+
+  @retval EFI_SUCCESS             SMBIOS override parameters were valid and the contents were
+                                  added to the global list.
+  @retval EFI_INVALID_PARAMETER   File does not conform to our expected INI Format
+  @retval EFI_NOT_FOUND           All expected keys could not be found
+
+**/
+
+EFI_STATUS
+EFIAPI
+ValidateBufferAndStoreInList (
+  CHAR8* Buffer,
+  UINTN BufferSize
+  )
+{
+  EFI_STATUS Status;
+  CHAR8 *Key;
+  CHAR8 *Value;
+  UINTN Offset;
+  UINTN Count;
+  CONST STATIC CHAR8 Signature[] = "SmbiosOverrideConfigurationTable";
+  INTN CompareResult;
+  SMBIOS_OVERRIDE_NODE *NewNode;
+  UINT64 Revision;
+
+  Key = NULL;
+  Value = NULL;
+  Offset = 0;
+  Count = 0;
+  while (TRUE) {
+    Status = GetNextIniKeyValuePair (Buffer, &Offset, BufferSize, &Key, &Value);
+    if (EFI_ERROR (Status)) {
+      break;
+    }
+
+    DEBUG ((DEBUG_INFO, "%a: Found new Key/Value pair \n", __FUNCTION__));
+    NewNode = AllocatePool (sizeof (SMBIOS_OVERRIDE_NODE));
+    if (NewNode == NULL) {
+      Status = EFI_OUT_OF_RESOURCES;
+      goto Exit; 
+    }
+
+    NewNode->Key = Key;
+    NewNode->Value = Value;
+    NewNode->Next = mSmbiosOverrideListHead;
+    mSmbiosOverrideListHead = NewNode;
+    Count++;
+  }
+
+  // Check Signature
+  Status = GetSmbiosOverride ("Signature", &Value);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: Smbios Override signature entry not found\n", __FUNCTION__));
+    goto Exit;
+  }
+
+  CompareResult = AsciiStrnCmp (Signature, Value, AsciiStrnSizeS (Signature, MAX_VARIABLE_SIZE));
+  if (CompareResult != 0) {
+    DEBUG ((DEBUG_ERROR, "%a: Smbios Override signature incorrect %d \n", __FUNCTION__, CompareResult));
+    Status = EFI_NOT_FOUND;
+    goto Exit;
+  }
+
+  // Check revision
+  Status = GetSmbiosOverride ("Revision", &Value);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: Revision entry not found\n", __FUNCTION__));
+    goto Exit;
+  }
+
+  Revision = AsciiStrDecimalToUintn (Value);
+  switch (Revision) {
+    case 1:
+    Status = ValidateRevision1 (Count);
+    break;
+    default:
+    DEBUG ((DEBUG_ERROR, "%a: Revision not supported\n", __FUNCTION__));
+    Status = EFI_NOT_FOUND;
+    break;
+  }
+
+Exit:
+  return Status;
 }
 
 EFI_STATUS
@@ -415,7 +394,7 @@ GetSmbiosOverrideData (
   //
   // Find file using Pcd device path
   //
-  DevicePathText = (CONST CHAR16 *) FixedPcdGetPtr(PcdSmbiosOverrideDevicePath);
+  DevicePathText = (CONST CHAR16 *) FixedPcdGetPtr (PcdSmbiosOverrideDevicePath);
   if ((DevicePathText == NULL) || (*DevicePathText == L'\0')) {
     Status = EFI_INVALID_PARAMETER;
     DEBUG ((DEBUG_ERROR, "%a: PcdStorageMediaPartition is unspecified\n", __FUNCTION__));
@@ -429,7 +408,7 @@ GetSmbiosOverrideData (
   }
 
   IntermediateDevicePath = DevicePath;
-  Status = gBS->LocateDevicePath(
+  Status = gBS->LocateDevicePath (
     &gEfiSimpleFileSystemProtocolGuid,
     &IntermediateDevicePath,
     &MediaHandle);
@@ -440,7 +419,7 @@ GetSmbiosOverrideData (
     goto Exit;
   }
 
-  if (EFI_ERROR(Status)) {
+  if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "%a: gBS->LocateDevicePath() failed. (Status=%r)\n", __FUNCTION__, Status));
     goto Exit;
   }
@@ -451,21 +430,21 @@ GetSmbiosOverrideData (
     (VOID**)&Fs
     );
 
-  if (EFI_ERROR(Status)) {
+  if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "%a: gBS->HandleProtocol() failed. (Status=%r)\n", __FUNCTION__, Status));
     goto Exit;
   }
 
-  Status = Fs->OpenVolume(Fs, &RootVolume);
+  Status = Fs->OpenVolume (Fs, &RootVolume);
   if (EFI_ERROR(Status)) {
     DEBUG ((DEBUG_ERROR, "%a: Fs->OpenVolume() failed. (Status=%r)\n", __FUNCTION__, Status));
     goto Exit;
   }
 
-  Status = RootVolume->Open(
+  Status = RootVolume->Open (
     RootVolume,
     &File,
-    L"Smbios.cfg",
+    L"Smbios.ini",
     EFI_FILE_MODE_READ,
     0);
 
@@ -477,7 +456,7 @@ GetSmbiosOverrideData (
   //
   // Read File Info
   // 
-  FileInfoSize = sizeof(EFI_FILE_INFO) + 1024;
+  FileInfoSize = sizeof (EFI_FILE_INFO) + 1024;
   FileInfo = AllocateZeroPool (FileInfoSize);
   if (FileInfo == NULL) {
     DEBUG ((DEBUG_ERROR, "%a: FileInfo allocation failed\n", __FUNCTION__));
@@ -495,7 +474,7 @@ GetSmbiosOverrideData (
     goto Exit;
   }
 
-  BufferSize = (UINTN) FileInfo->FileSize + sizeof(CHAR16);
+  BufferSize = (UINTN) FileInfo->FileSize + sizeof (CHAR16);
   Buffer = AllocateZeroPool (BufferSize);
   if (Buffer == NULL) {
     DEBUG ((DEBUG_ERROR, "%a: Buffer allocation failed \n", __FUNCTION__));
@@ -517,10 +496,9 @@ GetSmbiosOverrideData (
     DEBUG ((DEBUG_ERROR, "%a: Buffer Validation failed (Status=%r)\n", __FUNCTION__, Status));
   }
 
-  DumpListInfo();
+  DumpListInfo ();
 
 Exit:
-
   if (Buffer != NULL) {
     gBS->FreePool (Buffer);
     Buffer = NULL;
@@ -532,21 +510,19 @@ Exit:
   }
 
   if (File != NULL) {
-    File->Close(File);
+    File->Close (File);
     File = NULL;
   }
 
   if (RootVolume != NULL) {
-    RootVolume->Close(RootVolume);
+    RootVolume->Close (RootVolume);
     RootVolume = NULL;
   }
 
   if (DevicePath != NULL) {
-    FreePool(DevicePath);
+    FreePool (DevicePath);
   }
-
   return Status;
-
 }
 
 EFI_STATUS
@@ -586,8 +562,8 @@ SetSmbiosOverridePresent (
                   EFI_VARIABLE_RUNTIME_ACCESS,
                   1,
                   (VOID *)&Data);
-        
-  return EFI_SUCCESS;
+
+  return Status;
 }
 
 EFI_STATUS
@@ -631,6 +607,7 @@ StoreAllSmbiosOverrideVariables (
     Node = Node->Next;
   }
   Status = EFI_SUCCESS;
+
 Exit:
   return Status;
 }
@@ -652,7 +629,7 @@ FreeSmbiosOverrideList (
     FreePool (NodeToFree->Key);
     FreePool (NodeToFree->Value);
     FreePool (NodeToFree);
-  }  
+  }
 }
 
 EFI_STATUS
@@ -700,6 +677,5 @@ SmbiosConfigDxeInitialize (
 
 Exit:
   FreeSmbiosOverrideList ();
-
   return Status;
 }

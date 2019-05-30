@@ -17,4 +17,10 @@
 
 #define MAX_VARIABLE_SIZE 100
 
+#define IMX_VARIABLE_SMBIOS_MANUFACTURER        L"System Manufacturer"
+#define IMX_VARIABLE_SMBIOS_PRODUCT_NAME        L"System Product Name"
+#define IMX_VARIABLE_SMBIOS_SKU                 L"System SKU"
+#define IMX_VARIABLE_SMBIOS_FAMILY              L"System Family"
+#define IMX_VARIABLE_SMBIOS_BASEBOARD_PRODUCT   L"Baseboard Product"
+
 #endif // _IMX_VAR_STORE_H_
