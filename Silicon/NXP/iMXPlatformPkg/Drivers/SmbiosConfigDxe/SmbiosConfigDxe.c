@@ -52,6 +52,50 @@ STATIC SMBIOS_OVERRIDE_NODE *mSmbiosOverrideListHead = NULL;
 
 /**
 
+  Checks if the input buffer is in valid "simplified" INI format
+
+  @param[in]  Buffer      Input buffer to be validated
+  @param[in]  BufferSize  Input buffer size
+
+  @retval EFI_SUCCESS     Buffer is a valid "simplified" INI format
+  @retval EFI_NOT_FOUND   Buffer is not a valid "simplified" INI format
+
+**/
+EFI_STATUS
+EFIAPI
+ValidateIniFormat (
+  IN  CHAR8   *Buffer,
+  IN  UINTN   BufferSize
+  )
+{
+  UINTN       CurrentOffset;
+  UINTN       NumEquals;
+  EFI_STATUS  Status;
+
+  NumEquals = 0;
+  CurrentOffset = 0;
+  while (CurrentOffset < BufferSize) {
+    Status = EFI_NOT_FOUND;
+    if (Buffer[CurrentOffset] == '=') {
+      NumEquals++;
+    }
+    if (Buffer[CurrentOffset] == '\n') {
+      if (NumEquals == 0) {
+        Status = EFI_NOT_FOUND;
+        goto Exit;
+      }
+      NumEquals = 0;
+      Status = EFI_SUCCESS;
+    }
+    CurrentOffset++;
+  }
+
+Exit:
+  return Status;
+}
+
+/**
+
   Retrieves the next Key/Value pair from the given INI buffer.
 
   This routine scans through the provided buffer starting at the given offset.
@@ -75,8 +119,13 @@ STATIC SMBIOS_OVERRIDE_NODE *mSmbiosOverrideListHead = NULL;
   @param[out]     Key           Pointer to Unicode string containing Key
   @param[out]     Value         Pointer to Unicode string containing Value
 
-  @retval EFI_SUCCESS             
-  @retval EFI_INVALID_PARAMETER   Bad parameter passed into this function
+  @retval EFI_SUCCESS             Successfully obtained the next Key/Value
+                                  from the INI buffer.
+  @retval EFI_NOT_FOUND           No more valid Key/Value pairs remaining
+                                  in the buffer.
+  @retval EFI_OUT_OF_RESOURCES    Error allocating memory for new Key
+                                  or Value.
+  @retval EFI_INVALID_PARAMETER   Bad parameter passed into this function.
 
 **/
 EFI_STATUS
@@ -180,13 +229,16 @@ GetNextIniKeyValuePair (
 
   // Bounds check on Key and Value
   if ((KeyLength == 0) || (ValueLength == 0)) {
-    Status = EFI_INVALID_PARAMETER;
+    Status = EFI_NOT_FOUND;
     goto Exit;
   }
 
-  if ((KeyLength > MAX_VARIABLE_SIZE) || (ValueLength > MAX_VARIABLE_SIZE)) {
-    Status = EFI_INVALID_PARAMETER;
-    goto Exit;
+  if (KeyLength > (MAX_VARIABLE_SIZE - 1)) {
+    KeyLength = MAX_VARIABLE_SIZE - 1;
+  }
+
+  if (ValueLength > (MAX_VARIABLE_SIZE - 1)) {
+    ValueLength = MAX_VARIABLE_SIZE - 1;
   }
 
   //
@@ -612,6 +664,12 @@ GetSmbiosOverrideData (
   //
   // Scan through the INI file and add its contents into the SmbiosOverride linked list
   //
+  Status = ValidateIniFormat (Buffer, BufferSize);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: INI Format Validation failed (Status=%r)\n", __FUNCTION__, Status));
+    goto Exit;
+  }
+
   Status = PopulateSmbiosOverrideList (Buffer, BufferSize);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "%a: Failed to populate override list (Status=%r)\n", __FUNCTION__, Status));
