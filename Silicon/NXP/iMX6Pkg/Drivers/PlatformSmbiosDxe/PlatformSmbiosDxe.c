@@ -666,63 +666,6 @@ RetrieveSmbiosVariable (
   return Status;
 }
 
-/**
-  Store an SMBIOS variable into UEFI variables.
-
-  This function is for testing until non-volatile UEFI vars are working.
-  TODO: REMOVE THIS FUNCTION BEFORE MERGING INTO MAIN BRANCH.
-
-  @param[in] VariableName         Pointer to the string containing the key name.
-  @param[in] VariableString       Pointer to the SMBIOS string.
-
-  @retval  EFI_STATUS             Status of gRT->GetVariable ()
-
-**/
-EFI_STATUS
-StoreSmbiosVariable (
-  CONST CHAR16 *VariableName,
-  CONST CHAR8 *VariableString
-  )
-{
-  EFI_STATUS            Status;
-
-  Status = gRT->SetVariable (
-                  (CHAR16 *) VariableName,
-                  &giMXPlatformProvisioningGuid,
-                  EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS,
-                  AsciiStrLen (VariableString)+1,
-                  (VOID *) VariableString
-                  );
-
-  return Status;
-}
-
-/**
-  Store an several SMBIOS variable into UEFI variables.
-
-  This function is for testing until non-volatile UEFI vars are working.
-  TODO: REMOVE THIS FUNCTION BEFORE MERGING INTO MAIN BRANCH.
-
-  @retval  EFI_STATUS             Status of StoreSmbiosVariable ()
-
-**/
-EFI_STATUS
-FakeSMBIOSDataInVolatileStorage (
-  VOID
-  )
-{
-  EFI_STATUS            Status;
-
-  Status = StoreSmbiosVariable (mSystemSerialNumberKey, mSystemSerialNumberVal);
-  if (EFI_ERROR (Status)) {
-    return Status;
-  }
-
-  Status = StoreSmbiosVariable (mSystemSkuNumberKey, mSystemSkuNumberVal);
-
-  return Status;
-}
-
 EFI_STATUS
 BiosInfoUpdateSmbiosType0 (
   VOID
@@ -2034,11 +1977,6 @@ PlatformSmbiosDriverEntryPoint (
   )
 {
   EFI_STATUS Status;
-
-  Status = FakeSMBIOSDataInVolatileStorage ();
-  if (EFI_ERROR (Status)) {
-    goto Exit;
-  }
 
   Status = BiosInfoUpdateSmbiosType0 ();
   if (EFI_ERROR (Status)) {
