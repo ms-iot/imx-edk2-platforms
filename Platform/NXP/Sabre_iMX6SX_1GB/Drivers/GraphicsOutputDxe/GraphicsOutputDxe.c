@@ -81,6 +81,11 @@ static VID_DEVICE_PATH g_VidDevicePath =
     }
 }; // copied from iMXVideoDxe.c
 
+VOID
+InitLCD(
+    VOID
+    );
+
 EFI_STATUS
 ConfigureLCD(
     IMX_DISPLAY_TIMING* Timing,
@@ -189,6 +194,9 @@ GraphicsOutputDxeInitialize(
     ZeroMem(&sgInst, sizeof(sgInst));
 
     DEBUG((DEBUG_INFO,"GraphicsOutputDxeInitialize\n"));
+
+    // Initialize basic LCD
+    InitLCD();
 
     // Figure out what the preferred timing
     GetPreferredTiming(&sgInst.PreferredTiming);

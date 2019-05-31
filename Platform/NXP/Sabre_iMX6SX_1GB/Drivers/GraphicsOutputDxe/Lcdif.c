@@ -183,10 +183,10 @@ InitLCD(
     )
 {
     DEBUG((DEBUG_INFO,"InitLCD\n"));
-
+#ifdef LCDIF_CLOCK_CONFIGURATION
     // turn on LCD clocks
     ImxClkPwrLcdClockEnable(IMX6SX_PHYSADDR_LCDIF2);
-
+#endif
     // set run bit
     MmioWrite32(IMX6SX_PHYSADDR_LCDIF2_RL_SET, IMX6SX_LCDIF_RL_RUN);
 
@@ -199,6 +199,7 @@ ConfigureLCD(
     VOID* FrameBuffer
     )
 {
+#ifdef LCDIF_CLOCK_CONFIGURATION
     EFI_STATUS status;
 
     DEBUG((DEBUG_INFO,"ConfigureLCD\n"));
@@ -207,7 +208,7 @@ ConfigureLCD(
         DebugPrint(DEBUG_ERROR, "ConfigureLCD - ImxClkPwrLcdIfEnable failed");
         return status;
     }
-
+#endif
     sResetLCDIF();
 
     // Debug code to allocate as much bandwidth as possible to LCDIF

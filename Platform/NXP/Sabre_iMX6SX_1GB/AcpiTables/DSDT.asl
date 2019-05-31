@@ -34,5 +34,6 @@ DefinitionBlock ("DSDT.aml", "DSDT", 5, "MSFT", "EDK2", 1)
     include("Dsdt-Spi.asl")
     include("Dsdt-Rhp.asl")
     include("Dsdt-TrEE.asl")
+    include("Dsdt-Pwm.asl")
   } // \_SB_
 }
