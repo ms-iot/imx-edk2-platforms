@@ -52,23 +52,3 @@ Device (EPIT)
     Return(0xf)
   }
 }
-
-// Platform Extension Plugin
-Device (PEP0)
-{
-  Name (_HID, "NXP0102")
-  Name (_UID, 0x0)
-  Method (_STA) {
-      Return (0xf)
-  }
-  Name (_CRS, ResourceTemplate () {
-    // CCM request 1
-    Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 119 }
-    // CCM request 2
-    Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 120 }
-    // GPC request 1
-    Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive) { 121 }
-    // UART1
-    Interrupt(ResourceConsumer, Level, ActiveHigh, Shared) { 58 }
-  })
-}

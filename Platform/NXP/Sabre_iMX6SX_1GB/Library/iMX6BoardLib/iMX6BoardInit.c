@@ -637,13 +637,25 @@ typedef enum {
                               IMX_IOMUXC_ENET1_COL_ALT5_GPIO2_IO00),
 } IMX_IMX6Q_PCIE_PADCFG;
 
+typedef enum {
+    IMX_PAD_CFG_SD1_DATA2_ALT2_PWM3_OUT = _IMX_MAKE_PADCFG (
+                              IMX_SRE_SLOW,
+                              IMX_DSE_40_OHM,
+                              IMX_SPEED_MEDIUM,
+                              IMX_ODE_DISABLE,
+                              IMX_PKE_DISABLE,
+                              IMX_PUE_KEEP,
+                              IMX_PUS_100K_OHM_PD,
+                              IMX_HYS_DISABLED,
+                              IMX_SION_DISABLED,
+                              IMX_IOMUXC_SD1_DATA2_ALT2_PWM3_OUT),
+} IMX_IMX6_PWM_PADCFG;
+
 /**
   Initialize SDHC modules on the SOC and perform required pin-muxing
 **/
 VOID SdhcInit ()
 {
-    DebugPrint(0xFFFFFFFF, "VOID SdhcInit()\n");
-
     //
     // uSDHC2: SDIO Socket
     //
@@ -948,7 +960,7 @@ VOID USBInit(VOID)
     //  USB 2.0 Controller Core 1 - USB_OTG2 in HOST mode - regular size A socket (host) - no ID pin
     //
     // OC -- GPIO1_IO11
-    MmioWrite32(IMX6SX_PHYSADDR_IOMUXC + IMX6SX_IOMUXC_OFFSET_SW_MUX_CTL_PAD_GPIO1_IO11, 1);
+    MmioWrite32(IMX6SX_PHYSADDR_IOMUXC + IMX6SX_IOMUXC_OFFSET_SW_MUX_CTL_PAD_GPIO1_IO11, 0);
     MmioWrite32(IMX6SX_PHYSADDR_IOMUXC + IMX6SX_IOMUXC_OFFSET_USB_IPP_IND_OTG2_OC_SELECT_INPUT, 0);
     // PWR -- GPIO1_I12
     MmioWrite32(IMX6SX_PHYSADDR_IOMUXC + IMX6SX_IOMUXC_OFFSET_SW_MUX_CTL_PAD_GPIO1_IO12, 0);
@@ -1081,6 +1093,12 @@ VOID LcdReset ()
     UINT32 value32;
     DEBUG((DEBUG_INFO,"ResetLCDIF2 controller\n"));
 
+    // Stop running of the LCD controller
+    MmioWrite32(IMX6SX_PHYSADDR_LCDIF2_RL_CLR, IMX6SX_LCDIF_RL_RUN);
+    do
+    {
+        value32 = MmioRead32(IMX6SX_PHYSADDR_LCDIF2_RL);
+    } while (value32 & IMX6SX_LCDIF_RL_RUN);
     // reset LCD controller (dancing bits reset procedure)
     MmioWrite32(IMX6SX_PHYSADDR_LCDIF2_RL_CLR, IMX6SX_LCDIF_RL_SFTRST);
     do
@@ -1093,6 +1111,15 @@ VOID LcdReset ()
     {
         value32 = MmioRead32(IMX6SX_PHYSADDR_LCDIF2_RL);
     } while (!(value32 & IMX6SX_LCDIF_RL_CLKGATE));
+}
+
+/**
+  PWM initialization code.
+**/
+VOID PwmInit()
+{
+    ImxPadConfig(IMX_PAD_SD1_DATA2, IMX_PAD_CFG_SD1_DATA2_ALT2_PWM3_OUT);
+    return;
 }
 
 /**
@@ -1115,6 +1142,7 @@ RETURN_STATUS ArmPlatformInitialize(IN UINTN MpId)
     PcieInit();
     SetupAudio();
     LcdReset();
+    PwmInit();
     return RETURN_SUCCESS;
 }
 
