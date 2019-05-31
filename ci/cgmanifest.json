@@ -5,7 +5,7 @@
                 "type": "git",
                 "git": {
                     "repositoryUrl": "https://github.com/tianocore/edk2",
-                    "commitHash": "5a9e23ceb991f3bd0eea74d6b67f9102f65ea6bc"
+                    "commitHash": "8594c2073cdb1065e60f01e9b099918c5e839212"
                 }
             }
         },
