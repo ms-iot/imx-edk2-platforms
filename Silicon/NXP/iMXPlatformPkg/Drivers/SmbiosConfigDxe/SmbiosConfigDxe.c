@@ -644,6 +644,16 @@ GetSmbiosOverrideData (
     goto Exit;
   }
 
+  if (FileInfo->FileSize > SMBIOS_CONFIG_MAX_FILE_SIZE) {
+    Status = EFI_NOT_FOUND;
+    DEBUG ((DEBUG_ERROR,
+            "%a: File size is larger than expected (%d vs %d).\n",
+            __FUNCTION__,
+            FileInfo->FileSize,
+            SMBIOS_CONFIG_MAX_FILE_SIZE));
+    goto Exit;
+  }
+
   BufferSize = (UINTN) FileInfo->FileSize + sizeof (CHAR16);
   Buffer = AllocateZeroPool (BufferSize);
   if (Buffer == NULL) {
@@ -709,7 +719,6 @@ Exit:
   }
   return Status;
 }
-
 
 /**
 

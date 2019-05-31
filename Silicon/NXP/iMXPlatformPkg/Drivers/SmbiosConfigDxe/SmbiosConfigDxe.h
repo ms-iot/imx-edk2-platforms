@@ -31,6 +31,9 @@
 
 #define SMBIOS_CONFIG_OVERRIDE_PRESENT  L"SmbiosOverridePresent"
 
+// Expected Smbios.ini file sizes are <1K bytes so limit valid file sizes to 10x
+#define SMBIOS_CONFIG_MAX_FILE_SIZE     1024 * 10
+
 typedef enum IniParserState {
   StateReadKey,
   StateReadValue,
