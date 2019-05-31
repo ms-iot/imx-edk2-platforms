@@ -31,15 +31,6 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "repositoryUrl": "https://github.com/openssl/openssl",
-                    "commitHash": "74f2d9c1ec5f5510e1d3da5a9f03c28df0977762"
-                }
-            }
-        },
-        {
-            "component": {
-                "type": "git",
-                "git": {
                     "repositoryUrl": "https://github.com/ms-iot/optee_os",
                     "commitHash": "bc454ea594eefeed0ffb4baa1fdc09f47cdc1704"
                 }
