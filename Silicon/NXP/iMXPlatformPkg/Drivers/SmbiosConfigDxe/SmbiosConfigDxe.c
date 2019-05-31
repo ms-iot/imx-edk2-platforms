@@ -35,8 +35,8 @@
   System Family=Contoso Family
   Baseboard Product=Contoso Baseboard
 
-  Note: The last line must end with a newline to ensure the final key-value
-  pair is recorded during INI parsing.
+  Note: The last line must end with a newline character to ensure the last
+  key-value pair is recorded during INI parsing.
 
 **/
 
@@ -172,11 +172,6 @@ GetNextIniKeyValuePair (
   // Loop until end of file or we find a valid key/value pair
   //
   while (CurrentOffset < BufferSize) {
-    if (State == StateValueDone) {
-      Status = EFI_SUCCESS;
-      break;
-    }
-
     switch (State) {
       case StateReadKey:
         if (KeyStart == NULL) {
@@ -221,6 +216,11 @@ GetNextIniKeyValuePair (
         goto Exit;
     }
     CurrentOffset++;
+
+    if (State == StateValueDone) {
+      Status = EFI_SUCCESS;
+      break;
+    }
   }
 
   if (EFI_ERROR (Status)) {
