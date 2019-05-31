@@ -1,5 +1,11 @@
 /** @file
 *
+*  Smbios Configuration Override Driver
+*
+*  This driver reads and populates specific Smbios configuration data from a file
+*  located in a specified partition during boot. The Smbios configuration data is
+*  stored into EFI variables which can be consumed during Smbios table generation.
+*
 *  Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 *
 *  This program and the accompanying materials
