@@ -34,16 +34,15 @@
 #include "Provisioning.h"
 
 STATIC CONST CHAR16 mDeviceProvisioned[] = L"DeviceProvisioned";
-STATIC CONST CHAR16 mDeviceCertVariableName[] = L"ManufacturerDeviceCert";
 STATIC CONST CHAR16 mSmbiosSystemSerialNumberName[] = L"SmbiosSystemSerialNumber";
 
 /**
   Send a request string to the provisioning host and receive a response buffer.
 
-  Send an Ascii string to a remote host, then await 4 bytes for a buffer length,
+  Send an ASCII string to a remote host, then await 4 bytes for a buffer length,
   length bytes of a buffer, then 4 bytes of a buffer checksum.
 
-  @param[in] RequestString    Pointer to the Ascii string to send to the host.
+  @param[in] RequestString    Pointer to the ASCII string to send to the host.
 
   @param[out] Buffer          Double pointer to return the allocated buffer of
                               data received from the host.
@@ -231,7 +230,7 @@ RemoteHostExists ()
   }
   StartEpoch = EfiTimeToEpoch (&Time);
 
-  // Timeout the poll in 5 seconds to allow a device in the field to continue.
+  // Timeout the poll in 5 seconds to allow a wiped device in the field to continue.
   while (SerialPortPoll () == FALSE) {
     Status = gRT->GetTime (&Time, NULL);
     if (EFI_ERROR (Status)) {
@@ -259,24 +258,24 @@ RemoteHostExists ()
 }
 
 /**
-  Retrieve the Endorsement Key Certificate from the TPM and send it to the
+  Retrieve the Endorsement Key Public from the TPM and send it to the
   provisioning host.
 
-  Use the Tcg2Protocol to submit the EK Cert read command to the TPM.
-  If the EK Cert was not persisted to handle 0x81010001, run CreatePrimary
+  Use the Tcg2Protocol to submit the EK Public read command to the TPM.
+  If the EK Public was not persisted to handle 0x81010001, run CreatePrimary
   and EvictControl to generate an Endorsement Key based on EPS and save it into
   non-volatile storage. Run another ReadPublic command to pull it back out.
 
-  Notify the provisioning host to receive the ekcert by sending MFG:ekcert.
+  Notify the provisioning host to receive the EK Public by sending MFG:ekpublic.
 
-  @retval  EFI_SUCCESS           Successfully sent the EK Certificate.
-  @retval  EFI_NOT_FOUND         Unable to retrieve the EK Certificate from TPM
+  @retval  EFI_SUCCESS           Successfully sent the EK Public.
+  @retval  EFI_NOT_FOUND         Unable to retrieve the EK Public from TPM
   @retval  EFI_STATUS            Return the status of gBS->LocateProtocol ().
 
 **/
 EFI_STATUS
 EFIAPI
-TransmitEKCertificate ()
+TransmitEKPublic ()
 {
   UINT32                     i;
   UINT32                     Length;
@@ -314,7 +313,6 @@ TransmitEKCertificate ()
     return Status;
   }
 
-#if 1
   //
   // Send a TPM_CC_ReadPublic directly to the TPM instead of through the TPM
   //  library because we need the unmarshalled buffer back for EK Public.
@@ -338,14 +336,13 @@ TransmitEKCertificate ()
            __FUNCTION__, Status));
     return Status;
   } else if (SwapBytes32 (RecvBuffer.Header.responseCode) == TPM_RC_SUCCESS) {
-    goto SendEKCert;
+    goto SendEKPublic;
   }
-#endif
 
   UINT8 DataBuf [1000] = {0};
   UINT8 *DataPtr;
 
-  DEBUG ((DEBUG_ERROR, "%a: TPM Generating EK Certificate!\n", __FUNCTION__));
+  DEBUG ((DEBUG_ERROR, "%a: TPM Generating EK Credential!\n", __FUNCTION__));
 
   CreatePrimary.Header.tag = SwapBytes16 (TPM_ST_SESSIONS);
   CreatePrimary.Header.commandCode = SwapBytes32 (TPM_CC_CreatePrimary);
@@ -446,7 +443,7 @@ TransmitEKCertificate ()
   }
 
   if (SwapBytes32 (((TPM2_RESPONSE_HEADER*)TpmOut)->responseCode) != TPM_RC_SUCCESS) {
-    DEBUG ((DEBUG_ERROR, "Failed to createprimary in TPM!\n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "Failed to CreatePrimary in TPM!\n", __FUNCTION__));
     return EFI_NOT_FOUND;
   }
 
@@ -458,7 +455,6 @@ TransmitEKCertificate ()
   CopyMem ((void*)&EvictControl.SequenceHandle, (void*)(TpmOut+sizeof (TPM2_RESPONSE_HEADER)), 4);
   AuthorizationSize = SwapBytes32 (SENSITIVE_USER_SZ);
   EvictControl.PersistentHandle = SwapBytes32 (0x81010001);
-
 
   DataPtr = DataBuf;
   FILLBUFSTRUCT(DataPtr, EvictControl.Header);
@@ -519,17 +515,15 @@ TransmitEKCertificate ()
   }
 
   if (SwapBytes32 (RecvBuffer.Header.responseCode) != TPM_RC_SUCCESS) {
-    DEBUG ((DEBUG_ERROR, "%a: Failed to retrieve EK Cert from TPM!\n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: Failed to retrieve EK Public from TPM!\n", __FUNCTION__));
     return EFI_NOT_FOUND;
   }
 
-#if 1
-SendEKCert:
-#endif
+SendEKPublic:
   Length = SwapBytes16 (RecvBuffer.OutPublic.size);
   Length += 2; // Add a Uint16 to send the OutPublic size too
 
-  SEND_REQUEST_TO_HOST ("MFG:ekcert\r\n");
+  SEND_REQUEST_TO_HOST ("MFG:ekpublic\r\n");
   SerialPortWrite ((UINT8*)&Length, 4);
   SerialPortWrite ((UINT8*)&RecvBuffer.OutPublic, Length);
   for (i = 0, SendUint32 = 0; i < Length; i++) {
@@ -541,18 +535,18 @@ SendEKCert:
 }
 
 /**
-  Receive a cross-signed device certificate from the provisioning host.
+  Receive the signed Endorsement Key Certificate from the provisioning host.
 
-  Store the cross-signed device certificate in UEFI variables.
+  Store the signed Endorsement Key Certificate in fTPM non-volatile variables.
 
-  @retval  EFI_SUCCESS           Successfully stored the device certificate.
+  @retval  EFI_SUCCESS           Successfully stored the EK Certificate.
   @retval  EFI_STATUS            Return the status of ReceiveBuffer ().
   @retval  EFI_STATUS            Return the status of gRT->SetVariable ().
 
 **/
 EFI_STATUS
 EFIAPI
-ReceiveCrossSignedCert ()
+ReceiveEKCertificate ()
 {
   UINT32      CertLen;
   UINT8*      CertPtr;
@@ -564,7 +558,7 @@ ReceiveCrossSignedCert ()
                                                 0x00,0x00,0x00,0x00,0x00,0x00,
                                                 0x00,0x00,0x00,0x00,0x00};
 
-  Status = ReceiveBuffer ("MFG:devicecert\r\n", &CertPtr, &CertLen);
+  Status = ReceiveBuffer ("MFG:ekcertificate\r\n", &CertPtr, &CertLen);
   if (EFI_ERROR (Status)) {
     goto cleanup;
   }
@@ -613,18 +607,15 @@ ReceiveCrossSignedCert ()
 // Unable to turn on readlock
   NvPublic.nvPublic.attributes.TPMA_NV_READ_STCLEAR = 0;
 
-
   NvPublic.nvPublic.authPolicy.size = 0;
-  CopyMem(NvPublic.nvPublic.authPolicy.buffer, SensitiveUserData, SENSITIVE_USER_SZ);
+  CopyMem (NvPublic.nvPublic.authPolicy.buffer, SensitiveUserData, SENSITIVE_USER_SZ);
 
   NvPublic.nvPublic.dataSize = CertLen;
 //  NvPublic.nvPublic.dataSize = 0x100;
 
-
   NvPublic.size = sizeof(TPMI_RH_NV_INDEX) + sizeof(TPMI_ALG_HASH) + sizeof(TPMA_NV) + sizeof(UINT16) + sizeof(UINT16) + NvPublic.nvPublic.authPolicy.size;
 
-
-  Status = Tpm2NvDefineSpace(AuthHandle, NULL, &Auth, &NvPublic);
+  Status = Tpm2NvDefineSpace (AuthHandle, NULL, &Auth, &NvPublic);
 
   if (EFI_ERROR (Status)) {
     if (Status == EFI_ALREADY_STARTED) {
@@ -644,7 +635,7 @@ ReceiveCrossSignedCert ()
   InData.size = CertLen;
   CopyMem(InData.buffer, CertPtr, CertLen);
 
-  Status = Tpm2NvWrite(AuthHandle, NvIndex, NULL, &InData, 0);
+  Status = Tpm2NvWrite (AuthHandle, NvIndex, NULL, &InData, 0);
 
   if (EFI_ERROR (Status)) {
     DEBUG ((
@@ -656,32 +647,12 @@ ReceiveCrossSignedCert ()
 
   DEBUG ((DEBUG_ERROR,"About to Tpm2NvRead\n"));
 
-  Status = Tpm2NvRead(AuthHandle, NvIndex, NULL, CertLen, 0, &OutData);
+  Status = Tpm2NvRead (AuthHandle, NvIndex, NULL, CertLen, 0, &OutData);
 
   if (EFI_ERROR (Status)) {
     DEBUG ((
       DEBUG_ERROR,
       "Provisioning: Failed Tpm2NvRead, Status = %x\n",
-      Status
-      ));
-  }
-
-/*
-  Status = gRT->SetVariable (
-                  (CHAR16 *) mDeviceCertVariableName,
-                  &giMXPlatformProvisioningGuid,
-                  EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS |
-                  EFI_VARIABLE_RUNTIME_ACCESS,
-                  CertLen,
-                  (VOID *) CertPtr
-                  );
-*/
-
-  if (EFI_ERROR (Status)) {
-    DEBUG ((
-      DEBUG_ERROR,
-      "Provisioning: Failed to save %s variable, Status = %x\n",
-      mDeviceCertVariableName,
       Status
       ));
   }
@@ -750,8 +721,8 @@ cleanup:
 
   1) Exit immediately if UEFI variables says the device is already provisioned.
   2) Stall for 5 seconds then exit if there's no provisioning host.
-  3) Send the EK Certificate to a provisioning host.
-  4) Receive a device certificate from the provisioning host.
+  3) Send the Endorsement Key Public to a provisioning host.
+  4) Receive an Endorsment Key Certificate from the provisioning host.
   5) Receive a SMBIOS values from the provisioning host.
   6) Store a UEFI variable indicating the device is provisioned.
 
@@ -782,19 +753,19 @@ ProvisioningInitialize (
     return Status;
   }
 
-  Status = TransmitEKCertificate ();
+  Status = TransmitEKPublic ();
   if (EFI_ERROR (Status)) {
-    SEND_REQUEST_TO_HOST ("MFGF:ekcert\r\n");
-    DEBUG ((DEBUG_ERROR, "TransmitEKCertificate failed. 0x%x\n", Status));
+    SEND_REQUEST_TO_HOST ("MFGF:ekpublic\r\n");
+    DEBUG ((DEBUG_ERROR, "TransmitEKPublic failed. 0x%x\n", Status));
     return Status;
   }
 
-  Status = ReceiveCrossSignedCert ();
+  Status = ReceiveEKCertificate ();
   volatile int x = 0;
   while(x);
   if (EFI_ERROR (Status)) {
-    SEND_REQUEST_TO_HOST ("MFGF:devicecert\r\n");
-    DEBUG ((DEBUG_ERROR, "ReceiveCrossSignedCert failed. 0x%x\n", Status));
+    SEND_REQUEST_TO_HOST ("MFGF:ekcertificate\r\n");
+    DEBUG ((DEBUG_ERROR, "ReceiveEKCertificate failed. 0x%x\n", Status));
     return Status;
   }
 

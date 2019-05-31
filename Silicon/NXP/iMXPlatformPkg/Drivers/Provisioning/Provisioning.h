@@ -71,5 +71,4 @@ typedef struct {
 
 #pragma pack()
 
-
 #endif // _PROVISIONING_H_
