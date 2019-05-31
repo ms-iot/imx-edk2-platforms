@@ -42,7 +42,7 @@
   @param[out] Guid                Guid that the variable is stored under.
   @param[out] SmbiosEntry         Pointer to a pointer containing the Smbios record output.
                                   To be allocated by this function.
-  @param[in,out] SmbiosEntryLen   Pointer to the SMBIOS record length.
+  @param[out] SmbiosEntryLen      Pointer to the SMBIOS record length.
 
   @retval  EFI_SUCCESS            SMBIOS string retrieved successfully.
   @retval  EFI_OUT_OF_RESOURCES   Unable to allocate space for the buffer.
@@ -51,10 +51,10 @@
 **/
 EFI_STATUS
 RetrieveSmbiosVariableByGuid (
-  CONST CHAR16 *VariableName,
-  EFI_GUID *Guid,
-  CHAR16 **SmbiosEntry,
-  UINTN *SmbiosEntryLen
+  IN CONST CHAR16   *VariableName,
+  OUT EFI_GUID      *Guid,
+  OUT CHAR16        **SmbiosEntry,
+  OUT UINTN         *SmbiosEntryLen
   )
 {
   CHAR16                *Data;
@@ -104,7 +104,7 @@ RetrieveSmbiosVariableByGuid (
   @param[in] VariableName         Pointer to the string containing the key name.
   @param[out] SmbiosEntry         Pointer to a pointer containing the Smbios record output.
                                   To be allocated by this function.
-  @param[in,out] SmbiosEntryLen   Pointer to the SMBIOS record length.
+  @param[out] SmbiosEntryLen      Pointer to the SMBIOS record length.
 
   @retval  EFI_SUCCESS            SMBIOS string retrieved successfully.
   @retval  EFI_OUT_OF_RESOURCES   Unable to allocate space for the buffer.
@@ -113,9 +113,9 @@ RetrieveSmbiosVariableByGuid (
 **/
 EFI_STATUS
 RetrieveSmbiosVariable (
-  CONST CHAR16 *VariableName,
-  CHAR16 **SmbiosEntry,
-  UINTN *SmbiosEntryLen
+  IN CONST CHAR16   *VariableName,
+  OUT CHAR16        **SmbiosEntry,
+  IN OUT UINTN      *SmbiosEntryLen
   )
 {
   EFI_STATUS Status;

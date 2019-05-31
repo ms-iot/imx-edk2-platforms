@@ -82,24 +82,24 @@ STATIC SMBIOS_OVERRIDE_NODE *mSmbiosOverrideListHead = NULL;
 EFI_STATUS
 EFIAPI
 GetNextIniKeyValuePair (
-  IN CHAR8 *Buffer,
-  IN OUT UINTN *Offset,
-  IN UINTN BufferSize,
-  CHAR16 **Key,
-  CHAR16 **Value
+  IN  CHAR8       *Buffer,
+  IN OUT UINTN    *Offset,
+  IN  UINTN       BufferSize,
+  OUT CHAR16      **Key,
+  OUT CHAR16      **Value
   )
 {
-  EFI_STATUS Status;
-  UINTN CurrentOffset;
-  UINTN KeyLength;
-  UINTN ValueLength;
-  INI_PARSER_STATE State;
-  CHAR8 *KeyStart;
-  CHAR8 *ValueStart;
-  CHAR8 *TempAsciiKey;
-  CHAR8 *TempAsciiValue;
-  CHAR16 *TempUnicodeKey;
-  CHAR16 *TempUnicodeValue;
+  UINTN             CurrentOffset;
+  UINTN             KeyLength;
+  CHAR8             *KeyStart;
+  INI_PARSER_STATE  State;
+  EFI_STATUS        Status;
+  CHAR8             *TempAsciiKey;
+  CHAR8             *TempAsciiValue;
+  CHAR16            *TempUnicodeKey;
+  CHAR16            *TempUnicodeValue;
+  UINTN             ValueLength;
+  CHAR8             *ValueStart;
 
   if ((Buffer == NULL) || (Offset == NULL) ||
       (Key == NULL) || (Value == NULL)) {
@@ -288,13 +288,13 @@ Exit:
 EFI_STATUS
 EFIAPI
 GetSmbiosOverride (
-  CONST CHAR16 *Key,
-  CHAR16 **Value
+  IN  CONST CHAR16  *Key,
+  OUT CHAR16        **Value
   )
 {
-  SMBIOS_OVERRIDE_NODE *Node;
-  EFI_STATUS Status;
-  INTN CompareResult;
+  INTN                  CompareResult;
+  SMBIOS_OVERRIDE_NODE  *Node;
+  EFI_STATUS            Status;
   
   Node = mSmbiosOverrideListHead;
   Status = EFI_NOT_FOUND;
@@ -323,8 +323,8 @@ VOID
 DumpListInfo (
   )
 {
-  SMBIOS_OVERRIDE_NODE *Node;
-  UINTN Count;
+  UINTN                 Count;
+  SMBIOS_OVERRIDE_NODE  *Node;
 
   Count = 0;
   Node = mSmbiosOverrideListHead;
@@ -360,15 +360,15 @@ DumpListInfo (
 EFI_STATUS
 EFIAPI
 PopulateSmbiosOverrideList (
-  CHAR8* Buffer,
-  UINTN BufferSize
+  IN CHAR8    *Buffer,
+  IN UINTN    BufferSize
   )
 {
-  CHAR16 *Key;
-  CHAR16 *Value;
-  UINTN Offset;
-  EFI_STATUS Status;
-  SMBIOS_OVERRIDE_NODE *NewNode;
+  CHAR16                *Key;
+  SMBIOS_OVERRIDE_NODE  *NewNode;
+  UINTN                 Offset;
+  EFI_STATUS            Status;
+  CHAR16                *Value;
 
   Key = NULL;
   Value = NULL;
@@ -418,10 +418,10 @@ ValidateSmbiosOverrideList (
   OUT UINTN *OutRevision
   )
 {
-  EFI_STATUS Status;
-  CHAR16 *Value;
-  INTN CompareResult;
-  UINTN Revision;
+  INTN        CompareResult;
+  UINTN       Revision;
+  EFI_STATUS  Status;
+  CHAR16      *Value;
 
   Status = GetSmbiosOverride (IMX_VARIABLE_SMBIOS_SIGNATURE, &Value);
   if (EFI_ERROR (Status)) {
@@ -459,7 +459,6 @@ Exit:
   return Status;
 }
 
-
 /**
 
   Open configuration file from disk and read the data
@@ -491,18 +490,18 @@ GetSmbiosOverrideData (
   OUT UINTN *Revision
   )
 {
-  VOID *Buffer;
-  UINTN BufferSize;
-  CONST CHAR16 *DevicePathText;
-  EFI_DEVICE_PATH_PROTOCOL *DevicePath;
-  EFI_FILE_HANDLE File;
-  UINTN FileInfoSize;
-  EFI_FILE_INFO *FileInfo;
-  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *Fs;
-  EFI_DEVICE_PATH_PROTOCOL *IntermediateDevicePath;
-  EFI_HANDLE MediaHandle;
-  EFI_FILE_HANDLE RootVolume;
-  EFI_STATUS Status;
+  VOID                              *Buffer;
+  UINTN                             BufferSize;
+  EFI_DEVICE_PATH_PROTOCOL          *DevicePath;
+  CONST CHAR16                      *DevicePathText;
+  EFI_FILE_HANDLE                   File;
+  EFI_FILE_INFO                     *FileInfo;
+  UINTN                             FileInfoSize;
+  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL   *Fs;
+  EFI_DEVICE_PATH_PROTOCOL          *IntermediateDevicePath;
+  EFI_HANDLE                        MediaHandle;
+  EFI_FILE_HANDLE                   RootVolume;
+  EFI_STATUS                        Status;
  
   File = NULL;
   RootVolume = NULL;
@@ -667,8 +666,8 @@ EFIAPI
 CheckSmbiosOverridePresent (
   )
 {
-  UINTN DataSize;
-  EFI_STATUS Status;
+  UINTN       DataSize;
+  EFI_STATUS  Status;
 
   DataSize = 0;
   Status = gRT->GetVariable ((CHAR16 *)SMBIOS_CONFIG_OVERRIDE_PRESENT,
@@ -697,8 +696,8 @@ EFIAPI
 SetSmbiosOverridePresent (
   )
 {
-  UINT8 Data;
-  EFI_STATUS Status;
+  UINT8       Data;
+  EFI_STATUS  Status;
 
   Data = 1;
   Status = gRT->SetVariable ((CHAR16 *)SMBIOS_CONFIG_OVERRIDE_PRESENT,
@@ -725,8 +724,8 @@ SetSmbiosOverridePresent (
 EFI_STATUS
 EFIAPI
 StoreSmbiosOverrideVariable (
-  IN CONST CHAR16* Key,
-  IN CHAR16* Value
+  IN CONST CHAR16   *Key,
+  IN CHAR16         *Value
   )
 {
   EFI_STATUS Status;
@@ -757,11 +756,11 @@ StoreAllSmbiosOverrideVariables (
   IN UINTN Revision
   )
 {
-  EFI_STATUS Status;
-  CHAR16* Value;
-  INTN i;
-  INTN OverrideCount;
-  CONST CHAR16 **OverrideArray;
+  INTN          i;
+  CONST CHAR16  **OverrideArray;
+  INTN          OverrideCount;
+  EFI_STATUS    Status;
+  CHAR16        *Value;
 
   switch (Revision) {
     case 1:
@@ -825,8 +824,8 @@ SmbiosConfigDxeInitialize (
   IN EFI_SYSTEM_TABLE *SystemTable
   )
 {
-  EFI_STATUS Status;
-  UINTN SmbiosOverrideRevision;
+  UINTN       SmbiosOverrideRevision;
+  EFI_STATUS  Status;
 
   //
   // Check if SmbiosOverride is enabled in PCD

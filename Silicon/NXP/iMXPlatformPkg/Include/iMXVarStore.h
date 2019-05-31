@@ -12,8 +12,8 @@
 *
 **/
 
-#ifndef __IMX_VAR_STORE_H__
-#define __IMX_VAR_STORE_H__
+#ifndef _IMX_VAR_STORE_H_
+#define _IMX_VAR_STORE_H_
 
 #define MAX_VARIABLE_SIZE 100
 
