@@ -41,7 +41,8 @@ jobs:
 
     - script: |
         pushd ..
-        git clone --recursive https://github.com/tianocore/edk2
+        echo "EDK2 branch override is \"$(EDK2_BRANCH_OVERRIDE)\""
+        git clone --recursive https://github.com/tianocore/edk2 $(EDK2_BRANCH_OVERRIDE)
         git clone https://github.com/tianocore/edk2-libc.git
         git clone https://github.com/ms-iot/imx-iotcore.git
         popd
