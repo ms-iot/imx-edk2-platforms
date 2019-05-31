@@ -614,7 +614,7 @@ GetSmbiosOverrideData (
   Status = RootVolume->Open (
     RootVolume,
     &File,
-    L"Smbios.ini",
+    SMBIOS_CONFIG_FILE_NAME,
     EFI_FILE_MODE_READ,
     0);
 

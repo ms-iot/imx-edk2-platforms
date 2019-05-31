@@ -30,8 +30,9 @@
 #include <iMXVarStore.h>
 
 #define SMBIOS_CONFIG_OVERRIDE_PRESENT  L"SmbiosOverridePresent"
+#define SMBIOS_CONFIG_FILE_NAME         L"Smbios.ini"
 
-// Expected Smbios.ini file sizes are <1K bytes so limit valid file sizes to 10x
+// Expected Smbios override file size is <1 KB so limit max file sizes to 10 KB
 #define SMBIOS_CONFIG_MAX_FILE_SIZE     1024 * 10
 
 typedef enum IniParserState {
