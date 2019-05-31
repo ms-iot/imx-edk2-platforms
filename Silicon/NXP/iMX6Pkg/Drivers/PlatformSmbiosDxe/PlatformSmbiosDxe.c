@@ -32,24 +32,101 @@
 
 **/
 
-#include <Guid/SmBios.h>
-
-#include <IndustryStandard/SmBios.h>
-
-#include <Library/ArmLib.h>
-#include <Library/BaseLib.h>
-#include <Library/BaseMemoryLib.h>
-#include <Library/DebugLib.h>
-#include <Library/IoLib.h>
-#include <Library/MemoryAllocationLib.h>
-#include <Library/PrintLib.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Library/UefiDriverEntryPoint.h>
-#include <Library/UefiLib.h>
-
-#include <Protocol/Smbios.h>
-
 #include "PlatformSmbiosDxe.h"
+
+/**
+
+  Retrieve an SMBIOS Override variable by GUID from UEFI variables.
+
+  @param[in] VariableName         Pointer to the string containing the key name.
+  @param[out] Guid                Guid that the variable is stored under.
+  @param[out] SmbiosEntry         Pointer to a pointer containing the Smbios record output.
+                                  To be allocated by this function.
+  @param[out] SmbiosEntryLen      Pointer to the SMBIOS record length.
+
+  @retval  EFI_SUCCESS            SMBIOS string retrieved successfully.
+  @retval  EFI_OUT_OF_RESOURCES   Unable to allocate space for the buffer.
+  @retval  EFI_STATUS             Status of gRT->GetVariable ()
+
+**/
+EFI_STATUS
+RetrieveSmbiosVariableByGuid (
+  IN CONST CHAR16   *VariableName,
+  OUT EFI_GUID      *Guid,
+  OUT CHAR16        **SmbiosEntry,
+  OUT UINTN         *SmbiosEntryLen
+  )
+{
+  CHAR16                *Data;
+  UINTN                 DataSize;
+  EFI_STATUS            Status;
+
+  DataSize = 0;
+  Status = gRT->GetVariable (
+                  (CHAR16 *) VariableName,
+                  Guid,
+                  NULL,
+                  &DataSize,
+                  NULL
+                  );
+
+  if (Status == EFI_BUFFER_TOO_SMALL) {
+    Data = AllocatePool (DataSize);
+    if (Data == NULL) {
+      return EFI_OUT_OF_RESOURCES;
+    }
+
+    // Variable data assumed to be stored as Unicode
+    Status = gRT->GetVariable (
+                    (CHAR16 *) VariableName,
+                    Guid,
+                    NULL,
+                    &DataSize,
+                    Data
+                    );
+
+    if (EFI_ERROR (Status)) {
+      FreePool (Data);
+      return Status;
+    }
+
+    *SmbiosEntry = Data;
+    *SmbiosEntryLen = StrnLenS (Data, MAX_VARIABLE_SIZE);
+  }
+
+  return Status;
+}
+
+/**
+
+  Retrieve an SMBIOS Override variable from UEFI NV variables.
+
+  @param[in] VariableName         Pointer to the string containing the key name.
+  @param[out] SmbiosEntry         Pointer to a pointer containing the Smbios record output.
+                                  To be allocated by this function.
+  @param[out] SmbiosEntryLen      Pointer to the SMBIOS record length.
+
+  @retval  EFI_SUCCESS            SMBIOS string retrieved successfully.
+  @retval  EFI_OUT_OF_RESOURCES   Unable to allocate space for the buffer.
+  @retval  EFI_STATUS             Status of gRT->GetVariable ()
+
+**/
+EFI_STATUS
+RetrieveSmbiosVariable (
+  IN CONST CHAR16   *VariableName,
+  OUT CHAR16        **SmbiosEntry,
+  IN OUT UINTN      *SmbiosEntryLen
+  )
+{
+  EFI_STATUS Status;
+  
+  Status = RetrieveSmbiosVariableByGuid (VariableName,
+                            &giMXPlatformSmbiosOverrideGuid,
+                            SmbiosEntry,
+                            SmbiosEntryLen);
+
+  return Status;
+}
 
 // Default SMBIOS Tables for i.MX6
 SMBIOS_TABLE_TYPE0 mBiosInfoType0 = {
@@ -617,36 +694,56 @@ SysInfoUpdateSmbiosType1 (
   )
 {
   CHAR16                *Family;
+  CHAR16                *FamilyOverride;
   GLOBAL_PAGE_DATA      *GlobalDataAddress;
   CHAR16                *Manufacturer;
+  CHAR16                *ManufacturerOverride;
   CHAR8                 *OptionalStrStart;
   CHAR16                *ProductName;
+  CHAR16                *ProductNameOverride;
   CHAR16                *SerialNumber;
   CHAR16                *SkuNumber;
+  CHAR16                *SkuNumberOverride;
   SMBIOS_TABLE_TYPE1    *SmbiosRecord;
   EFI_GUID              *SystemUuidFromPcd;
   EFI_GUID              *SystemUuid;
   CHAR16                *Version;
   UINT64                ProcessorSerialNumber;
   UINTN                 FamilyLen;
+  UINTN                 FamilyOverrideLen;
   UINT32                i;
   UINTN                 ManufacturerLen;
+  UINTN                 ManufacturerOverrideLen;
   UINTN                 ProductNameLen;
+  UINTN                 ProductNameOverrideLen;
   UINTN                 SerialNumberLen;
   UINTN                 SkuNumberLen;
+  UINTN                 SkuNumberOverrideLen;
   EFI_SMBIOS_HANDLE     SmbiosHandle;
   UINT32                SmbiosRecordLen;
   EFI_STATUS            Status;
   UINTN                 VersionLen;
 
+  FamilyOverride = NULL;
+  ManufacturerOverride = NULL;
+  ProductNameOverride = NULL;
+  SkuNumberOverride = NULL;
   SerialNumber = NULL;
   SmbiosRecord = NULL;
   SystemUuid = NULL;
   SmbiosRecordLen = sizeof (SMBIOS_TABLE_TYPE1);
 
   // 04h - Manufacturer String
-  Manufacturer = (CHAR16 *)FixedPcdGetPtr (PcdSystemManufacturer);
-  ManufacturerLen = StrLen (Manufacturer);
+  Status = RetrieveSmbiosVariable (IMX_VARIABLE_SMBIOS_MANUFACTURER,
+                                   &ManufacturerOverride,
+                                   &ManufacturerOverrideLen);
+  if (Status == EFI_SUCCESS) {
+    Manufacturer = ManufacturerOverride;
+    ManufacturerLen = ManufacturerOverrideLen;
+  } else { 
+    Manufacturer = (CHAR16 *)FixedPcdGetPtr (PcdSystemManufacturer);
+    ManufacturerLen = StrLen (Manufacturer);
+  }
   if (ManufacturerLen == 0) {
     DEBUG ((DEBUG_ERROR, "%a: PcdSystemManufacturer not filled\n", __FUNCTION__));
     Status = EFI_INVALID_PARAMETER;
@@ -655,8 +752,16 @@ SysInfoUpdateSmbiosType1 (
   SmbiosRecordLen += ManufacturerLen + 1;
 
   // 05h - Product Name String
-  ProductName = (CHAR16 *)FixedPcdGetPtr (PcdSystemProductName);
-  ProductNameLen = StrLen (ProductName);
+  Status = RetrieveSmbiosVariable (IMX_VARIABLE_SMBIOS_PRODUCT_NAME,
+                                   &ProductNameOverride,
+                                   &ProductNameOverrideLen);
+  if (Status == EFI_SUCCESS) {
+    ProductName = ProductNameOverride;
+    ProductNameLen = ProductNameOverrideLen;
+  } else { 
+    ProductName = (CHAR16 *)FixedPcdGetPtr (PcdSystemProductName);
+    ProductNameLen = StrLen (ProductName);
+  }
   if (ProductNameLen == 0) {
     DEBUG ((DEBUG_ERROR, "%a: PcdSystemProductName not filled\n", __FUNCTION__));
     Status = EFI_INVALID_PARAMETER;
@@ -732,8 +837,16 @@ SysInfoUpdateSmbiosType1 (
   mSysInfoType1.Uuid = *SystemUuid;
 
   // 19h - SKU Number String
-  SkuNumber = (CHAR16 *)FixedPcdGetPtr (PcdSystemSkuNumber);
-  SkuNumberLen = StrLen (SkuNumber);
+  Status = RetrieveSmbiosVariable (IMX_VARIABLE_SMBIOS_SKU,
+                                   &SkuNumberOverride,
+                                   &SkuNumberOverrideLen);
+  if (Status == EFI_SUCCESS) {
+    SkuNumber = SkuNumberOverride;
+    SkuNumberLen = SkuNumberOverrideLen;
+  } else { 
+    SkuNumber = (CHAR16 *)FixedPcdGetPtr (PcdSystemSkuNumber);
+    SkuNumberLen = StrLen (SkuNumber);
+  }
   if (SkuNumberLen == 0) {
     DEBUG ((DEBUG_ERROR, "%a: PcdSystemSkuNumber not filled\n", __FUNCTION__));
     Status = EFI_INVALID_PARAMETER;
@@ -742,8 +855,16 @@ SysInfoUpdateSmbiosType1 (
   SmbiosRecordLen += SkuNumberLen + 1;
 
   // 1Ah - Family String
-  Family = (CHAR16 *)FixedPcdGetPtr (PcdSystemFamily);
-  FamilyLen = StrLen (Family);
+  Status = RetrieveSmbiosVariable (IMX_VARIABLE_SMBIOS_FAMILY,
+                                   &FamilyOverride,
+                                   &FamilyOverrideLen);
+  if (Status == EFI_SUCCESS) {
+    Family = FamilyOverride;
+    FamilyLen = FamilyOverrideLen;
+  } else { 
+    Family = (CHAR16 *)FixedPcdGetPtr (PcdSystemFamily);
+    FamilyLen = StrLen (Family);
+  }
   if (FamilyLen == 0) {
     DEBUG ((DEBUG_ERROR, "%a: PcdSystemFamily not filled\n", __FUNCTION__));
     Status = EFI_INVALID_PARAMETER;
@@ -794,6 +915,18 @@ Exit:
   if (SmbiosRecord != NULL) {
     FreePool (SmbiosRecord);
   }
+  if (ManufacturerOverride != NULL) {
+    FreePool (ManufacturerOverride);
+  }
+  if (ProductNameOverride != NULL) {
+    FreePool (ProductNameOverride);
+  }
+  if (SkuNumberOverride != NULL) {
+    FreePool (SkuNumberOverride);
+  }
+  if (FamilyOverride != NULL) {
+    FreePool (FamilyOverride);
+  }
   return Status;
 }
 
@@ -807,6 +940,7 @@ BoardInfoUpdateSmbiosType2 (
   CHAR16                *Manufacturer;
   CHAR8                 *OptionalStrStart;
   CHAR16                *ProductName;
+  CHAR16                *ProductNameOverride;
   CHAR16                *SerialNumber;
   SMBIOS_TABLE_TYPE2    *SmbiosRecord;
   CHAR16                *Version;
@@ -815,12 +949,14 @@ BoardInfoUpdateSmbiosType2 (
   UINTN                 LocationLen;
   UINTN                 ManufacturerLen;
   UINTN                 ProductNameLen;
+  UINTN                 ProductNameOverrideLen;
   UINTN                 SerialNumberLen;
   EFI_SMBIOS_HANDLE     SmbiosHandle;
   UINT32                SmbiosRecordLen;
   EFI_STATUS            Status;
   UINTN                 VersionLen;
 
+  ProductNameOverride = NULL;
   SerialNumber = NULL;
   SmbiosRecord = NULL;
   SmbiosRecordLen = sizeof (SMBIOS_TABLE_TYPE2);
@@ -836,8 +972,16 @@ BoardInfoUpdateSmbiosType2 (
   SmbiosRecordLen += ManufacturerLen + 1;
 
   // 05h - Product Name String
-  ProductName = (CHAR16 *)FixedPcdGetPtr (PcdBoardProductName);
-  ProductNameLen = StrLen (ProductName);
+  Status = RetrieveSmbiosVariable (IMX_VARIABLE_SMBIOS_BASEBOARD_PRODUCT,
+                                   &ProductNameOverride,
+                                   &ProductNameOverrideLen);
+  if (Status == EFI_SUCCESS) {
+    ProductName = ProductNameOverride;
+    ProductNameLen = ProductNameOverrideLen;
+  } else { 
+    ProductName = (CHAR16 *)FixedPcdGetPtr (PcdBoardProductName);
+    ProductNameLen = StrLen (ProductName);
+  }
   if (ProductNameLen == 0) {
     DEBUG ((DEBUG_ERROR, "%a: PcdBoardProductName not filled\n", __FUNCTION__));
     Status = EFI_INVALID_PARAMETER;
@@ -930,6 +1074,9 @@ Exit:
   }
   if (SmbiosRecord != NULL) {
     FreePool (SmbiosRecord);
+  }
+  if (ProductNameOverride != NULL) {
+    FreePool (ProductNameOverride);
   }
   return Status;
 }

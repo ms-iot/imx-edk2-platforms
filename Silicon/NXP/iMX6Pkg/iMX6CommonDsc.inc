@@ -928,6 +928,11 @@
   Silicon/NXP/iMXPlatformPkg/Drivers/SdhcDxe/SdhcDxe.inf
 
   #
+  # Dynamic Smbios Override
+  #
+  Silicon/NXP/iMXPlatformPkg/Drivers/SmbiosConfigDxe/SmbiosConfigDxe.inf
+
+  #
   # USB Stack
   #
 !if $(CONFIG_USB) == TRUE
