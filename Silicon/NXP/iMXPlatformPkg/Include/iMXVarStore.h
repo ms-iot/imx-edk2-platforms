@@ -15,7 +15,7 @@
 #ifndef _IMX_VAR_STORE_H_
 #define _IMX_VAR_STORE_H_
 
-#define MAX_VARIABLE_SIZE 100
+#define MAX_VARIABLE_SIZE 1024
 
 #define IMX_VARIABLE_SMBIOS_SIGNATURE           L"Signature"
 #define IMX_VARIABLE_SMBIOS_SIGNATURE_VALUE     L"SmbiosOverrideConfigurationTable"

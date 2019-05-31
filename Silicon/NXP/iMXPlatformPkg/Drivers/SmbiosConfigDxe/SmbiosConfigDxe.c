@@ -260,7 +260,7 @@ GetNextIniKeyValuePair (
     Status = EFI_OUT_OF_RESOURCES;
     goto Exit;
   }
-  Status = AsciiStrToUnicodeStrS (TempAsciiKey, TempUnicodeKey, MAX_VARIABLE_SIZE);
+  Status = AsciiStrToUnicodeStrS (TempAsciiKey, TempUnicodeKey, KeyLength);
   if (EFI_ERROR (Status)) {
     goto Exit;
   }
@@ -284,7 +284,7 @@ GetNextIniKeyValuePair (
     Status = EFI_OUT_OF_RESOURCES;
     goto Exit;
   }
-  Status = AsciiStrToUnicodeStrS (TempAsciiValue, TempUnicodeValue, MAX_VARIABLE_SIZE);
+  Status = AsciiStrToUnicodeStrS (TempAsciiValue, TempUnicodeValue, ValueLength);
   if (EFI_ERROR (Status)) {
     goto Exit;
   }
