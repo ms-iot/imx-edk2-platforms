@@ -17,6 +17,15 @@
                     "branch": "master"
                 }
             }
+        },
+        {
+            "component": {
+                "type": "git",
+                "git": {
+                    "repositoryUrl": "https://github.com/Microsoft/MSRSec",
+                    "branch": "master"
+                }
+            }
         }
     ],
     "Version": 1
