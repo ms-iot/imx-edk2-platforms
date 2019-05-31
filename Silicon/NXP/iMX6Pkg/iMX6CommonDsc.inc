@@ -1013,10 +1013,9 @@
 !endif
 
   # Applications
-  MdeModulePkg/Application/HelloWorld/HelloWorld.inf
-  Silicon/NXP/iMX6Pkg/Application/ImxClkPwr/ImxClkPwr.inf
 
 !if $(CONFIG_EDK_TESTS) == TRUE
+#  Silicon/NXP/iMX6Pkg/Application/ImxClkPwr/ImxClkPwr.inf
   Platform/Microsoft/Application/StorageTest/StorageTest.inf
   Platform/Microsoft/Application/AuthVarTest/AuthVarTest.inf
 !endif
