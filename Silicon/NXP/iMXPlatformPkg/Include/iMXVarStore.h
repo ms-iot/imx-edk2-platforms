@@ -17,6 +17,11 @@
 
 #define MAX_VARIABLE_SIZE 100
 
+#define IMX_VARIABLE_SMBIOS_SIGNATURE           L"Signature"
+#define IMX_VARIABLE_SMBIOS_SIGNATURE_VALUE     L"SmbiosOverrideConfigurationTable"
+#define IMX_VARIABLE_SMBIOS_REVISION            L"Revision"
+#define IMX_VARIABLE_SMBIOS_MAX_REVISION        1
+
 #define IMX_VARIABLE_SMBIOS_MANUFACTURER        L"System Manufacturer"
 #define IMX_VARIABLE_SMBIOS_PRODUCT_NAME        L"System Product Name"
 #define IMX_VARIABLE_SMBIOS_SKU                 L"System SKU"

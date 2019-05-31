@@ -14,44 +14,79 @@
 
 #include "SmbiosConfigDxe.h"
 
-#define MAX_SMBIOS_KEY_REV_1 5
-CHAR8* mSmbiosKeyRev1[MAX_SMBIOS_KEY_REV_1] = {"System Manufacturer",
-                                               "System Product Name",
-                                               "System SKU",
-                                               "System Family",
-                                               "Baseboard Product"};
+/**
 
-STATIC CONST CHAR16 mSmbiosOverridePresent[] = L"SmbiosOverridePresent";
+  The SmbiosConfigDxe driver functionality requires a couple Pcd settings
+  to be set prior to use.
+    PcdSmbiosOverrideEnable
+    PcdSmbiosOverrideDevicePath
+
+  This Smbios Config Dxe driver expects the Smbios.ini file to be in a
+  "simplified" INI format with only Key=Value pairs and no [Section] headers.
+  The file is expected to be in ASCII text with either LF or CRLF line endings.
+
+  Example:
+
+  Signature=SmbiosOverrideConfigurationTable
+  Revision=1
+  System Manufacturer=Contoso
+  System Product Name=Contoso Product
+  System SKU=Contoso SKU
+  System Family=Contoso Family
+  Baseboard Product=Contoso Baseboard
+
+  Note: The last line must end with a newline to ensure the final key-value
+  pair is recorded during INI parsing.
+
+**/
+
+#define MAX_SMBIOS_KEY_REV_1 5
+STATIC CONST CHAR16* mSmbiosKeyRev1[MAX_SMBIOS_KEY_REV_1] = {
+                                            IMX_VARIABLE_SMBIOS_MANUFACTURER,
+                                            IMX_VARIABLE_SMBIOS_PRODUCT_NAME,
+                                            IMX_VARIABLE_SMBIOS_SKU,
+                                            IMX_VARIABLE_SMBIOS_FAMILY,
+                                            IMX_VARIABLE_SMBIOS_BASEBOARD_PRODUCT};
 
 STATIC SMBIOS_OVERRIDE_NODE *mSmbiosOverrideListHead = NULL;
 
 /**
 
-  Finds and retrieves the next Key/Value pair from the buffer starting at the
-  given offset.
+  Retrieves the next Key/Value pair from the given INI buffer.
 
   This routine scans through the provided buffer starting at the given offset.
-  It finds the first '"' character and records its location as the start of the Key.
-  Then it continues scanning to find the next '"' instance. The length denotes the KeyLength.
+  The first character is expected to be the start of the Key. The routine
+  iterates through the buffer until it finds "=" character, which signifies
+  the end of the Key. The process repeats for the Value portion and ends
+  when a newline is found.
 
-  We repeat these steps to find the Value position and length.
+  At any point if a failure is detected, the routine bails with an error.
+  If Key and Value are successfully found, allocate and return Unicode strings
+  containing Key/Value and return these to the caller.
 
-  At any point if a failure is detected, the algorithm bails with an error.
+  Note: the caller is responsible for freeing these strings.
 
-  If we successfully find both Key and Value positions and lengths, then allocate/copy
-  these to their respective buffers and return to the caller.
+  @param[in]      Buffer        Input INI buffer with ASCII characters.
+  @param[in out]  Offset        Pointer to starting offset into buffer. When
+                                routine is finished, this pointer is updated
+                                to hold the starting offset of the next INI
+                                key.
+  @param[in]      BufferSize    Total size of the input buffer in bytes.
+  @param[out]     Key           Pointer to Unicode string containing Key
+  @param[out]     Value         Pointer to Unicode string containing Value
 
+  @retval EFI_SUCCESS             
   @retval EFI_INVALID_PARAMETER   Bad parameter passed into this function
 
 **/
 EFI_STATUS
 EFIAPI
 GetNextIniKeyValuePair (
-  CHAR8 *Buffer,
-  UINTN *Offset,
-  UINTN BufferSize,
-  CHAR8 **Key,
-  CHAR8 **Value
+  IN CHAR8 *Buffer,
+  IN OUT UINTN *Offset,
+  IN UINTN BufferSize,
+  CHAR16 **Key,
+  CHAR16 **Value
   )
 {
   EFI_STATUS Status;
@@ -61,8 +96,10 @@ GetNextIniKeyValuePair (
   INI_PARSER_STATE State;
   CHAR8 *KeyStart;
   CHAR8 *ValueStart;
-  CHAR8 *TempKey;
-  CHAR8 *TempValue;
+  CHAR8 *TempAsciiKey;
+  CHAR8 *TempAsciiValue;
+  CHAR16 *TempUnicodeKey;
+  CHAR16 *TempUnicodeValue;
 
   if ((Buffer == NULL) || (Offset == NULL) ||
       (Key == NULL) || (Value == NULL)) {
@@ -73,12 +110,14 @@ GetNextIniKeyValuePair (
   CurrentOffset = *Offset;
   KeyLength = 0;
   ValueLength = 0;
-  Status = EFI_INVALID_PARAMETER;
+  Status = EFI_NOT_FOUND;
   State = StateReadKey;
   KeyStart = NULL;
   ValueStart = NULL;
-  TempKey = NULL;
-  TempValue = NULL;
+  TempAsciiKey = NULL;
+  TempAsciiValue = NULL;
+  TempUnicodeKey = NULL;
+  TempUnicodeValue = NULL;
 
   //
   // Loop until end of file or we find a valid key/value pair
@@ -150,67 +189,120 @@ GetNextIniKeyValuePair (
     goto Exit;
   }
 
-  // Make key entry
-  TempKey = AllocatePool (KeyLength + 1);
-  if (TempKey == NULL) {
+  //
+  // Make Key entry. Two part process. First allocate and create an ASCII copy.
+  // Then allocate and create a Unicode version. The Unicode version will be
+  // returned to the caller.
+  //
+  TempAsciiKey = AllocatePool (KeyLength + 1);
+  if (TempAsciiKey == NULL) {
     Status = EFI_OUT_OF_RESOURCES;
     goto Exit;
   }
-
-  CopyMem (TempKey, KeyStart, KeyLength);
-  TempKey[KeyLength] = '\0';
+  CopyMem (TempAsciiKey, KeyStart, KeyLength);
+  TempAsciiKey[KeyLength] = '\0';
   KeyLength++;
-  DEBUG ((DEBUG_ERROR, "%a: End Key Length %d\n", __FUNCTION__, KeyLength));
 
-  // Make value entry
-  TempValue = AllocatePool (ValueLength + 1);
-  if (TempValue == NULL) {
+  TempUnicodeKey = AllocatePool (KeyLength * sizeof (CHAR16));
+  if (TempUnicodeKey == NULL) {
     Status = EFI_OUT_OF_RESOURCES;
     goto Exit;
   }
+  Status = AsciiStrToUnicodeStrS (TempAsciiKey, TempUnicodeKey, MAX_VARIABLE_SIZE);
+  if (EFI_ERROR (Status)) {
+    goto Exit;
+  }
 
-  CopyMem (TempValue, ValueStart, ValueLength);
-  TempValue[ValueLength] = '\0';
+  //
+  // Make Value entry. Two part process. First allocate and create an ASCII copy.
+  // Then allocate and create a Unicode version. The Unicode version will be
+  // returned to the caller.
+  //
+  TempAsciiValue = AllocatePool (ValueLength + 1);
+  if (TempAsciiValue == NULL) {
+    Status = EFI_OUT_OF_RESOURCES;
+    goto Exit;
+  }
+  CopyMem (TempAsciiValue, ValueStart, ValueLength);
+  TempAsciiValue[ValueLength] = '\0';
   ValueLength++;
-  DEBUG ((DEBUG_ERROR, "%a: End Value Length %d\n", __FUNCTION__, ValueLength));
 
-  *Key = TempKey;
-  *Value = TempValue;
+  TempUnicodeValue = AllocatePool (ValueLength * sizeof (CHAR16));
+  if (TempUnicodeValue == NULL) {
+    Status = EFI_OUT_OF_RESOURCES;
+    goto Exit;
+  }
+  Status = AsciiStrToUnicodeStrS (TempAsciiValue, TempUnicodeValue, MAX_VARIABLE_SIZE);
+  if (EFI_ERROR (Status)) {
+    goto Exit;
+  }
+
+  *Key = TempUnicodeKey;
+  *Value = TempUnicodeValue;
   *Offset = CurrentOffset;
 
 Exit:
+  //
+  // Always free the temporary Ascii buffers
+  //
+  if (TempAsciiKey != NULL) {
+    FreePool (TempAsciiKey);
+  }
+  if (TempAsciiValue != NULL) {
+    FreePool (TempAsciiValue);
+  }
+
+  //
+  // Only free the Unicode buffers on error.
+  // Caller's responsibility to free these on success.
+  //
   if (EFI_ERROR (Status)) {
-    if (TempKey != NULL) {
-      FreePool (TempKey);
+    if (TempUnicodeKey != NULL) {
+      FreePool (TempUnicodeKey);
     }
-    if (TempValue != NULL) {
-      FreePool (TempValue);
+    if (TempUnicodeValue != NULL) {
+      FreePool (TempUnicodeValue);
     }
   }
   return Status;
 }
 
+/**
+
+  Search Smbios Override Linked List for Key and retrieve corresponding value.
+
+  This function walks through the Smbios Override Linked List and compares
+  the stored Key with the input Key. If a match is found, return the corresponding
+  value.
+
+  @param[in] Key      Unicode String of the input Key element.
+  @param[Out] Value   Pointer to a Unicode String that contains the Value
+                      element in the linked list corresponding with the
+                      provided Key element.
+
+  @retval EFI_SUCCESS     Successfully found the Key/Value pair in the Linked
+                          List.
+  @retval EFI_NOT_FOUND   Input Key not found in the Linked List.
+
+**/
 EFI_STATUS
 EFIAPI
 GetSmbiosOverride (
-  CHAR8 *Key,
-  CHAR8 **Value
+  CONST CHAR16 *Key,
+  CHAR16 **Value
   )
 {
   SMBIOS_OVERRIDE_NODE *Node;
   EFI_STATUS Status;
   INTN CompareResult;
-  CHAR16 UnicodeDebugString[MAX_VARIABLE_SIZE];
   
   Node = mSmbiosOverrideListHead;
   Status = EFI_NOT_FOUND;
   while (Node != NULL) {
-    CompareResult = AsciiStrnCmp (Node->Key, Key, AsciiStrnSizeS (Key, MAX_VARIABLE_SIZE));
+    CompareResult = StrnCmp (Node->Key, Key, StrnSizeS (Key, MAX_VARIABLE_SIZE));
     if (CompareResult == 0) {
-      AsciiStrToUnicodeStrS (Node->Key, UnicodeDebugString, MAX_VARIABLE_SIZE);
-      DEBUG ((DEBUG_INFO, "%a: Found Smbios Override Key = %s\n", __FUNCTION__, UnicodeDebugString));
-      AsciiStrToUnicodeStrS (Node->Value, UnicodeDebugString, MAX_VARIABLE_SIZE);
-      DEBUG ((DEBUG_INFO, "%a: Smbios Override Value = %s\n", __FUNCTION__, UnicodeDebugString));
+      DEBUG ((DEBUG_INFO, "%a: Found Smbios Override Key = %s\n", __FUNCTION__, Node->Key));
+      DEBUG ((DEBUG_INFO, "%a: Smbios Override Value = %s\n", __FUNCTION__, Node->Value));
       *Value = Node->Value;
       Status = EFI_SUCCESS;
       goto Exit;
@@ -222,57 +314,26 @@ Exit:
   return Status;
 }
 
-EFI_STATUS
-EFIAPI
-ValidateRevision1 (
-  UINTN Count
-  )
-{
-  CHAR8 *Value;
-  EFI_STATUS Status;
-  INTN i;
-  CHAR16 UnicodeDebugString[MAX_VARIABLE_SIZE];
+/**
 
-  Status = EFI_NOT_FOUND;
+  Prints out the current state of the Smbios Override Linked List to the debug log
 
-  // Validate number of entries
-  // We add 2 to include Signature and Revision entries in our count
-  if (Count > (MAX_SMBIOS_KEY_REV_1 + 2)) {
-    Status = EFI_NOT_FOUND;
-    goto Exit;
-  }
-
-  for (i = 0; i < MAX_SMBIOS_KEY_REV_1; i++) {
-    AsciiStrToUnicodeStrS (mSmbiosKeyRev1[i], UnicodeDebugString, MAX_VARIABLE_SIZE);
-    Status = GetSmbiosOverride (mSmbiosKeyRev1[i], &Value);
-    if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_INFO, "%a: Failed to find Smbios Key %s\n", __FUNCTION__, UnicodeDebugString));
-      continue;
-    }
-    DEBUG ((DEBUG_INFO, "%a: Found %s\n", __FUNCTION__, UnicodeDebugString));
-  }
-  Status = EFI_SUCCESS;
-
-Exit:
-  return Status;
-}
-
+**/
 VOID
 DumpListInfo (
   )
 {
   SMBIOS_OVERRIDE_NODE *Node;
   UINTN Count;
-  UINT16 UnicodeKey[MAX_VARIABLE_SIZE];
-  UINT16 UnicodeValue[MAX_VARIABLE_SIZE];
 
   Count = 0;
   Node = mSmbiosOverrideListHead;
-
   while (Node != NULL) {
-    AsciiStrToUnicodeStr (Node->Key, UnicodeKey);
-    AsciiStrToUnicodeStr (Node->Value, UnicodeValue);
-    DEBUG ((DEBUG_INFO, "%a: Node[%d] = (%s, %s)\n", __FUNCTION__, Count, UnicodeKey, UnicodeValue));
+    if ((Node->Key == NULL) || (Node->Value == NULL)) {
+      DEBUG ((DEBUG_INFO, "%a: Node[%d] Key or Value is NULL. Skip \n", __FUNCTION__, Count));
+    } else {
+      DEBUG ((DEBUG_INFO, "%a: Node[%d] = (%s, %s)\n", __FUNCTION__, Count, Node->Key, Node->Value));
+    }
     Count++;
     Node = Node->Next;
   }
@@ -280,40 +341,47 @@ DumpListInfo (
 
 /**
 
-  Checks the Buffer for valid SMBIOS override parameters and adds valid values to a global list
+  Populates the Smbios Override Linked List.
 
-  @retval EFI_SUCCESS             SMBIOS override parameters were valid and the contents were
-                                  added to the global list.
-  @retval EFI_INVALID_PARAMETER   File does not conform to our expected INI Format
-  @retval EFI_NOT_FOUND           All expected keys could not be found
+  This function extracts every key-value pair from the input INI buffer
+  and creates new nodes into the Smbios Override Linked List.
+
+  @param[in] Buffer       Pointer to input Ascii characters that are in INI
+                          format.
+  @param[in] BufferSize   Size of the input buffer in bytes.
+
+  @retval EFI_SUCCESS             Successfully finished populating the
+                                  linked list.
+  @retval EFI_OUT_OF_RESOURCES    Out of memory error.
+  @retval others                  Error occurred when parsing the input INI
+                                  buffer.
 
 **/
-
 EFI_STATUS
 EFIAPI
-ValidateBufferAndStoreInList (
+PopulateSmbiosOverrideList (
   CHAR8* Buffer,
   UINTN BufferSize
   )
 {
-  EFI_STATUS Status;
-  CHAR8 *Key;
-  CHAR8 *Value;
+  CHAR16 *Key;
+  CHAR16 *Value;
   UINTN Offset;
-  UINTN Count;
-  CONST STATIC CHAR8 Signature[] = "SmbiosOverrideConfigurationTable";
-  INTN CompareResult;
+  EFI_STATUS Status;
   SMBIOS_OVERRIDE_NODE *NewNode;
-  UINT64 Revision;
 
   Key = NULL;
   Value = NULL;
   Offset = 0;
-  Count = 0;
   while (TRUE) {
     Status = GetNextIniKeyValuePair (Buffer, &Offset, BufferSize, &Key, &Value);
+    if (Status == EFI_NOT_FOUND) {
+      // No new key/value pairs
+      Status = EFI_SUCCESS;
+      goto Exit;
+    }
     if (EFI_ERROR (Status)) {
-      break;
+      goto Exit;
     }
 
     DEBUG ((DEBUG_INFO, "%a: Found new Key/Value pair \n", __FUNCTION__));
@@ -327,48 +395,100 @@ ValidateBufferAndStoreInList (
     NewNode->Value = Value;
     NewNode->Next = mSmbiosOverrideListHead;
     mSmbiosOverrideListHead = NewNode;
-    Count++;
-  }
-
-  // Check Signature
-  Status = GetSmbiosOverride ("Signature", &Value);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: Smbios Override signature entry not found\n", __FUNCTION__));
-    goto Exit;
-  }
-
-  CompareResult = AsciiStrnCmp (Signature, Value, AsciiStrnSizeS (Signature, MAX_VARIABLE_SIZE));
-  if (CompareResult != 0) {
-    DEBUG ((DEBUG_ERROR, "%a: Smbios Override signature incorrect %d \n", __FUNCTION__, CompareResult));
-    Status = EFI_NOT_FOUND;
-    goto Exit;
-  }
-
-  // Check revision
-  Status = GetSmbiosOverride ("Revision", &Value);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: Revision entry not found\n", __FUNCTION__));
-    goto Exit;
-  }
-
-  Revision = AsciiStrDecimalToUintn (Value);
-  switch (Revision) {
-    case 1:
-    Status = ValidateRevision1 (Count);
-    break;
-    default:
-    DEBUG ((DEBUG_ERROR, "%a: Revision not supported\n", __FUNCTION__));
-    Status = EFI_NOT_FOUND;
-    break;
   }
 
 Exit:
   return Status;
 }
 
+/**
+
+  Checks the Smbios Override linked list's signature and revision
+
+  @param[out] OutRevision     Pointer to UINTN that contains the revision of
+                              the config file
+
+  @retval EFI_SUCCESS         Valid Smbios Override signature and revision
+  @retval EFI_NOT_FOUND       Config file missing signature or revision fields
+
+**/
+EFI_STATUS
+EFIAPI
+ValidateSmbiosOverrideList (
+  OUT UINTN *OutRevision
+  )
+{
+  EFI_STATUS Status;
+  CHAR16 *Value;
+  INTN CompareResult;
+  UINTN Revision;
+
+  Status = GetSmbiosOverride (IMX_VARIABLE_SMBIOS_SIGNATURE, &Value);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: Smbios signature entry not found\n", __FUNCTION__));
+    goto Exit;
+  }
+
+  CompareResult = StrnCmp (IMX_VARIABLE_SMBIOS_SIGNATURE_VALUE,
+                           Value,
+                           StrnSizeS (IMX_VARIABLE_SMBIOS_SIGNATURE_VALUE,
+                                      MAX_VARIABLE_SIZE)
+                          );
+  if (CompareResult != 0) {
+    DEBUG ((DEBUG_ERROR, "%a: Smbios signature incorrect\n", __FUNCTION__));
+    Status = EFI_NOT_FOUND;
+    goto Exit;
+  }
+
+  Status = GetSmbiosOverride (IMX_VARIABLE_SMBIOS_REVISION, &Value);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: Revision entry not found\n", __FUNCTION__));
+    goto Exit;
+  }
+
+  Revision = StrDecimalToUintn (Value);
+  if (Revision > IMX_VARIABLE_SMBIOS_MAX_REVISION) {
+    DEBUG ((DEBUG_ERROR, "%a: Revision not supported\n", __FUNCTION__));
+    Status = EFI_NOT_FOUND;
+    goto Exit;
+  }
+
+  *OutRevision = Revision;
+
+Exit:
+  return Status;
+}
+
+
+/**
+
+  Open configuration file from disk and read the data
+
+  This function locates the disk using the PcdSmbiosOverrideDevicePath and
+  attempts to open the Smbios.ini file. If successful, the whole file is read into
+  a buffer.
+
+  The contents of the file are expected to be in INI format with ASCII characters and
+  either LF or CRLF line endings.
+  
+  The function scans through the buffer and extracts out the Key/Value pairs from the
+  INI file and adds those pairs to linked list (mSmbiosOverrideListHead) for quick
+  retrieval by other functions.
+
+  Once this is complete, the file can be closed.
+
+  @param[out] Revision     Pointer to UINTN that contains the Revision value
+
+  @retval EFI_SUCCESS             Override file found and data successfully retrieved
+  @retval EFI_INVALID_PARAMETER   Pcd Device path was malformed.
+  @retval Other                   Some error occurred when opening the file or parsing
+                                  the INI contents.
+
+**/
 EFI_STATUS
 EFIAPI
 GetSmbiosOverrideData (
+  OUT UINTN *Revision
   )
 {
   VOID *Buffer;
@@ -392,7 +512,7 @@ GetSmbiosOverrideData (
   Fs = NULL;
 
   //
-  // Find file using Pcd device path
+  // Find Smbios.ini file starting with Pcd device path
   //
   DevicePathText = (CONST CHAR16 *) FixedPcdGetPtr (PcdSmbiosOverrideDevicePath);
   if ((DevicePathText == NULL) || (*DevicePathText == L'\0')) {
@@ -414,7 +534,6 @@ GetSmbiosOverrideData (
     &MediaHandle);
 
   if (Status == EFI_NOT_FOUND) {
-    Status = EFI_SUCCESS;
     DEBUG ((DEBUG_INFO,"%a: %s FAT partition is not ready yet\n", __FUNCTION__, DevicePathText));
     goto Exit;
   }
@@ -491,7 +610,16 @@ GetSmbiosOverrideData (
     goto Exit;
   }
 
-  Status = ValidateBufferAndStoreInList (Buffer, BufferSize);
+  //
+  // Scan through the INI file and add its contents into the SmbiosOverride linked list
+  //
+  Status = PopulateSmbiosOverrideList (Buffer, BufferSize);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: Failed to populate override list (Status=%r)\n", __FUNCTION__, Status));
+    goto Exit;
+  }
+
+  Status = ValidateSmbiosOverrideList (Revision);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "%a: Buffer Validation failed (Status=%r)\n", __FUNCTION__, Status));
   }
@@ -525,6 +653,15 @@ Exit:
   return Status;
 }
 
+
+/**
+
+  Check whether the SmbiosOverridePresent variable is inside our NV store
+
+  @retval EFI_SUCCESS     SmbiosOverridePresent variable present in NV store
+  @retval EFI_NOT_READY   SmbiosOverridePresent variable does not exist in NV store
+
+**/
 EFI_STATUS
 EFIAPI
 CheckSmbiosOverridePresent (
@@ -534,7 +671,7 @@ CheckSmbiosOverridePresent (
   EFI_STATUS Status;
 
   DataSize = 0;
-  Status = gRT->GetVariable ((CHAR16 *)mSmbiosOverridePresent,
+  Status = gRT->GetVariable ((CHAR16 *)SMBIOS_CONFIG_OVERRIDE_PRESENT,
                   &giMXPlatformSmbiosOverrideGuid,
                   NULL,
                   &DataSize,
@@ -547,6 +684,14 @@ CheckSmbiosOverridePresent (
   return EFI_NOT_READY;
 }
 
+/**
+
+  Store the SmbiosOverridePresent variable into NV store
+
+  @retval EFI_SUCCESS   Variable successfully stored
+  @retval Other         Some error occurred when attempting to store a variable
+
+**/
 EFI_STATUS
 EFIAPI
 SetSmbiosOverridePresent (
@@ -556,7 +701,7 @@ SetSmbiosOverridePresent (
   EFI_STATUS Status;
 
   Data = 1;
-  Status = gRT->SetVariable ((CHAR16 *)mSmbiosOverridePresent,
+  Status = gRT->SetVariable ((CHAR16 *)SMBIOS_CONFIG_OVERRIDE_PRESENT,
                   &giMXPlatformSmbiosOverrideGuid,
                   EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS |
                   EFI_VARIABLE_RUNTIME_ACCESS,
@@ -566,16 +711,27 @@ SetSmbiosOverridePresent (
   return Status;
 }
 
+/**
+
+  Store a single Smbios Override variable into NV store
+
+  @param[in]  Key     Unicode string of key to store into NV store
+  @param[in]  Value   Unicode string of value to store into NV variable
+
+  @retval EFI_SUCCESS   Override variable successfully stored
+  @retval Other         Some error occurred when attempting to store a variable
+
+**/
 EFI_STATUS
 EFIAPI
 StoreSmbiosOverrideVariable (
-  CHAR16* Key,
-  CHAR16* Value
+  IN CONST CHAR16* Key,
+  IN CHAR16* Value
   )
 {
   EFI_STATUS Status;
 
-  Status = gRT->SetVariable (Key,
+  Status = gRT->SetVariable ((CHAR16 *)Key,
                 &giMXPlatformSmbiosOverrideGuid,
                 EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS,
                 StrnSizeS (Value, MAX_VARIABLE_SIZE),
@@ -584,34 +740,64 @@ StoreSmbiosOverrideVariable (
   return Status;
 }
 
+/**
+
+  Store the Smbios Override variables into NV store based on Revision version
+
+  @param[in]  Revision  Revision number to use to decide which override
+                        variables to search for
+
+  @retval EFI_SUCCESS   Override variables successfully stored into NV variables
+  @retval Other         Some error occurred when attempting to store a variable
+
+**/
 EFI_STATUS
 EFIAPI
 StoreAllSmbiosOverrideVariables (
+  IN UINTN Revision
   )
 {
-  CHAR16 UnicodeKey[MAX_VARIABLE_SIZE];
-  CHAR16 UnicodeValue[MAX_VARIABLE_SIZE];
   EFI_STATUS Status;
-  SMBIOS_OVERRIDE_NODE *Node;
+  CHAR16* Value;
+  INTN i;
+  INTN OverrideCount;
+  CONST CHAR16 **OverrideArray;
 
-  Node = mSmbiosOverrideListHead;
-  Status = EFI_NOT_READY;
+  switch (Revision) {
+    case 1:
+      OverrideCount = MAX_SMBIOS_KEY_REV_1;
+      OverrideArray = mSmbiosKeyRev1;
+    break;
+    default:
+      Status = EFI_INVALID_PARAMETER;
+      DEBUG ((DEBUG_ERROR, "%a: Revision not supported\n", __FUNCTION__));
+      goto Exit;
+    break;
+  }
 
-  while (Node != NULL) {
-    AsciiStrToUnicodeStrS (Node->Key, UnicodeKey, MAX_VARIABLE_SIZE);
-    AsciiStrToUnicodeStrS (Node->Value, UnicodeValue, MAX_VARIABLE_SIZE);
-    Status = StoreSmbiosOverrideVariable (UnicodeKey, UnicodeValue);
+  for (i = 0; i < OverrideCount; i++) {
+    Status = GetSmbiosOverride (OverrideArray[i], &Value);
+    if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_INFO, "%a: Failed to find Smbios Key %s\n", __FUNCTION__, OverrideArray[i]));
+      continue;
+    }
+    Status = StoreSmbiosOverrideVariable (OverrideArray[i], Value);
     if (EFI_ERROR (Status)) {
       goto Exit;
     }
-    Node = Node->Next;
   }
+
   Status = EFI_SUCCESS;
 
 Exit:
   return Status;
 }
 
+/**
+
+  Free nodes in the module's Smbios Override Linked List
+
+**/
 VOID
 FreeSmbiosOverrideList (
   )
@@ -640,13 +826,19 @@ SmbiosConfigDxeInitialize (
   )
 {
   EFI_STATUS Status;
+  UINTN SmbiosOverrideRevision;
 
+  //
+  // Check if SmbiosOverride is enabled in PCD
+  //
   if (FixedPcdGet32 (PcdSmbiosOverrideEnable) == FALSE) {
     DEBUG ((DEBUG_INFO, "%a: PcdSmbiosOverride Not Enabled\n", __FUNCTION__));
     return EFI_SUCCESS;
   }
 
+  //
   // Check if an Smbios override config was previously set
+  //
   Status = CheckSmbiosOverridePresent ();
   if (Status == EFI_SUCCESS) {
     DEBUG ((DEBUG_INFO, "%a: Smbios Override Locked\n", __FUNCTION__));
@@ -654,22 +846,28 @@ SmbiosConfigDxeInitialize (
   }
   DEBUG ((DEBUG_INFO, "%a: Smbios Override Unlocked\n", __FUNCTION__));
 
+  //
   // Lock down config no matter the result
+  //
   Status = SetSmbiosOverridePresent ();
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "%a: Failed to set SmbiosOverridePresent (Status=%r)\n", __FUNCTION__, Status));
     goto Exit;
   }
 
+  //
   // Read Smbios Override file from filesystem
-  Status = GetSmbiosOverrideData ();
+  //
+  Status = GetSmbiosOverrideData (&SmbiosOverrideRevision);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "%a: Failed to read Smbios Override Data (Status=%r)\n", __FUNCTION__, Status));
     goto Exit;  
   }
 
+  //
   // Store override data in NV variable
-  Status = StoreAllSmbiosOverrideVariables ();
+  //
+  Status = StoreAllSmbiosOverrideVariables (SmbiosOverrideRevision);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "%a: Failed store to NV (Status=%r)\n", __FUNCTION__, Status));
     goto Exit;

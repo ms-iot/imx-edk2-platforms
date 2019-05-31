@@ -29,6 +29,8 @@
 
 #include <iMXVarStore.h>
 
+#define SMBIOS_CONFIG_OVERRIDE_PRESENT  L"SmbiosOverridePresent"
+
 typedef enum IniParserState {
   StateReadKey,
   StateReadValue,
@@ -38,8 +40,8 @@ typedef enum IniParserState {
 } INI_PARSER_STATE;
 
 typedef struct SmbiosOverrideNode {
-  CHAR8 *Key;
-  CHAR8 *Value;
+  CHAR16 *Key;
+  CHAR16 *Value;
   struct SmbiosOverrideNode *Next;
 } SMBIOS_OVERRIDE_NODE;
 
