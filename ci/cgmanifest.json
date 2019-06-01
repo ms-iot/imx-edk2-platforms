@@ -4,7 +4,7 @@
             "component": {
                 "type": "git",
                 "git": {
-                    "repositoryUrl": "https://github.com/tianocore/edk2",
+                    "repositoryUrl": "https://github.com/ms-iot/edk2",
                     "commitHash": "8594c2073cdb1065e60f01e9b099918c5e839212"
                 }
             }
