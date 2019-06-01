@@ -36,21 +36,7 @@
 
 /**
 
-<<<<<<< 21d8873ad03c70b07d985869e4c7f85c89a8c3d9
   Retrieve an SMBIOS Override variable by GUID from UEFI variables.
-=======
-#include <Library/ArmLib.h>
-#include <Library/BaseLib.h>
-#include <Library/BaseMemoryLib.h>
-#include <Library/DebugLib.h>
-#include <Library/IoLib.h>
-#include <Library/MemoryAllocationLib.h>
-#include <Library/PrintLib.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Library/UefiRuntimeServicesTableLib.h>
-#include <Library/UefiDriverEntryPoint.h>
-#include <Library/UefiLib.h>
->>>>>>> Add support to pull SMBIOS values out of UEFI vars
 
   @param[in] VariableName         Pointer to the string containing the key name.
   @param[out] Guid                Guid that the variable is stored under.
@@ -133,11 +119,17 @@ RetrieveSmbiosVariable (
   )
 {
   EFI_STATUS Status;
-  
+
   Status = RetrieveSmbiosVariableByGuid (VariableName,
-                            &giMXPlatformSmbiosOverrideGuid,
+                            &giMXPlatformProvisioningGuid,
                             SmbiosEntry,
                             SmbiosEntryLen);
+  if (EFI_ERROR(Status)) {
+    Status = RetrieveSmbiosVariableByGuid (VariableName,
+                              &giMXPlatformSmbiosOverrideGuid,
+                              SmbiosEntry,
+                              SmbiosEntryLen);
+  }
 
   return Status;
 }
@@ -588,84 +580,6 @@ GetImx6SerialNumber (
   return ProcessorSerialNumber;
 }
 
-// Key/Value pairs for SMBIOS variables to pull from UEFI vars.
-// The values are here for testing and can be removed once persistent
-// storage is available.
-STATIC CONST CHAR16  mSystemSerialNumberKey[] = L"SmbiosSystemSerialNumber";
-STATIC CONST CHAR8   mSystemSerialNumberVal[] = "SerialNumberFromUEFIVars\0";
-
-STATIC CONST CHAR16  mSystemSkuNumberKey[] = L"SmbiosSystemSkuNumber";
-STATIC CONST CHAR8   mSystemSkuNumberVal[] = "ActualSkuFromUEFIVars\0";
-
-/**
-  Retrieve an SMBIOS variable from UEFI variables.
-
-  @param[in] VariableName         Pointer to the string containing the key name.
-
-  @param[out] SmbiosEntry         Pointer to return the SMBIOS string.
-  @param[out] SmbiosEntryLen      Length of the string retrieved for SMBIOS var.
-  @param[in,out] SmbiosRecordLen  Pointer to the SMBIOS record length so this
-                                  function can increment it for the caller.
-
-  @retval  EFI_SUCCESS            SMBIOS string retrieved successfully.
-  @retval  EFI_OUT_OF_RESOURCES   Unable to allocate space for the buffer.
-  @retval  EFI_STATUS             Status of gRT->GetVariable ()
-
-**/
-EFI_STATUS
-RetrieveSmbiosVariable (
-  CONST CHAR16 *VariableName,
-  CHAR16 *SmbiosEntry,
-  UINTN *SmbiosEntryLen,
-  UINT32 *SmbiosRecordLen
-  )
-{
-  CHAR8                 *Data;
-  UINTN                 DataSize;
-  EFI_STATUS            Status;
-
-  DataSize = 0;
-  Status = gRT->GetVariable (
-                  (CHAR16 *) VariableName,
-                  &giMXPlatformProvisioningGuid,
-                  NULL,
-                  &DataSize,
-                  NULL
-                  );
-
-  if (Status == EFI_BUFFER_TOO_SMALL) {
-    Data = AllocatePool (DataSize);
-    if (Data == NULL) {
-      return EFI_OUT_OF_RESOURCES;
-    }
-
-    Status = gRT->GetVariable (
-                    (CHAR16 *) VariableName,
-                    &giMXPlatformProvisioningGuid,
-                    NULL,
-                    &DataSize,
-                    Data
-                    );
-
-    if (EFI_ERROR (Status)) {
-      FreePool (Data);
-      return Status;
-    }
-
-    (VOID)UnicodeSPrintAsciiFormat (SmbiosEntry,
-                                    sizeof (CHAR16) * SMBIOS_STRING_MAX_LENGTH,
-                                    Data
-                                    );
-
-    *SmbiosEntryLen = StrLen (SmbiosEntry);
-    *SmbiosRecordLen += *SmbiosEntryLen + 1;
-
-    FreePool (Data);
-  }
-
-  return Status;
-}
-
 EFI_STATUS
 BiosInfoUpdateSmbiosType0 (
   VOID
@@ -872,17 +786,16 @@ SysInfoUpdateSmbiosType1 (
   SmbiosRecordLen += VersionLen + 1;
 
   // 07h - Serial Number String
-  ProcessorSerialNumber = GetImx6SerialNumber ();
-  SerialNumber = AllocateZeroPool (sizeof (CHAR16) * SMBIOS_STRING_MAX_LENGTH);
-  if (SerialNumber == NULL) {
-    Status = EFI_OUT_OF_RESOURCES;
-    goto Exit;
-  }
-
-  Status = RetrieveSmbiosVariable (mSystemSerialNumberKey,
-                                   SerialNumber, &SerialNumberLen,
-                                   &SmbiosRecordLen);
-  if (Status != EFI_SUCCESS) {
+  Status = RetrieveSmbiosVariable (IMX_VARIABLE_SMBIOS_SERIAL,
+                                   &SerialNumber,
+                                   &SerialNumberLen);
+  if (EFI_ERROR (Status)) {
+    ProcessorSerialNumber = GetImx6SerialNumber ();
+    SerialNumber = AllocateZeroPool (sizeof (CHAR16) * SMBIOS_STRING_MAX_LENGTH);
+    if (SerialNumber == NULL) {
+      Status = EFI_OUT_OF_RESOURCES;
+      goto Exit;
+    }
     (VOID)UnicodeSPrintAsciiFormat (SerialNumber,
                                     sizeof (CHAR16) * SMBIOS_STRING_MAX_LENGTH,
                                     "%08X%08X",
@@ -890,8 +803,8 @@ SysInfoUpdateSmbiosType1 (
                                     (UINT32)ProcessorSerialNumber
                                     );
     SerialNumberLen = StrLen (SerialNumber);
-    SmbiosRecordLen += SerialNumberLen + 1;
   }
+  SmbiosRecordLen += SerialNumberLen + 1;
 
   // 08h - UUID
   // RFC4122 - Initial UUID must be the same across all boards of the same type
@@ -935,26 +848,22 @@ SysInfoUpdateSmbiosType1 (
   mSysInfoType1.Uuid = *SystemUuid;
 
   // 19h - SKU Number String
-  SkuNumber = AllocateZeroPool (sizeof (CHAR16) * SMBIOS_STRING_MAX_LENGTH);
-  if (SkuNumber == NULL) {
-    Status = EFI_OUT_OF_RESOURCES;
-    goto Exit;
-  }
-
-  Status = RetrieveSmbiosVariable (mSystemSkuNumberKey,
-                                   SkuNumber, &SkuNumberLen,
-                                   &SmbiosRecordLen);
-  if (Status != EFI_SUCCESS) {
-    FreePool (SkuNumber);
+  Status = RetrieveSmbiosVariable (IMX_VARIABLE_SMBIOS_SKU,
+                                   &SkuNumberOverride,
+                                   &SkuNumberOverrideLen);
+  if (Status == EFI_SUCCESS) {
+    SkuNumber = SkuNumberOverride;
+    SkuNumberLen = SkuNumberOverrideLen;
+  } else { 
     SkuNumber = (CHAR16 *)FixedPcdGetPtr (PcdSystemSkuNumber);
     SkuNumberLen = StrLen (SkuNumber);
-    if (SkuNumberLen == 0) {
-      DEBUG ((DEBUG_ERROR, "%a: PcdSystemSkuNumber not filled\n", __FUNCTION__));
-      Status = EFI_INVALID_PARAMETER;
-      goto Exit;
-    }
-    SmbiosRecordLen += SkuNumberLen + 1;
   }
+  if (SkuNumberLen == 0) {
+    DEBUG ((DEBUG_ERROR, "%a: PcdSystemSkuNumber not filled\n", __FUNCTION__));
+    Status = EFI_INVALID_PARAMETER;
+    goto Exit;
+  }
+  SmbiosRecordLen += SkuNumberLen + 1;
 
   // 1Ah - Family String
   Status = RetrieveSmbiosVariable (IMX_VARIABLE_SMBIOS_FAMILY,
@@ -1013,9 +922,6 @@ Exit:
   }
   if (SystemUuid != NULL) {
     FreePool (SystemUuid);
-  }
-  if ((SkuNumber != NULL) && (SkuNumber != FixedPcdGetPtr (PcdSystemSkuNumber))) {
-    FreePool (SkuNumber);
   }
   if (SmbiosRecord != NULL) {
     FreePool (SmbiosRecord);

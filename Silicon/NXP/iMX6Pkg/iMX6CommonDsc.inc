@@ -928,15 +928,12 @@
   Silicon/NXP/iMXPlatformPkg/Drivers/SdhcDxe/SdhcDxe.inf
 
   #
-<<<<<<< c75776f4c7eb7f265432815a278262b066035946
   # Dynamic Smbios Override
   #
   Silicon/NXP/iMXPlatformPkg/Drivers/SmbiosConfigDxe/SmbiosConfigDxe.inf
 
-  # ProvisioningProvisioning
-=======
+  #
   # Provisioning
->>>>>>> Update Provisioning driver to fit UEFI style
   #
   Silicon/NXP/iMXPlatformPkg/Drivers/Provisioning/Provisioning.inf {
     <LibraryClasses>

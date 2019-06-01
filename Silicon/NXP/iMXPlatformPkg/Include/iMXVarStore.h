@@ -25,6 +25,7 @@
 #define IMX_VARIABLE_SMBIOS_MANUFACTURER        L"System Manufacturer"
 #define IMX_VARIABLE_SMBIOS_PRODUCT_NAME        L"System Product Name"
 #define IMX_VARIABLE_SMBIOS_SKU                 L"System SKU"
+#define IMX_VARIABLE_SMBIOS_SERIAL              L"System Serial Number"
 #define IMX_VARIABLE_SMBIOS_FAMILY              L"System Family"
 #define IMX_VARIABLE_SMBIOS_BASEBOARD_PRODUCT   L"Baseboard Product"
 

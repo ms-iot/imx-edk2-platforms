@@ -32,9 +32,9 @@
 #include <Protocol/Tcg2Protocol.h>
 
 #include "Provisioning.h"
+#include <iMXVarStore.h>
 
 STATIC CONST CHAR16 mDeviceProvisioned[] = L"DeviceProvisioned";
-STATIC CONST CHAR16 mSmbiosSystemSerialNumberName[] = L"SmbiosSystemSerialNumber";
 
 /**
   Send a request string to the provisioning host and receive a response buffer.
@@ -684,26 +684,47 @@ ReceiveSmbiosValues ()
   UINT32      SmbiosLen;
   UINT8*      SmbiosPtr;
   EFI_STATUS  Status;
+  CHAR16      *TempUnicodeValue;
+  CHAR8       *TempAsciiValue;
 
   Status = ReceiveBuffer ("MFG:smbiossystemserial\r\n", &SmbiosPtr, &SmbiosLen);
   if (EFI_ERROR (Status)) {
     goto cleanup;
   }
 
+  TempAsciiValue = AllocatePool (SmbiosLen + 1);
+  if (TempAsciiValue == NULL) {
+    Status = EFI_OUT_OF_RESOURCES;
+    goto cleanup;
+  }
+  CopyMem (TempAsciiValue, SmbiosPtr, SmbiosLen);
+  TempAsciiValue[SmbiosLen] = '\0';
+  SmbiosLen++;
+
+  TempUnicodeValue = AllocatePool (SmbiosLen * sizeof (CHAR16));
+  if (TempUnicodeValue == NULL) {
+    Status = EFI_OUT_OF_RESOURCES;
+    goto cleanup;
+  }
+  Status = AsciiStrToUnicodeStrS (TempAsciiValue, TempUnicodeValue, SmbiosLen);
+  if (EFI_ERROR (Status)) {
+    goto cleanup;
+  }
+
   Status = gRT->SetVariable (
-                  (CHAR16 *) mSmbiosSystemSerialNumberName,
+                  (CHAR16 *) IMX_VARIABLE_SMBIOS_SERIAL,
                   &giMXPlatformProvisioningGuid,
                   EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS |
                   EFI_VARIABLE_RUNTIME_ACCESS,
-                  SmbiosLen,
-                  (VOID *) SmbiosPtr
+                  SmbiosLen * sizeof (CHAR16),
+                  (VOID *)TempUnicodeValue
                   );
 
   if (EFI_ERROR (Status)) {
     DEBUG ((
       DEBUG_ERROR,
       "Provisioning: Failed to save %s variable, Status = %r\n",
-      mSmbiosSystemSerialNumberName,
+      IMX_VARIABLE_SMBIOS_SERIAL,
       Status
       ));
   }
@@ -712,7 +733,12 @@ cleanup:
   if (SmbiosPtr != NULL) {
     FreePool (SmbiosPtr);
   }
-
+  if (TempAsciiValue != NULL) {
+    FreePool (TempAsciiValue);
+  }
+  if (TempUnicodeValue != NULL) {
+    FreePool (TempUnicodeValue);
+  }
   return Status;
 }
 
@@ -761,8 +787,6 @@ ProvisioningInitialize (
   }
 
   Status = ReceiveEKCertificate ();
-  volatile int x = 0;
-  while(x);
   if (EFI_ERROR (Status)) {
     SEND_REQUEST_TO_HOST ("MFGF:ekcertificate\r\n");
     DEBUG ((DEBUG_ERROR, "ReceiveEKCertificate failed. 0x%x\n", Status));
