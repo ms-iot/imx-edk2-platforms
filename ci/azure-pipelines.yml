@@ -40,6 +40,9 @@ jobs:
         tar xf gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz
       displayName: Download gcc
 
+    # This must be run prior to cloning the other repos, otherwise it will find the imx-iotcore cgmanifest.json file and detect too many repos
+    - task: ComponentGovernanceComponentDetection@0
+
     - script: |
         pushd ..
         git clone --recursive https://github.com/ms-iot/edk2
@@ -60,5 +63,3 @@ jobs:
         cd build/firmware/$(Target)
         make uefi CROSS_COMPILE=$(Build.SourcesDirectory)/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
       displayName: Build UEFI
-
-    - task: ComponentGovernanceComponentDetection@0
