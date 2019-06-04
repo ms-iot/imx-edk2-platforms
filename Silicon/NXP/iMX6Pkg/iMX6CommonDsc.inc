@@ -133,6 +133,7 @@
   #
   ShellLib|ShellPkg/Library/UefiShellLib/UefiShellLib.inf
   SortLib|MdeModulePkg/Library/UefiSortLib/UefiSortLib.inf
+  FileHandleLib|MdePkg/Library/UefiFileHandleLib/UefiFileHandleLib.inf
 
   #
   # Serial, Console and Debugging
@@ -1018,20 +1019,7 @@
 !endif
 
   # Applications
-  MdeModulePkg/Application/HelloWorld/HelloWorld.inf
-  Silicon/NXP/iMX6Pkg/Application/ImxClkPwr/ImxClkPwr.inf
-
 !if $(CONFIG_EDK_TESTS) == TRUE
   Platform/Microsoft/Application/StorageTest/StorageTest.inf
   Platform/Microsoft/Application/AuthVarTest/AuthVarTest.inf
 !endif
-
-!if $(CONFIG_OPTEE) == TRUE
-  Platform/Microsoft/OpteeClientPkg/Application/OpteeClientApiTest/OpteeClientApiTest.inf
-  #SecurityPkg/Application/VariableAuthTestDxe/VariableAuthTestDxe.inf
-!endif
-#
-# Boilerplate for compiling UEFI applications and UEFI drivers with the
-# standard library.
-#
-!include StdLib/StdLib.inc
