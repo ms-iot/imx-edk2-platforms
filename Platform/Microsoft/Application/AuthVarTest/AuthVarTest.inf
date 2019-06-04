@@ -28,7 +28,7 @@
   Platform/Microsoft/MsPkg.dec
   SecurityPkg/SecurityPkg.dec
   ShellPkg/ShellPkg.dec
-  StdLib/StdLib.dec	
+  StdLib/StdLib.dec
 
 [LibraryClasses]
   BaseLib
