@@ -25,10 +25,11 @@
   MdePkg/MdePkg.dec
   Platform/Microsoft/MsPkg.dec
   ShellPkg/ShellPkg.dec
-  StdLib/StdLib.dec
 
 [LibraryClasses]
   DebugLib
-  LibC
-  LibStdio
+  UefiApplicationEntryPoint
   UefiLib
+
+[Protocols]
+  gEfiShellParametersProtocolGuid

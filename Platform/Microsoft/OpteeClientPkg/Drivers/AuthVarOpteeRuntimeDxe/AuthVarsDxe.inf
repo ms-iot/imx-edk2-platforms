@@ -39,7 +39,6 @@
   MdeModulePkg/MdeModulePkg.dec
   SecurityPkg/SecurityPkg.dec
   Platform/Microsoft/OpteeClientPkg/OpteeClientPkg.dec
-  StdLib/StdLib.dec
   Platform/Microsoft/MsPkg.dec
 
 [LibraryClasses]
