@@ -28,11 +28,13 @@
   Platform/Microsoft/MsPkg.dec
   SecurityPkg/SecurityPkg.dec
   ShellPkg/ShellPkg.dec
+  StdLib/StdLib.dec	
 
 [LibraryClasses]
   BaseLib
   DebugLib
   DxeServicesLib
+  LibC
   MemoryAllocationLib
   UefiApplicationEntryPoint
   UefiBootServicesTableLib

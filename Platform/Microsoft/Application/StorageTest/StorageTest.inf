@@ -25,9 +25,11 @@
   MdePkg/MdePkg.dec
   Platform/Microsoft/MsPkg.dec
   ShellPkg/ShellPkg.dec
+  StdLib/StdLib.dec	
 
 [LibraryClasses]
   DebugLib
+  LibC
   UefiApplicationEntryPoint
   UefiLib
 
