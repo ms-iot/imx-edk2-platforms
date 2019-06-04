@@ -91,4 +91,7 @@
   gMsPkgTokenSpaceGuid.PcdStorageMediaPartitionDevicePath
 
 [Depex]
-TRUE
+  TRUE
+
+[BuildOptions]
+  GCC:*_*_*_CC_FLAGS = -ffreestanding -Wno-unused-label

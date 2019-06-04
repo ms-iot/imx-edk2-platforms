@@ -31,7 +31,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <limits.h>
+//#include <limits.h>
 
 /*
  * Defines the number of available memory references in an open session or
