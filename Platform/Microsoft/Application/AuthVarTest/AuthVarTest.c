@@ -17,6 +17,7 @@
 #include <Guid/AuthVarTestFfs.h>
 #include <Guid/GlobalVariable.h>
 #include <Guid/ImageAuthentication.h>
+#include <Library/BaseCryptLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/DxeServicesLib.h>
 #include <Library/MemoryAllocationLib.h>
@@ -26,7 +27,7 @@
 #include <Library/UefiRuntimeServicesTableLib.h>
 #include <Protocol/ShellParameters.h>
 
-#include "EdkTest.h"
+#include <EdkTest.h>
 
 MODULE ("UEFI authenticated variables functional tests");
 
@@ -59,22 +60,6 @@ AuthVarInfo mSecureBootVariables[] = {
     EFI_KEY_EXCHANGE_KEY_NAME
   }
 };
-
-VOID
-RandomBytes (
-  IN UINTN    BufferSize,
-  OUT UINT8   *Buffer
-  )
-{
-  UINTN Index;
-
-  ASSERT (Buffer != NULL);
-
-  for (Index = 0; Index < BufferSize; ++Index) {
-    // Generate random number between 0 and 255 inclusive
-    Buffer[Index] = (UINT8) (rand() % 256);
-  }
-}
 
 VOID
 VerifyAreEqualBytes (
@@ -669,7 +654,7 @@ VerifyNameHandling (
 
   mImageData = AllocateZeroPool (DataSize);
   VERIFY_IS_NOT_NULL (mImageData);
-  RandomBytes (DataSize, mImageData);
+  RandomBytes ((UINT8 *)mImageData, DataSize);
   
   mActualImageData = AllocatePool(DataSize);
   VERIFY_IS_NOT_NULL(mActualImageData);
@@ -800,7 +785,7 @@ VerifyNameHandling (
     mImageData = NULL;
     mImageData = AllocateZeroPool (DataSize);
     VERIFY_IS_NOT_NULL (mImageData);
-    RandomBytes (DataSize, mImageData);
+    RandomBytes ((UINT8 *)mImageData, DataSize);
 
     // Make sure none of the other variables are confused with
     // this one.
@@ -883,7 +868,7 @@ VerifyQuery (
 
     mImageData = AllocateZeroPool (LargerVariableSize);
     VERIFY_IS_NOT_NULL (mImageData);
-    RandomBytes (LargerVariableSize, mImageData);
+    RandomBytes ((UINT8 *)mImageData, LargerVariableSize);
     mActualImageData = AllocatePool(LargerVariableSize);
     VERIFY_IS_NOT_NULL(mActualImageData);
 
@@ -991,7 +976,7 @@ VerifyOverflow (
 
   mImageData = AllocateZeroPool (LargerVariableSize);
   VERIFY_IS_NOT_NULL (mImageData);
-  RandomBytes (LargerVariableSize, mImageData);
+  RandomBytes ((UINT8 *)mImageData, LargerVariableSize);
 
   for(OverflowCount = 0; OverflowCount < OverflowGoal; OverflowCount++)
   {
@@ -1127,7 +1112,7 @@ TestInvalidAuthVars (
   mImageData = AllocateZeroPool (ImageSize);
   VERIFY_IS_NOT_NULL (mImageData);
 
-  RandomBytes (ImageSize, mImageData);
+  RandomBytes ((UINT8 *)mImageData, ImageSize);
 
   LOG_COMMENT ("Verifying garbage authenticated variable %s\n",\
                 mSecureBootVariables[0].VariableName
@@ -1174,7 +1159,7 @@ TestValidNonVolatileVars (
     ImageSize = BufferSizes[Idx];
     mImageData = AllocateZeroPool (ImageSize);
     VERIFY_IS_NOT_NULL (mImageData);
-    RandomBytes (ImageSize, mImageData);
+    RandomBytes ((UINT8 *)mImageData, ImageSize);
 
     UnicodeSPrint (TestVariableName,
                    sizeof(TestVariableName),
@@ -1235,6 +1220,7 @@ TestSetup (
   )
 {
   SET_LOG_LEVEL(TestLogComment);
+  RandomSeed (NULL, 0);
   return TRUE;
 }
 
