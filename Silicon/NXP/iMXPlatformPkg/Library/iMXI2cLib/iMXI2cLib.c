@@ -253,6 +253,8 @@ iMXI2cSendDeviceAddress (
     return RETURN_DEVICE_ERROR;
   }
 
+  BaseAddress = (IMX_I2C_REGISTERS*)I2cContext->ControllerAddress;
+
   // Send slave address packet
   Data.DeviceAddress = DeviceAddress;
   Data.Direction = Direction;
