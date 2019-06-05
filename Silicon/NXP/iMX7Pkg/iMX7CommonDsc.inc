@@ -839,7 +839,16 @@
   }
 !endif
 
+  #
   # Applications
+  #
+  # For each application, you can include stdlib libraries from StdLib/StdLib.inc.
+  # This stdlib implementation is only intended for UEFI Applications. It
+  # modifies the compiler's CC_FLAGS to ignore all other stdlib implementations
+  # which could break firmware builds if the StdLib.inc is included haphazardly.
+  # This stdlib is located in tianocore/edk2-libc and must be in your
+  # PACKAGES_PATH environment variable during application build.
+  #
 !if $(CONFIG_EDK_TESTS) == TRUE
   Platform/Microsoft/Application/StorageTest/StorageTest.inf {
     <LibraryClasses>
