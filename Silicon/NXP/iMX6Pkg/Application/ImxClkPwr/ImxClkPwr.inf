@@ -28,7 +28,6 @@
   ImxClkPwr.c
 
 [Packages]
-  StdLib/StdLib.dec
   ShellPkg/ShellPkg.dec
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec

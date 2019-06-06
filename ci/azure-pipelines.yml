@@ -43,7 +43,6 @@ jobs:
     - script: |
         pushd ..
         git clone --recursive https://github.com/ms-iot/edk2
-        git clone https://github.com/tianocore/edk2-libc.git
         git clone https://github.com/ms-iot/imx-iotcore.git
         popd
       displayName: Clone repos
