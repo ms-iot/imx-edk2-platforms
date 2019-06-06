@@ -155,6 +155,7 @@
   #
   ShellLib|ShellPkg/Library/UefiShellLib/UefiShellLib.inf
   SortLib|MdeModulePkg/Library/UefiSortLib/UefiSortLib.inf
+  FileHandleLib|MdePkg/Library/UefiFileHandleLib/UefiFileHandleLib.inf
 
   #
   # Serial, Console and Debugging
@@ -838,22 +839,57 @@
   }
 !endif
 
+  #
   # Applications
-  MdeModulePkg/Application/HelloWorld/HelloWorld.inf
-  #Platform/Microsoft/Application/StorageTest/StorageTest.inf
-#  Silicon/NXP/iMX7Pkg/Application/ImxClkPwr/ImxClkPwr.inf
-
+  #
+  # For each application, you can include stdlib libraries from StdLib/StdLib.inc.
+  # This stdlib implementation is only intended for UEFI Applications. It
+  # modifies the compiler's CC_FLAGS to ignore all other stdlib implementations
+  # which could break firmware builds if the StdLib.inc is included haphazardly.
+  # This stdlib is located in tianocore/edk2-libc and must be in your
+  # PACKAGES_PATH environment variable during application build.
+  #
 !if $(CONFIG_EDK_TESTS) == TRUE
-  Platform/Microsoft/Application/StorageTest/StorageTest.inf
-  Platform/Microsoft/Application/AuthVarTest/AuthVarTest.inf
+  Platform/Microsoft/Application/StorageTest/StorageTest.inf {
+    <LibraryClasses>
+    ShellCEntryLib|ShellPkg/Library/UefiShellCEntryLib/UefiShellCEntryLib.inf
+    LibC|StdLib/LibC/LibC.inf
+    LibCType|StdLib/LibC/Ctype/Ctype.inf
+    LibLocale|StdLib/LibC/Locale/Locale.inf
+    LibSignal|StdLib/LibC/Signal/Signal.inf
+    LibStdio|StdLib/LibC/Stdio/Stdio.inf
+    LibStdLib|StdLib/LibC/StdLib/StdLib.inf
+    LibString|StdLib/LibC/String/String.inf
+    LibTime|StdLib/LibC/Time/Time.inf
+    LibUefi|StdLib/LibC/Uefi/Uefi.inf
+    LibWchar|StdLib/LibC/Wchar/Wchar.inf
+    LibGen|StdLib/PosixLib/Gen/LibGen.inf
+    LibIIO|StdLib/LibC/Uefi/InteractiveIO/IIO.inf
+    LibContainer|StdLib/LibC/Containers/ContainerLib.inf
+    LibGdtoa|StdLib/LibC/gdtoa/gdtoa.inf
+    DevConsole|StdLib/LibC/Uefi/Devices/daConsole.inf
+    DevUtility|StdLib/LibC/Uefi/Devices/daUtility.inf
+    NULL|StdLib/LibC/Softfloat/Softfloat.inf
+  }
+  Platform/Microsoft/Application/AuthVarTest/AuthVarTest.inf{
+    <LibraryClasses>
+    ShellCEntryLib|ShellPkg/Library/UefiShellCEntryLib/UefiShellCEntryLib.inf
+    LibC|StdLib/LibC/LibC.inf
+    LibCType|StdLib/LibC/Ctype/Ctype.inf
+    LibLocale|StdLib/LibC/Locale/Locale.inf
+    LibSignal|StdLib/LibC/Signal/Signal.inf
+    LibStdio|StdLib/LibC/Stdio/Stdio.inf
+    LibStdLib|StdLib/LibC/StdLib/StdLib.inf
+    LibString|StdLib/LibC/String/String.inf
+    LibTime|StdLib/LibC/Time/Time.inf
+    LibUefi|StdLib/LibC/Uefi/Uefi.inf
+    LibWchar|StdLib/LibC/Wchar/Wchar.inf
+    LibGen|StdLib/PosixLib/Gen/LibGen.inf
+    LibIIO|StdLib/LibC/Uefi/InteractiveIO/IIO.inf
+    LibContainer|StdLib/LibC/Containers/ContainerLib.inf
+    LibGdtoa|StdLib/LibC/gdtoa/gdtoa.inf
+    DevConsole|StdLib/LibC/Uefi/Devices/daConsole.inf
+    DevUtility|StdLib/LibC/Uefi/Devices/daUtility.inf
+    NULL|StdLib/LibC/Softfloat/Softfloat.inf
+  }
 !endif
-
-  Platform/Microsoft/OpteeClientPkg/Application/OpteeClientApiTest/OpteeClientApiTest.inf
-  #SecurityPkg/Application/VariableAuthTestDxe/VariableAuthTestDxe.inf
-
-#
-# Boilerplate for compiling UEFI applications and UEFI drivers with the
-# standard library.
-#
-!include StdLib/StdLib.inc
-

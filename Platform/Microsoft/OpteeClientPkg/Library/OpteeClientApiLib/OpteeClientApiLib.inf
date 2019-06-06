@@ -39,7 +39,6 @@
   ArmPkg/ArmPkg.dec
   Platform/Microsoft/OpteeClientPkg/OpteeClientPkg.dec
   Platform/Microsoft/MsPkg.dec
-  StdLib/StdLib.dec
 
 [LibraryClasses]
   BaseLib
@@ -59,3 +58,5 @@
 [Protocols]
   gEfiRpmbIoProtocolGuid
 
+[BuildOptions]
+  GCC:*_*_*_CC_FLAGS = -ffreestanding -Wno-unused-label

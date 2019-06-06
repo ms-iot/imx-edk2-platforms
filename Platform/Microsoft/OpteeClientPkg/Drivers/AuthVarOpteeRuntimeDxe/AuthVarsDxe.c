@@ -49,8 +49,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Guid/ImageAuthentication.h>
 #include <Guid/OpteeTrustedAppGuids.h>
 
-#include <limits.h>
-
 /*
 Performance Tokens
 */

@@ -39,7 +39,6 @@
   MdeModulePkg/MdeModulePkg.dec
   SecurityPkg/SecurityPkg.dec
   Platform/Microsoft/OpteeClientPkg/OpteeClientPkg.dec
-  StdLib/StdLib.dec
   Platform/Microsoft/MsPkg.dec
 
 [LibraryClasses]
@@ -92,4 +91,7 @@
   gMsPkgTokenSpaceGuid.PcdStorageMediaPartitionDevicePath
 
 [Depex]
-TRUE
+  TRUE
+
+[BuildOptions]
+  GCC:*_*_*_CC_FLAGS = -ffreestanding -Wno-unused-label

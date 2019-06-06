@@ -32,7 +32,6 @@
   SecurityPkg/SecurityPkg.dec
   Platform/Microsoft/OpteeClientPkg/OpteeClientPkg.dec
   Platform/Microsoft/MsPkg.dec
-  StdLib/StdLib.dec
 
 [LibraryClasses]
   BaseLib
@@ -52,3 +51,6 @@
 
 [Depex]
   TRUE
+
+[BuildOptions]
+  GCC:*_*_*_CC_FLAGS = -ffreestanding -Wno-unused-label
