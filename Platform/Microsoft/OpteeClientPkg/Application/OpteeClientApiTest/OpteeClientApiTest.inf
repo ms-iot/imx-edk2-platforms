@@ -30,7 +30,6 @@
   Platform/Microsoft/MsPkg.dec
   MdeModulePkg/MdeModulePkg.dec
   Platform/Microsoft/OpteeClientPkg/OpteeClientPkg.dec
-  StdLib/StdLib.dec
 
 [LibraryClasses]
   UefiLib

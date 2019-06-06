@@ -30,7 +30,6 @@
   Platform/Microsoft/OpteeClientPkg/OpteeClientPkg.dec
   Silicon/NXP/iMX6Pkg/iMX6Pkg.dec
   Silicon/NXP/iMXPlatformPkg/iMXPlatformPkg.dec
-  StdLib/StdLib.dec
 
 [LibraryClasses]
   ArmLib
