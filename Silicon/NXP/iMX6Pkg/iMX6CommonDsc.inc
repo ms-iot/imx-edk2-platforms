@@ -1022,6 +1022,6 @@
   # Applications
   #
 !if $(CONFIG_EDK_TESTS) == TRUE
-  Platform/Microsoft/Application/StorageTest/StorageTest.inf 
+  Platform/Microsoft/Application/StorageTest/StorageTest.inf
   Platform/Microsoft/Application/AuthVarTest/AuthVarTest.inf
 !endif
