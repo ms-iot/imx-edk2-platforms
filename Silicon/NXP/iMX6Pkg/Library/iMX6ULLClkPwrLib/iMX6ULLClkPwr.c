@@ -1414,7 +1414,7 @@ VOID ImxClkPwrLcdClockEnable ()
     volatile IMX_CCM_REGISTERS *ccmRegisters = (IMX_CCM_REGISTERS *) IMX_CCM_BASE;
 
     value32.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[2]);
-    value32.lcd_clk_enable = IMX6ULL_RUN_ONLY;
+    value32.lcd_clk_enable = IMX6ULL_RUN_AND_WAIT; 
     MmioWrite32((UINTN) &ccmRegisters->CCGR[2], value32.AsUint32);
 }
 
@@ -1521,8 +1521,7 @@ VOID IMXSetVideoPllClockRate(
 
     // Ungate the LCD pixel clock
     ccgr3.AsUint32 = MmioRead32((UINTN) &ccmRegisters->CCGR[3]);
-    ccgr3.lcdif1_pix_clk_enable = IMX6ULL_RUN_ONLY;
-    //ccgr3.disp_axi_clk_enable = IMX6ULL_RUN_ONLY;
+    ccgr3.lcdif1_pix_clk_enable = IMX6ULL_RUN_AND_WAIT;
     MmioWrite32((UINTN) &ccmRegisters->CCGR[3], ccgr3.AsUint32);
 
     // turn on LCD clocks
