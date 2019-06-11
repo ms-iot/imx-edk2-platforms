@@ -855,7 +855,6 @@
   giMXPlatformTokenSpaceGuid.PcdGlobalDataBaseAddress|$(GLOBAL_DATA_BASE_ADDRESS)
   giMXPlatformTokenSpaceGuid.PcdGlobalDataSize|0x1000
 
-!if $(IMX_FAMILY) == IMX6ULL
 ########################
 #
 # giMX6TokenSpaceGuid PCDs
@@ -863,6 +862,7 @@
 ########################
 [PcdsFixedAtBuild.common]
 
+!if $(IMX_FAMILY) == IMX6ULL
   giMX6TokenSpaceGuid.PcdLCDIFBase|0x021C8000
 !endif
 
