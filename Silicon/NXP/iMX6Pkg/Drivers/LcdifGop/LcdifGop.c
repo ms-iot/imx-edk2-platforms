@@ -406,7 +406,6 @@ LcdifGopBlt (
     )
 {
     DEBUG ((DEBUG_VERBOSE, "entering LcdifGopBlt\n"));
-    DEBUG ((DEBUG_INIT, "init entering LcdifGopBlt\n"));
     UINT32 *frameBuffer;
     UINT32 frameWidth;
     UINT32 frameOffset;
