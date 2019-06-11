@@ -1,6 +1,6 @@
 /** @file
 *
-*  Copyright (c) Microsoft Corporation. All rights reserved.
+*  Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 *
 *  This program and the accompanying materials
 *  are licensed and made available under the terms and conditions of the BSD License
@@ -122,58 +122,58 @@ VOID LcdifBoardInitialize ()
     //
     // Dummy read since first read returns garbage
     //
-    iMXI2cRead(&i2c4SIL164Config, SIL164_REG_VND_IDL, &i2cData, 1);
+    iMXI2cRead (&i2c4SIL164Config, SIL164_REG_VND_IDL, &i2cData, 1);
 
     //
     // Sanity check to make sure we are attached to a SIL164 chip.
     // Reading one byte at a time as SIL164 support only byte read and write.
     //
-    status = iMXI2cRead(&i2c4SIL164Config, SIL164_REG_VND_IDL, &i2cData, 1);
-    ASSERT (!RETURN_ERROR(status));
+    status = iMXI2cRead (&i2c4SIL164Config, SIL164_REG_VND_IDL, &i2cData, 1);
+    ASSERT (!RETURN_ERROR (status));
     ASSERT (i2cData == 0x01);
-    status = iMXI2cRead(&i2c4SIL164Config, SIL164_REG_VND_IDH, &i2cData, 1);
-    ASSERT (!RETURN_ERROR(status));
+    status = iMXI2cRead (&i2c4SIL164Config, SIL164_REG_VND_IDH, &i2cData, 1);
+    ASSERT (!RETURN_ERROR (status));
     ASSERT (i2cData == 0x00);
-    status = iMXI2cRead(&i2c4SIL164Config, SIL164_REG_DEV_IDL, &i2cData, 1);
-    ASSERT (!RETURN_ERROR(status));
+    status = iMXI2cRead (&i2c4SIL164Config, SIL164_REG_DEV_IDL, &i2cData, 1);
+    ASSERT (!RETURN_ERROR (status));
     ASSERT (i2cData == 0x06);
-    status = iMXI2cRead(&i2c4SIL164Config, SIL164_REG_DEV_IDH, &i2cData, 1);
-    ASSERT (!RETURN_ERROR(status));
+    status = iMXI2cRead (&i2c4SIL164Config, SIL164_REG_DEV_IDH, &i2cData, 1);
+    ASSERT (!RETURN_ERROR (status));
     ASSERT (i2cData == 0x00);
 
     //
     // Set lcd_nstby_3v3 and dvi_en_3v3 as output and high
     //
-    status = iMXI2cRead(&i2c4PCA9555Config, PCA955_REG_CFG_PORT1, &i2cData, 1);
-    ASSERT (!RETURN_ERROR(status));
+    status = iMXI2cRead (&i2c4PCA9555Config, PCA955_REG_CFG_PORT1, &i2cData, 1);
+    ASSERT (!RETURN_ERROR (status));
     i2cData &= ~(GPIO_DVI_EN_3V3 | GPIO_LCD_NTSBY_3V3);
-    status = iMXI2cWrite(&i2c4PCA9555Config, PCA955_REG_CFG_PORT1, &i2cData, 1);
-    ASSERT (!RETURN_ERROR(status));
+    status = iMXI2cWrite (&i2c4PCA9555Config, PCA955_REG_CFG_PORT1, &i2cData, 1);
+    ASSERT (!RETURN_ERROR (status));
 
-    status = iMXI2cRead(&i2c4PCA9555Config, PCA955_REG_OUTPUT_PORT1, &i2cData, 1);
-    ASSERT (!RETURN_ERROR(status));
+    status = iMXI2cRead (&i2c4PCA9555Config, PCA955_REG_OUTPUT_PORT1, &i2cData, 1);
+    ASSERT (!RETURN_ERROR (status));
     i2cData |= (GPIO_DVI_EN_3V3 | GPIO_LCD_NTSBY_3V3);
-    status = iMXI2cWrite(&i2c4PCA9555Config, PCA955_REG_OUTPUT_PORT1, &i2cData, 1);
-    ASSERT (!RETURN_ERROR(status));
+    status = iMXI2cWrite (&i2c4PCA9555Config, PCA955_REG_OUTPUT_PORT1, &i2cData, 1);
+    ASSERT (!RETURN_ERROR (status));
 
-    DEBUG_CODE_BEGIN();
-    status = iMXI2cRead(&i2c4PCA9555Config, PCA955_REG_INPUT_PORT0, &i2cData, 1);
-    DEBUG((DEBUG_INIT, "PCA955_REG_INPUT_PORT0: 0x%04x\n", i2cData));
-    status = iMXI2cRead(&i2c4PCA9555Config, PCA955_REG_INPUT_PORT1, &i2cData, 1);
-    DEBUG((DEBUG_INIT, "PCA955_REG_INPUT_PORT1: 0x%04x\n", i2cData));
-    status = iMXI2cRead(&i2c4PCA9555Config, PCA955_REG_OUTPUT_PORT0, &i2cData, 1);
-    DEBUG((DEBUG_INIT, "PCA955_REG_OUTPUT_PORT0: 0x%04x\n", i2cData));
-    status = iMXI2cRead(&i2c4PCA9555Config, PCA955_REG_OUTPUT_PORT1, &i2cData, 1);
-    DEBUG((DEBUG_INIT, "PCA955_REG_OUTPUT_PORT1: 0x%04x\n", i2cData));
-    status = iMXI2cRead(&i2c4PCA9555Config, PCA955_REG_POL_INV_PORT0, &i2cData, 1);
-    DEBUG((DEBUG_INIT, "PCA955_REG_POL_INV_PORT0: 0x%04x\n", i2cData));
-    status = iMXI2cRead(&i2c4PCA9555Config, PCA955_REG_POL_INV_PORT1, &i2cData, 1);
-    DEBUG((DEBUG_INIT, "PCA955_REG_POL_INV_PORT1: 0x%04x\n", i2cData));
-    status = iMXI2cRead(&i2c4PCA9555Config, PCA955_REG_CFG_PORT0, &i2cData, 1);
-    DEBUG((DEBUG_INIT, "PCA955_REG_CFG_PORT0: 0x%04x\n", i2cData));
-    status = iMXI2cRead(&i2c4PCA9555Config, PCA955_REG_CFG_PORT1, &i2cData, 1);
-    DEBUG((DEBUG_INIT, "PCA955_REG_CFG_PORT1: 0x%04x\n", i2cData));
-    DEBUG_CODE_END();
+    DEBUG_CODE_BEGIN ();
+    status = iMXI2cRead (&i2c4PCA9555Config, PCA955_REG_INPUT_PORT0, &i2cData, 1);
+    DEBUG ((DEBUG_INIT, "PCA955_REG_INPUT_PORT0: 0x%04x\n", i2cData));
+    status = iMXI2cRead (&i2c4PCA9555Config, PCA955_REG_INPUT_PORT1, &i2cData, 1);
+    DEBUG ((DEBUG_INIT, "PCA955_REG_INPUT_PORT1: 0x%04x\n", i2cData));
+    status = iMXI2cRead (&i2c4PCA9555Config, PCA955_REG_OUTPUT_PORT0, &i2cData, 1);
+    DEBUG ((DEBUG_INIT, "PCA955_REG_OUTPUT_PORT0: 0x%04x\n", i2cData));
+    status = iMXI2cRead (&i2c4PCA9555Config, PCA955_REG_OUTPUT_PORT1, &i2cData, 1);
+    DEBUG ((DEBUG_INIT, "PCA955_REG_OUTPUT_PORT1: 0x%04x\n", i2cData));
+    status = iMXI2cRead (&i2c4PCA9555Config, PCA955_REG_POL_INV_PORT0, &i2cData, 1);
+    DEBUG ((DEBUG_INIT, "PCA955_REG_POL_INV_PORT0: 0x%04x\n", i2cData));
+    status = iMXI2cRead (&i2c4PCA9555Config, PCA955_REG_POL_INV_PORT1, &i2cData, 1);
+    DEBUG ((DEBUG_INIT, "PCA955_REG_POL_INV_PORT1: 0x%04x\n", i2cData));
+    status = iMXI2cRead (&i2c4PCA9555Config, PCA955_REG_CFG_PORT0, &i2cData, 1);
+    DEBUG ((DEBUG_INIT, "PCA955_REG_CFG_PORT0: 0x%04x\n", i2cData));
+    status = iMXI2cRead (&i2c4PCA9555Config, PCA955_REG_CFG_PORT1, &i2cData, 1);
+    DEBUG ((DEBUG_INIT, "PCA955_REG_CFG_PORT1: 0x%04x\n", i2cData));
+    DEBUG_CODE_END ();
 
 }
 
@@ -189,22 +189,22 @@ VOID LcdifBoardConfigureDisplay (
     // 24 bit and enable HSYNC and VSYNC
     //
     i2cData = SIL164_CONTROL0_INPUT_24BIT | SIL164_CONTROL0_HSYNC_ON | SIL164_CONTROL0_VSYNC_ON;
-    status = iMXI2cWrite(&i2c4SIL164Config, SIL164_REG_CONTROL0, &i2cData, 1);
-    ASSERT (!RETURN_ERROR(status));
+    status = iMXI2cWrite (&i2c4SIL164Config, SIL164_REG_CONTROL0, &i2cData, 1);
+    ASSERT (!RETURN_ERROR (status));
 
     //
     // Do we actually need to setup interrupts?
     //
     i2cData = 0x20 | 0x01;
-    status = iMXI2cWrite(&i2c4SIL164Config, SIL164_REG_CONTROL1, &i2cData, 1);
-    ASSERT (!RETURN_ERROR(status));
+    status = iMXI2cWrite (&i2c4SIL164Config, SIL164_REG_CONTROL1, &i2cData, 1);
+    ASSERT (!RETURN_ERROR (status));
 
     //
     // DK = 100 - 5 step -> default (recommended setting)
     //
     i2cData = (0x04 << 5);
-    status = iMXI2cWrite(&i2c4SIL164Config, SIL164_REG_CONTROL1, &i2cData, 1);
-    ASSERT (!RETURN_ERROR(status));
+    status = iMXI2cWrite (&i2c4SIL164Config, SIL164_REG_CONTROL1, &i2cData, 1);
+    ASSERT (!RETURN_ERROR (status));
 
     //
     // PFEN - Enable
@@ -212,37 +212,37 @@ VOID LcdifBoardConfigureDisplay (
     // SCNT - Enable
     //
     i2cData = SIL164_REG_CONTROL2_PFEN_ENABLE | 0x04 << 1 | SIL164_REG_CONTROL2_SCNT_ENABLE;
-    status = iMXI2cWrite(&i2c4SIL164Config, SIL164_REG_CONTROL2, &i2cData, 1);
-    ASSERT (!RETURN_ERROR(status));
+    status = iMXI2cWrite (&i2c4SIL164Config, SIL164_REG_CONTROL2, &i2cData, 1);
+    ASSERT (!RETURN_ERROR (status));
 
     //
     // Power on the chip
     //
-    status = iMXI2cRead(&i2c4SIL164Config, SIL164_REG_CONTROL0, &i2cData, 1);
-    ASSERT (!RETURN_ERROR(status));
+    status = iMXI2cRead (&i2c4SIL164Config, SIL164_REG_CONTROL0, &i2cData, 1);
+    ASSERT (!RETURN_ERROR (status));
 
     i2cData |= SIL164_CONTROL0_POWER_ON;
 
-    status = iMXI2cWrite(&i2c4SIL164Config, SIL164_REG_CONTROL0, &i2cData, 1);
-    ASSERT (!RETURN_ERROR(status));
+    status = iMXI2cWrite (&i2c4SIL164Config, SIL164_REG_CONTROL0, &i2cData, 1);
+    ASSERT (!RETURN_ERROR (status));
 
-    DEBUG_CODE_BEGIN();
-    status = iMXI2cRead(&i2c4SIL164Config, SIL164_REG_CONTROL0, &i2cData, 1);
-    DEBUG((DEBUG_INIT, "SIL164_REG_CONTROL0: 0x%04x\n", i2cData));
-    status = iMXI2cRead(&i2c4SIL164Config, SIL164_REG_DETECT, &i2cData, 1);
-    DEBUG((DEBUG_INIT, "SIL164_REG_DETECT: 0x%04x\n", i2cData));
-    status = iMXI2cRead(&i2c4SIL164Config, SIL164_REG_CONTROL1, &i2cData, 1);
-    DEBUG((DEBUG_INIT, "SIL164_REG_CONTROL1: 0x%04x\n", i2cData));
-    status = iMXI2cRead(&i2c4SIL164Config, SIL164_REG_GPIO, &i2cData, 1);
-    DEBUG((DEBUG_INIT, "SIL164_REG_GPIO: 0x%04x\n", i2cData));
-    status = iMXI2cRead(&i2c4SIL164Config, SIL164_REG_CONTROL2, &i2cData, 1);
-    DEBUG((DEBUG_INIT, "SIL164_REG_CONTROL2: 0x%04x\n", i2cData));
-    DEBUG_CODE_END();
+    DEBUG_CODE_BEGIN ();
+    status = iMXI2cRead (&i2c4SIL164Config, SIL164_REG_CONTROL0, &i2cData, 1);
+    DEBUG ((DEBUG_INIT, "SIL164_REG_CONTROL0: 0x%04x\n", i2cData));
+    status = iMXI2cRead (&i2c4SIL164Config, SIL164_REG_DETECT, &i2cData, 1);
+    DEBUG ((DEBUG_INIT, "SIL164_REG_DETECT: 0x%04x\n", i2cData));
+    status = iMXI2cRead (&i2c4SIL164Config, SIL164_REG_CONTROL1, &i2cData, 1);
+    DEBUG ((DEBUG_INIT, "SIL164_REG_CONTROL1: 0x%04x\n", i2cData));
+    status = iMXI2cRead (&i2c4SIL164Config, SIL164_REG_GPIO, &i2cData, 1);
+    DEBUG ((DEBUG_INIT, "SIL164_REG_GPIO: 0x%04x\n", i2cData));
+    status = iMXI2cRead (&i2c4SIL164Config, SIL164_REG_CONTROL2, &i2cData, 1);
+    DEBUG ((DEBUG_INIT, "SIL164_REG_CONTROL2: 0x%04x\n", i2cData));
+    DEBUG_CODE_END ();
 }
 
 typedef enum {
 
-    IMX_PAD_UART5_TX_DATA_I2C2_SCL = _IMX_MAKE_PADCFG(
+    IMX_PAD_UART5_TX_DATA_I2C2_SCL = _IMX_MAKE_PADCFG (
         IMX_DSE_DSE_3_X6,
         IMX_SRE_SLOW,
         IMX_HYS_ENABLED,
@@ -251,7 +251,7 @@ typedef enum {
         IMX_SION_ENABLED,
         IMX_IOMUXC_UART5_TX_DATA_ALT2_I2C2_SCL),
 
-    IMX_PAD_GPIO1_IO09_I2C3_SDA = _IMX_MAKE_PADCFG(
+    IMX_PAD_GPIO1_IO09_I2C3_SDA = _IMX_MAKE_PADCFG (
         IMX_DSE_DSE_3_X6,
         IMX_SRE_SLOW,
         IMX_HYS_ENABLED,
@@ -270,36 +270,36 @@ RETURN_STATUS LcdifBoardQueryEdidTiming (
     UINT32 index;
     UINT8* edidDataReadPtr = &edidBuffer[0];
 
-    ImxPadConfig(IMX_PAD_GPIO1_IO08, IMX_PAD_GPIO1_IO08_I2C3_SCL);
-    ImxPadConfig(IMX_PAD_GPIO1_IO09, IMX_PAD_GPIO1_IO09_I2C3_SDA);
+    ImxPadConfig (IMX_PAD_GPIO1_IO08, IMX_PAD_GPIO1_IO08_I2C3_SCL);
+    ImxPadConfig (IMX_PAD_GPIO1_IO09, IMX_PAD_GPIO1_IO09_I2C3_SDA);
 
-    status = iMXI2cRead(
+    status = iMXI2cRead (
         &i2c2EDIDConfig,
         0,
         (UINT8*)(edidDataReadPtr),
-        ARRAY_SIZE(edidBuffer));
-    ASSERT(!RETURN_ERROR(status));
+        ARRAY_SIZE (edidBuffer));
+    ASSERT (!RETURN_ERROR (status));
 
-    DEBUG_CODE_BEGIN();
-    ImxPadDumpConfig("IMX_PAD_GPIO1_IO08", IMX_PAD_GPIO1_IO08);
-    ImxPadDumpConfig("IMX_PAD_GPIO1_IO09", IMX_PAD_GPIO1_IO09);
+    DEBUG_CODE_BEGIN ();
+    ImxPadDumpConfig ("IMX_PAD_GPIO1_IO08", IMX_PAD_GPIO1_IO08);
+    ImxPadDumpConfig ("IMX_PAD_GPIO1_IO09", IMX_PAD_GPIO1_IO09);
 
-    DEBUG((DEBUG_INIT, "EDID dump\n"));
-    DEBUG((DEBUG_INIT, "=================================================\n"));
+    DEBUG ((DEBUG_INIT, "EDID dump\n"));
+    DEBUG ((DEBUG_INIT, "=================================================\n"));
 
     for (index = 0; index < IMX_EDID_MIN_SIZE; ++index) {
-        DEBUG((
+        DEBUG ((
             DEBUG_INIT,
             "EDID 0x%02x: 0x%02x\n",
             index, *(edidDataReadPtr + index)));
     }
 
-    DEBUG((DEBUG_INIT, "=================================================\n"));
-    DEBUG_CODE_END();
+    DEBUG ((DEBUG_INIT, "=================================================\n"));
+    DEBUG_CODE_END ();
 
-    status = ImxValidateEdidData(edidDataReadPtr);
-    if (EFI_ERROR(status)) {
-        DEBUG((DEBUG_INIT, "EDID data not valid\n"));
+    status = ImxValidateEdidData (edidDataReadPtr);
+    if (EFI_ERROR (status)) {
+        DEBUG ((DEBUG_INIT, "EDID data not valid\n"));
         goto End;
     }
 
@@ -309,11 +309,11 @@ RETURN_STATUS LcdifBoardQueryEdidTiming (
         edidPreferredTiming =
             (IMX_DETAILED_TIMING_DESCRIPTOR*)&edidDataReadPtr[IMX_EDID_DTD_1_OFFSET];
 
-        status = ImxConvertDTDToDisplayTiming(
+        status = ImxConvertDTDToDisplayTiming (
             edidPreferredTiming,
             PreferredTiming);
         if (status != EFI_SUCCESS) {
-            DEBUG((DEBUG_ERROR, "Conversion to display timing failed\n"));
+            DEBUG ((DEBUG_ERROR, "Conversion to display timing failed\n"));
             goto End;
         }
     }

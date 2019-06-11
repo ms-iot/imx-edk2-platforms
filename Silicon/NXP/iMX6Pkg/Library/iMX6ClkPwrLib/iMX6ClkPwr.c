@@ -1880,4 +1880,3 @@ ImxClkPwrGetClockInfo (
 {
   return ImxpGetClockInfo (&mImxpClockPwrCache, ClockId, ClockInfo);
 }
-

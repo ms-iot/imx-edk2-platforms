@@ -47,50 +47,50 @@ LcdifInitDisplay (
     //
     // Reset LCD controller (dancing bits reset procedure)
     //
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_RL_CLR,
         IMX_LCDIF_RL_SFTRST);
 
     do {
-        value32 = MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_RL);
+        value32 = MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_RL);
     } while (value32 & IMX_LCDIF_RL_SFTRST);
 
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_RL_CLR,
         IMX_LCDIF_RL_CLKGATE);
 
     do {
-        value32 = MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_RL);
+        value32 = MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_RL);
     } while (value32 & IMX_LCDIF_RL_CLKGATE);
 
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_RL_SET,
         IMX_LCDIF_RL_SFTRST);
 
     do {
-        value32 = MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_RL);
+        value32 = MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_RL);
     } while (!(value32 & IMX_LCDIF_RL_CLKGATE));
 
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_RL_CLR,
         IMX_LCDIF_RL_SFTRST);
 
     do {
-        value32 = MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_RL);
+        value32 = MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_RL);
     } while (value32 & IMX_LCDIF_RL_SFTRST);
 
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_RL_CLR,
         IMX_LCDIF_RL_CLKGATE);
 
     do {
-        value32 = MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_RL);
+        value32 = MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_RL);
     } while (value32 & IMX_LCDIF_RL_CLKGATE);
 
     //
     // Setup dot clock, Bypass Count, Master and 24 bit
     //
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_RL,
         IMX_LCDIF_RL_DOTCLK_MODE |
         IMX_LCDIF_RL_BYPASS_COUNT |
@@ -101,7 +101,7 @@ LcdifInitDisplay (
     //
     // V Sync and Blank period
     //
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_VDCTRL0,
         IMX_LCDIF_VDCTRL0_ENABLE_PRESENT |
         IMX_LCDIF_VDCTRL0_ENABLE_POL |
@@ -109,14 +109,14 @@ LcdifInitDisplay (
         IMX_LCDIF_VDCTRL0_VSYNC_PULSE_UNIT |
         Timing->VSync);
 
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_VDCTRL1,
         Timing->VActive + Timing->VBlank);
 
     //
     // H-Sync length and period
     //
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_VDCTRL2,
         (Timing->HSync << IMX_LCDIF_VDCTRL2_HSYNC_PULSE_WIDTH_SHL) |
         (Timing->HActive + Timing->HBlank));
@@ -124,7 +124,7 @@ LcdifInitDisplay (
     //
     // Start of sync to end of signal
     //
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_VDCTRL3,
         ((Timing->HBlank - Timing->HSyncOffset) << IMX_LCDIF_VDCTRL3_HORZ_WAIT_CNT_SHL) |
         ((Timing->VBlank - Timing->VSyncOffset)));
@@ -132,7 +132,7 @@ LcdifInitDisplay (
     //
     // H active
     //
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_VDCTRL4,
         Timing->HActive);
 
@@ -140,14 +140,14 @@ LcdifInitDisplay (
     // 0x7 if the display data is arranged in the 24-bit unpacked format (A-R-G-B where A
     // value does not have be transmitted).
     //
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_CTRL1,
         (0x7 << IMX_LCDIF_CTRL1_BYTE_PACKING_FORMAT_SHL) | 0x01000000);
 
     //
     // Valid vertical and horizontal data
     //
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_TRANSFER_COUNT,
         (Timing->VActive << IMX_LCDIF_TRANSFER_COUNT_V_SHL) |
         Timing->HActive);
@@ -158,64 +158,64 @@ LcdifInitDisplay (
     //
     {
         LCDIFx_CTRL2_REG lcdifCtrl2Reg =
-            { MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_CTRL2) };
+            { MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_CTRL2) };
 
         lcdifCtrl2Reg.BURST_LEN_8 = 0; // Burst of 16
         lcdifCtrl2Reg.OUTSTANDING_REQS = 0x02; // REQ_4
 
-        MmioWrite32(
+        MmioWrite32 (
             LcdifBase + IMX_LCDIF_OFFSET_CTRL2, lcdifCtrl2Reg.AsUint32);
     }
 
     //
     // Frame buffer physical address
     //
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_CUR_BUF,
         (UINT32)FrameBuffer);
 
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_NEXT_BUF,
         (UINT32)FrameBuffer);
 
     //
     // Clear FIFO
     //
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_CTRL1_SET,
         IMX_LCDIF_CTRL1_FIFO_CLEAR);
 
     //
     // Turn on sync signals
     //
-    value32 = MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_VDCTRL4);
+    value32 = MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_VDCTRL4);
     value32 |= IMX_LCDIF_VDCTRL4_SYNC_SIGNALS_ON;
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_VDCTRL4,
         value32);
 
     //
     // Clear FIFO clear add set run bit
     //
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_CTRL1_CLR,
         IMX_LCDIF_CTRL1_FIFO_CLEAR);
 
-    MmioWrite32(
+    MmioWrite32 (
         LcdifBase + IMX_LCDIF_OFFSET_RL_SET,
         IMX_LCDIF_RL_RUN);
 
-    DEBUG_CODE_BEGIN();
-    DEBUG((DEBUG_INIT, "IMX_LCDIF_OFFSET_RL 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_RL, MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_RL)));
-    DEBUG((DEBUG_INIT, "IMX_LCDIF_OFFSET_CTRL1 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_CTRL1, MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_CTRL1)));
-    DEBUG((DEBUG_INIT, "IMX_LCDIF_OFFSET_CTRL2 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_CTRL2, MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_CTRL2)));
-    DEBUG((DEBUG_INIT, "IMX_LCDIF_OFFSET_TRANSFER_COUNT 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_TRANSFER_COUNT, MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_TRANSFER_COUNT)));
-    DEBUG((DEBUG_INIT, "IMX_LCDIF_OFFSET_VDCTRL0 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_VDCTRL0, MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_VDCTRL0)));
-    DEBUG((DEBUG_INIT, "IMX_LCDIF_OFFSET_VDCTRL1 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_VDCTRL1, MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_VDCTRL1)));
-    DEBUG((DEBUG_INIT, "IMX_LCDIF_OFFSET_VDCTRL2 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_VDCTRL2, MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_VDCTRL2)));
-    DEBUG((DEBUG_INIT, "IMX_LCDIF_OFFSET_VDCTRL3 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_VDCTRL3, MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_VDCTRL3)));
-    DEBUG((DEBUG_INIT, "IMX_LCDIF_OFFSET_VDCTRL4 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_VDCTRL4, MmioRead32(LcdifBase + IMX_LCDIF_OFFSET_VDCTRL4)));
-    DEBUG_CODE_END();
+    DEBUG_CODE_BEGIN ();
+    DEBUG ((DEBUG_INIT, "IMX_LCDIF_OFFSET_RL 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_RL, MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_RL)));
+    DEBUG ((DEBUG_INIT, "IMX_LCDIF_OFFSET_CTRL1 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_CTRL1, MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_CTRL1)));
+    DEBUG ((DEBUG_INIT, "IMX_LCDIF_OFFSET_CTRL2 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_CTRL2, MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_CTRL2)));
+    DEBUG ((DEBUG_INIT, "IMX_LCDIF_OFFSET_TRANSFER_COUNT 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_TRANSFER_COUNT, MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_TRANSFER_COUNT)));
+    DEBUG ((DEBUG_INIT, "IMX_LCDIF_OFFSET_VDCTRL0 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_VDCTRL0, MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_VDCTRL0)));
+    DEBUG ((DEBUG_INIT, "IMX_LCDIF_OFFSET_VDCTRL1 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_VDCTRL1, MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_VDCTRL1)));
+    DEBUG ((DEBUG_INIT, "IMX_LCDIF_OFFSET_VDCTRL2 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_VDCTRL2, MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_VDCTRL2)));
+    DEBUG ((DEBUG_INIT, "IMX_LCDIF_OFFSET_VDCTRL3 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_VDCTRL3, MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_VDCTRL3)));
+    DEBUG ((DEBUG_INIT, "IMX_LCDIF_OFFSET_VDCTRL4 0x%08x : 0x%08x\n", LcdifBase + IMX_LCDIF_OFFSET_VDCTRL4, MmioRead32 (LcdifBase + IMX_LCDIF_OFFSET_VDCTRL4)));
+    DEBUG_CODE_END ();
 
     return EFI_SUCCESS;
 }
@@ -229,33 +229,33 @@ LcdifConfigureDisplay (
     EFI_STATUS status;
     volatile UINT32 value32;
     DEBUG ((DEBUG_INFO, "LcdifConfigureDisplay\n"));
-    UINT32 lcdifBase = FixedPcdGet32(PcdLCDIFBase);
+    UINT32 lcdifBase = FixedPcdGet32 (PcdLCDIFBase);
     DEBUG ((DEBUG_INFO, "LcdifConfigureDisplay lcdifBase = 0x%x\n", lcdifBase));
 
     //
     // Stop LCD controller in case it was left on.  This will
     // also cancel any current transfers.
     //
-    MmioWrite32(
+    MmioWrite32 (
         lcdifBase + IMX_LCDIF_OFFSET_RL_CLR,
         IMX_LCDIF_RL_RUN);
 
     do {
-        value32 = MmioRead32(lcdifBase + IMX_LCDIF_OFFSET_RL);
+        value32 = MmioRead32 (lcdifBase + IMX_LCDIF_OFFSET_RL);
     } while (value32 & IMX_LCDIF_RL_RUN);
 
-    status = ImxSetLcdIfClockRate(Timing->PixelClock);
-    if (EFI_ERROR(status)) {
-        DEBUG((DEBUG_ERROR, "ImxSetLcdIfClockRate failed %r\n", status));
+    status = ImxSetLcdIfClockRate (Timing->PixelClock);
+    if (EFI_ERROR (status)) {
+        DEBUG ((DEBUG_ERROR, "ImxSetLcdIfClockRate failed %r\n", status));
         goto Exit;
     }
 
-    status = LcdifInitDisplay(
+    status = LcdifInitDisplay (
         Timing,
         FrameBuffer,
         lcdifBase);
-    if (EFI_ERROR(status)) {
-        DEBUG((DEBUG_ERROR, "LcdifInitDisplay failed %r\n", status));
+    if (EFI_ERROR (status)) {
+        DEBUG ((DEBUG_ERROR, "LcdifInitDisplay failed %r\n", status));
         goto Exit;
     }
 
@@ -263,7 +263,7 @@ LcdifConfigureDisplay (
     //
     // Board specific display initialization
     //
-    LcdifBoardConfigureDisplay(
+    LcdifBoardConfigureDisplay (
         Timing,
         FrameBuffer);
 #endif // HDMI_I2C

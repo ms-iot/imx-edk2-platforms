@@ -1,6 +1,6 @@
 /** @file
 *
-*  Copyright (c) Microsoft Corporation. All rights reserved.
+*  Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 *
 *  This program and the accompanying materials
 *  are licensed and made available under the terms and conditions of the BSD License
@@ -54,7 +54,7 @@ typedef struct {
 
 EFI_STATUS
 EFIAPI
-LcdifGopQueryMode(
+LcdifGopQueryMode (
     IN EFI_GRAPHICS_OUTPUT_PROTOCOL *This,
     IN UINT32 ModeNumber,
     OUT UINTN *SizeOfInfo,
@@ -62,13 +62,13 @@ LcdifGopQueryMode(
     );
 
 EFI_STATUS
-LcdifGopSetMode(
+LcdifGopSetMode (
     IN EFI_GRAPHICS_OUTPUT_PROTOCOL *This,
     IN UINT32 ModeNumber
     );
 
 EFI_STATUS
-LcdifGopBlt(
+LcdifGopBlt (
     IN EFI_GRAPHICS_OUTPUT_PROTOCOL *This,
     IN OUT EFI_GRAPHICS_OUTPUT_BLT_PIXEL *BltBuffer,
     IN EFI_GRAPHICS_OUTPUT_BLT_OPERATION BltOperation,
@@ -88,8 +88,8 @@ static VID_DEVICE_PATH LcdifVidDevicePath =
             HARDWARE_DEVICE_PATH,
             HW_VENDOR_DP,
             {
-                (UINT8)sizeof(VENDOR_DEVICE_PATH),
-                (UINT8)((sizeof(VENDOR_DEVICE_PATH)) >> 8),
+                (UINT8)sizeof (VENDOR_DEVICE_PATH),
+                (UINT8)((sizeof (VENDOR_DEVICE_PATH)) >> 8),
             }
         },
         {
@@ -103,7 +103,7 @@ static VID_DEVICE_PATH LcdifVidDevicePath =
         END_DEVICE_PATH_TYPE,
         END_ENTIRE_DEVICE_PATH_SUBTYPE,
         {
-            sizeof(EFI_DEVICE_PATH_PROTOCOL),
+            sizeof (EFI_DEVICE_PATH_PROTOCOL),
             0
         }
     }
@@ -169,8 +169,8 @@ GetPreferredTiming (
 #if HDMI_I2C
     EFI_STATUS status;
 
-    status = LcdifBoardQueryEdidTiming(PreferredTiming);
-    if (EFI_ERROR(status)) {
+    status = LcdifBoardQueryEdidTiming (PreferredTiming);
+    if (EFI_ERROR (status)) {
 
         //
         // Use default timing if fail to query EDID
@@ -186,7 +186,7 @@ GetPreferredTiming (
     PreferredTiming->PixelFormat = PIXEL_FORMAT_BGRA32;
     PreferredTiming->Bpp = 32;
 
-    ImxPrintDisplayTiming(
+    ImxPrintDisplayTiming (
         "Preferred Timing",
         PreferredTiming);
 
@@ -208,19 +208,19 @@ LcdifGopInitialize (
 
     DEBUG ((DEBUG_INIT, "LcdIfGopInitialize\n"));
 
-    ZeroMem(&LcdifDisplayContext, sizeof(LcdifDisplayContext));
+    ZeroMem (&LcdifDisplayContext, sizeof (LcdifDisplayContext));
 
     //
     // Board specific initialization
     //
 #if  HDMI_I2C
-    LcdifBoardInitialize();
+    LcdifBoardInitialize ();
 #endif // HDMI_I2C
     DEBUG ((DEBUG_INIT, "LcdifInitialize returned\n"));
     //
     // Retrieve the preferred timing
     //
-    GetPreferredTiming(&LcdifDisplayContext.PreferedTiming);
+    GetPreferredTiming (&LcdifDisplayContext.PreferedTiming);
 
     DEBUG ((DEBUG_INIT, "GetPreferredTiming returned\n"));
     //
@@ -232,26 +232,26 @@ LcdifGopInitialize (
             LcdifDisplayContext.PreferedTiming.VActive *
             (LcdifDisplayContext.PreferedTiming.Bpp / 8) * 
 		3;    //add FrameBufferSize to support 480*272 
-        DEBUG((DEBUG_INIT, "Framebuffer size = %x\n", fbSize));
+        DEBUG ((DEBUG_INIT, "Framebuffer size = %x\n", fbSize));
 
         //
         // Use NoncoherentDmaLib API to allocate uncached EFI Runtime
         // memory for our frame buffer
         //
-        status = DmaAllocateBuffer(
+        status = DmaAllocateBuffer (
                     EfiRuntimeServicesData,
-                    EFI_SIZE_TO_PAGES(fbSize),
+                    EFI_SIZE_TO_PAGES (fbSize),
                     (VOID **)&LcdifDisplayContext.FrameBuffer);
-        if (EFI_ERROR(status)) {
-            DEBUG((DEBUG_ERROR, "Framebuffer allocation failed\n"));
+        if (EFI_ERROR (status)) {
+            DEBUG ((DEBUG_ERROR, "Framebuffer allocation failed\n"));
             goto Exit;
         }
-        DEBUG((DEBUG_INIT, "Framebuffer address = %x\n", LcdifDisplayContext.FrameBuffer));
+        DEBUG ((DEBUG_INIT, "Framebuffer address = %x\n", LcdifDisplayContext.FrameBuffer));
 
         //
         // Initialize the frame buffer to black
         //
-        SetMem32(
+        SetMem32 (
             LcdifDisplayContext.FrameBuffer,
             fbSize,
             0xFF000000);
@@ -259,11 +259,11 @@ LcdifGopInitialize (
 
     DEBUG ((DEBUG_INIT, "calling LcdIfConfigureDisplay\n"));
 
-    status = LcdifConfigureDisplay(
+    status = LcdifConfigureDisplay (
         &LcdifDisplayContext.PreferedTiming,
         LcdifDisplayContext.FrameBuffer);
-    if (EFI_ERROR(status)) {
-        DEBUG((EFI_D_ERROR, "LcdifConfigureDisplay failed %r\n", status));
+    if (EFI_ERROR (status)) {
+        DEBUG ((EFI_D_ERROR, "LcdifConfigureDisplay failed %r\n", status));
         goto Exit;
     }
 
@@ -276,15 +276,15 @@ LcdifGopInitialize (
         LcdifDisplayContext.PreferedTiming.VActive;
     LcdifGopModeInfo.PixelFormat = PixelBlueGreenRedReserved8BitPerColor;
 
-    ZeroMem(
+    ZeroMem (
         &LcdifGopModeInfo.PixelInformation,
-        sizeof(LcdifGopModeInfo.PixelInformation));
+        sizeof (LcdifGopModeInfo.PixelInformation));
 
     LcdifGopModeInfo.PixelsPerScanLine = LcdifGopModeInfo.HorizontalResolution;
     LcdifGopProtocolMode.MaxMode = 1;
     LcdifGopProtocolMode.Mode = 0;
     LcdifGopProtocolMode.Info = &LcdifGopModeInfo;
-    LcdifGopProtocolMode.SizeOfInfo = sizeof(LcdifGopModeInfo);
+    LcdifGopProtocolMode.SizeOfInfo = sizeof (LcdifGopModeInfo);
     LcdifGopProtocolMode.FrameBufferBase = (UINT32)LcdifDisplayContext.FrameBuffer;
     LcdifGopProtocolMode.FrameBufferSize =
         LcdifGopModeInfo.HorizontalResolution *
@@ -293,15 +293,15 @@ LcdifGopInitialize (
 
     DEBUG ((DEBUG_INIT, "calling InstallMultipleProtocolInterfaces\n"));
 
-    status = gBS->InstallMultipleProtocolInterfaces(
+    status = gBS->InstallMultipleProtocolInterfaces (
         &ImageHandle,
         &gEfiGraphicsOutputProtocolGuid,
         &LcdifGopProtocol,
         &gEfiDevicePathProtocolGuid,
         &LcdifVidDevicePath,
         NULL);
-    if (EFI_ERROR(status)) {
-        DEBUG(
+    if (EFI_ERROR (status)) {
+        DEBUG (
             (DEBUG_ERROR,
                 "Fail to install protocol, status=%r\n",
                 status));
@@ -334,13 +334,13 @@ LcdifGopQueryMode (
     DEBUG ((DEBUG_INIT, "entering LcdifGopQueryMode\n"));
 
     if (ModeNumber != 0) {
-        DEBUG((EFI_D_ERROR, "LcdifGopQueryMode: Saw request to query mode %d\n", ModeNumber));
+        DEBUG ((EFI_D_ERROR, "LcdifGopQueryMode: Saw request to query mode %d\n", ModeNumber));
         status = EFI_INVALID_PARAMETER;
         goto Exit;
     }
 
     outputModePtr = (EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *)
-        AllocatePool (sizeof(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION));
+        AllocatePool (sizeof (EFI_GRAPHICS_OUTPUT_MODE_INFORMATION));
     if (outputModePtr == NULL) {
         status = EFI_OUT_OF_RESOURCES;
         goto Exit;
@@ -352,7 +352,7 @@ LcdifGopQueryMode (
     outputModePtr->PixelFormat = PixelBlueGreenRedReserved8BitPerColor;
 
     outputModePtr->PixelsPerScanLine = LcdifGopModeInfo.HorizontalResolution;
-    *SizeOfInfo = sizeof(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION);
+    *SizeOfInfo = sizeof (EFI_GRAPHICS_OUTPUT_MODE_INFORMATION);
     *Info = outputModePtr;
 
     status = EFI_SUCCESS;
@@ -376,7 +376,7 @@ LcdifGopSetMode (
     EFI_STATUS status;
 
     if (ModeNumber != 0) {
-        DEBUG((EFI_D_ERROR, "LcdifGopSetMode: Saw request to set mode to %d\n", ModeNumber));
+        DEBUG ((EFI_D_ERROR, "LcdifGopSetMode: Saw request to set mode to %d\n", ModeNumber));
         status = EFI_UNSUPPORTED;
         goto Exit;
     }
@@ -427,7 +427,7 @@ LcdifGopBlt (
 
         frameOffset = frameWidth * DestinationY + DestinationX;
         for (i = DestinationY; i < DestinationY + Height; i++) {
-            SetMem32(frameBuffer + frameOffset,
+            SetMem32 (frameBuffer + frameOffset,
                      Width * PIXEL_BYTES,
                      *(UINT32 *)BltBuffer
                      );
@@ -439,7 +439,7 @@ LcdifGopBlt (
         bufferOffset = bufferWidth * DestinationY + DestinationX;
 
         for (i = SourceY; i < SourceY + Height; i++) {
-            CopyMem(BltBuffer + bufferOffset,
+            CopyMem (BltBuffer + bufferOffset,
                     frameBuffer + frameOffset,
                     Width * PIXEL_BYTES);
             frameOffset += frameWidth;
@@ -451,7 +451,7 @@ LcdifGopBlt (
         bufferOffset = bufferWidth * SourceY + SourceX;
 
         for (i = SourceY; i < SourceY + Height; i++) {
-            CopyMem(frameBuffer + frameOffset,
+            CopyMem (frameBuffer + frameOffset,
                     BltBuffer + bufferOffset,
                     Width * PIXEL_BYTES);
             frameOffset += frameWidth;
@@ -464,7 +464,7 @@ LcdifGopBlt (
         bufferOffset = frameWidth * SourceY + SourceX;
 
         for (i = SourceY; i < SourceY + Height; i++) {
-            CopyMem(frameBuffer + frameOffset,
+            CopyMem (frameBuffer + frameOffset,
                     frameBuffer + bufferOffset,
                     Width * PIXEL_BYTES);
             frameOffset += frameWidth;
@@ -472,7 +472,7 @@ LcdifGopBlt (
         }
 
     } else {
-        DEBUG((EFI_D_ERROR, "LcdifGopBlt:LcdifGopBlt not implemented %d\n", BltOperation));
+        DEBUG ((EFI_D_ERROR, "LcdifGopBlt:LcdifGopBlt not implemented %d\n", BltOperation));
         return EFI_INVALID_PARAMETER;
     }
 

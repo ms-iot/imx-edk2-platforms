@@ -169,7 +169,6 @@
   # iMX platform
   #
   iMXI2cLib|Silicon/NXP/iMXPlatformPkg/Library/iMXI2cLib/iMXI2cLib.inf
-  #
 
   # iMX6 Specifics
   #
@@ -856,6 +855,7 @@
   giMXPlatformTokenSpaceGuid.PcdGlobalDataBaseAddress|$(GLOBAL_DATA_BASE_ADDRESS)
   giMXPlatformTokenSpaceGuid.PcdGlobalDataSize|0x1000
 
+!if $(IMX_FAMILY) == IMX6ULL
 ########################
 #
 # giMX6TokenSpaceGuid PCDs
@@ -864,6 +864,7 @@
 [PcdsFixedAtBuild.common]
 
   giMX6TokenSpaceGuid.PcdLCDIFBase|0x021C8000
+!endif
 
 ################################################################################
 #
