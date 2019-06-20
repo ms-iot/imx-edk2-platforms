@@ -431,6 +431,9 @@ typedef struct {
 } IMX_WDOG_REGISTERS;
 
 // Clock Control Module (CCM)
+#define IMX6ULL_CCM_CLOCK_OFF    0
+#define IMX6ULL_RUN_ONLY         1
+#define IMX6ULL_RUN_AND_WAIT     3
 #define IMX_CCM_BASE 0x020C4000
 #define IMX_CCM_LENGTH 0x4000
 #define IMX_CCM_ANALOG_BASE  0x020C8000
@@ -829,24 +832,44 @@ typedef union {
 typedef union {
   UINT32 AsUint32;
   struct {
-    // LSB
-    UINT32 ipu1_ipu_clk_enable : 2;     // 0-1 ipu1_ipu clock (ipu1_ipu_clk_enable)
-    UINT32 ipu1_ipu_di0_clk_enable : 2; // 2-3 ipu1_di0 clock and pre-clock (ipu1_ipu_di0_clk_enable)
-    UINT32 ipu1_ipu_di1_clk_enable : 2; // 4-5 ipu1_di1 clock and pre-clock (ipu1_ipu_di1_clk_enable)
-    UINT32 ipu2_ipu_clk_enable : 2;     // 6-7 ipu2_ipu clock (ipu2_ipu_clk_enable)
-    UINT32 ipu2_ipu_di0_clk_enable : 2; // 8-9 ipu2_di0 clock and pre-clock (ipu2_ipu_di0_clk_enable)
-    UINT32 ipu2_ipu_di1_clk_enable : 2; // 10-11 ipu2_di1 clock and pre-clock (ipu2_ipu_di1_clk_enable)
-    UINT32 ldb_di0_clk_enable : 2;      // 12-13 ldb_di0 clock (ldb_di0_clk_enable)
-    UINT32 ldb_di1_clk_enable : 2;      // 14-15 ldb_di1 clock (ldb_di1_clk_enable)
-    UINT32 mipi_core_cfg_clk_enable : 2; // 16-17 mipi_core_cfg clock (mipi_core_cfg_clk_enable)
-    UINT32 mlb_clk_enable : 2;          // 18-19 mlb clock (mlb_clk_enable)
-    UINT32 mmdc_core_aclk_fast_core_p0_enable : 2; // 20-21 mmdc_core_aclk_fast_core_p0 clock (mmdc_core_aclk_fast_core_p0_enable)
-    UINT32 reserved1 : 2;               // 22-23
-    UINT32 mmdc_core_ipg_clk_p0_enable : 2; // 24-25 mmdc_core_ipg_clk_p0 clock (mmdc_core_ipg_clk_p0_enable)
-    UINT32 reserved2 : 2;               // 26-27
-    UINT32 ocram_clk_enable : 2;        // 28-29 ocram clock (ocram_clk_enable)
-    UINT32 openvgaxiclk_clk_root_enable : 2; // 30-31 openvgaxiclk clock (openvgaxiclk_clk_root_enable)
-    // MSB
+    UINT32 esai_clk_enable : 2;                             // 0-1 esai clock
+    UINT32 csi_clk_enable : 2;                              // 2-3 csi clock
+    UINT32 iomuxc_snvs_clk_enable : 2;                      // 4-5 iomuxc snvs clock
+    UINT32 i2c1_serial_clk_enable : 2;                      // 6-7 i2c1 serial clock
+    UINT32 i2c2_serial_clk_enable : 2;                      // 8-9 i2c2 serial clock
+    UINT32 i2c3_serial_clk_enable : 2;                      // 10-11 i2c3 serial clock
+    UINT32 iim_clk_enable : 2;                              // 12-13 iim clock
+    UINT32 iomux_ipt_clk_io_enable : 2;                     // 14-15 iomux ipt clk io clock
+    UINT32 ipmux1_clk_enable : 2;                           // 16-17 ipmux1 clock
+    UINT32 ipmux2_clk_enable : 2;                           // 18-19 ipmux2 clock
+    UINT32 ipmux3_clk_enable : 2;                           // 20-21 ipmux3 clock
+    UINT32 ipsync_ip2apb_tzasc1_ipg_master_clk_enable : 2;  // 22-23 ipsync ip2apb tzasc1 ipg clocks
+    UINT32 reserved3 : 2;                                   // 24-25 
+    UINT32 gpio3_clk_enable : 2;                            // 26-27 gpio3 clock
+    UINT32 lcd_clk_enable : 2;                              // 28-29 lcd clocks
+    UINT32 pxp_clk_enable : 2;                              // 30-31 pxp clocks
+  };
+} IMX_CCM_CCGR2_REG;
+
+typedef union {
+  UINT32 AsUint32;
+  struct {
+    UINT32 reserved1 : 2;                          // 0-1
+    UINT32 uart5_clk_enable : 2;                   // 2-3 uart5 clock
+    UINT32 edpc_clk_enable : 2;                    // 4-5 edpc clock
+    UINT32 uart6_clk_enable : 2;                   // 6-7 uart6 clock
+    UINT32 ccm_dap_clk_enable : 2;                 // 8-9 ccm dap clock
+    UINT32 lcdif1_pix_clk_enable : 2;              // 10-11 lcdif1 pix clock
+    UINT32 gpio4_clk_enable : 2;                   // 12-13 gpio4 clock
+    UINT32 qspi_clk_enable : 2;                    // 14-15 qspi1 clock
+    UINT32 wdog1_clk_enable : 2;                   // 16-17 wdog1 clock
+    UINT32 a7_clkdiv_patch_clk_enable : 2;         // 18-19 a7 clkdiv patch clock
+    UINT32 mmdc_core_aclk_fast_core_p0_enable : 2; // 20-21 mmdc_core_aclk_fast_core_p0 clock
+    UINT32 reserved3 : 2;                          // 22-23
+    UINT32 mmdc_core_ipg_clk_p0_enable : 2;        // 24-25 mmdc_core_ipg_clk_p0 clock
+    UINT32 mmdc_core_ipg_clk_p1_enable : 2;        // 26-27 mmdc_core_ipg_clk_p1 clock
+    UINT32 ocram_clk_enable : 2;                   // 28-29 ocram clock
+    UINT32 iomuxc_snvs_gpr_clk_enable : 2;         // 30-31 iomuxc snvs gpr clock
   };
 } IMX_CCM_CCGR3_REG;
 

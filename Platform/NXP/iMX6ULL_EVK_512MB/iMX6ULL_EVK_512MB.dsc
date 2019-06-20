@@ -26,7 +26,7 @@
   DEFINE DRAM_SIZE                = DRAM_512MB
   DEFINE CONFIG_DUMP_SYMBOL_INFO  = TRUE
   DEFINE CONFIG_L2CACHE_OFF       = TRUE
-  DEFINE CONFIG_HEADLESS          = TRUE
+  DEFINE CONFIG_HEADLESS          = FALSE
   DEFINE CONFIG_NOT_SECURE_UEFI   = TRUE
   DEFINE CONFIG_MEASURED_BOOT     = FALSE
   DEFINE CONFIG_USB               = FALSE
@@ -57,6 +57,16 @@
 [LibraryClasses.common]
   ArmPlatformLib|$(BOARD_DIR)/Library/iMX6BoardLib/iMX6BoardLib.inf
 [Components.common]
+
+  # Display Support
+!if $(CONFIG_HEADLESS) == FALSE
+  MdeModulePkg/Universal/Console/ConPlatformDxe/ConPlatformDxe.inf
+  MdeModulePkg/Universal/Console/ConSplitterDxe/ConSplitterDxe.inf
+  MdeModulePkg/Universal/Console/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
+  Silicon/NXP/iMX6Pkg/Drivers/LcdifGop/LcdifGop.inf
+  MdeModulePkg/Logo/LogoDxe.inf
+!endif
+
   #
   # ACPI Support
   #

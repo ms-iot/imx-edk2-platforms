@@ -166,13 +166,18 @@
   Tcg2PhysicalPresenceLib|SecurityPkg/Library/DxeTcg2PhysicalPresenceLib/DxeTcg2PhysicalPresenceLib.inf
   Tcg2PpVendorLib|SecurityPkg/Library/Tcg2PpVendorLibNull/Tcg2PpVendorLibNull.inf
 
+  # iMX platform
   #
+  iMXI2cLib|Silicon/NXP/iMXPlatformPkg/Library/iMXI2cLib/iMXI2cLib.inf
+
   # iMX6 Specifics
   #
   iMXIoMuxLib|Silicon/NXP/iMX6Pkg/Library/iMX6IoMuxLib/iMX6IoMuxLib.inf
   iMX6AudioLib|Silicon/NXP/iMX6Pkg/Library/iMX6AudioLib/iMX6AudioLib.inf
 !if $(IMX_FAMILY) == IMX6SX
   iMX6ClkPwrLib|Silicon/NXP/iMX6Pkg/Library/iMX6SxClkPwrLib/iMX6SxClkPwrLib.inf
+!elseif $(IMX_FAMILY) == IMX6ULL
+  iMX6ClkPwrLib|Silicon/NXP/iMX6Pkg/Library/iMX6ULLClkPwrLib/iMX6ULLClkPwrLib.inf
 !else
   iMX6ClkPwrLib|Silicon/NXP/iMX6Pkg/Library/iMX6ClkPwrLib/iMX6ClkPwrLib.inf
 !endif
@@ -849,6 +854,17 @@
   # Global data area
   giMXPlatformTokenSpaceGuid.PcdGlobalDataBaseAddress|$(GLOBAL_DATA_BASE_ADDRESS)
   giMXPlatformTokenSpaceGuid.PcdGlobalDataSize|0x1000
+
+########################
+#
+# giMX6TokenSpaceGuid PCDs
+#
+########################
+[PcdsFixedAtBuild.common]
+
+!if $(IMX_FAMILY) == IMX6ULL
+  giMX6TokenSpaceGuid.PcdLCDIFBase|0x021C8000
+!endif
 
 ################################################################################
 #
