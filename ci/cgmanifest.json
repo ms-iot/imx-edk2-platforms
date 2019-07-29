@@ -14,7 +14,7 @@
                 "type": "git",
                 "git": {
                     "repositoryUrl": "https://github.com/Microsoft/MSRSec",
-                    "commitHash": "3c0db43ceaa0da74688b138bf643905c2d374a00"
+                    "commitHash": "c035da650914de93445bb26291d2f0b18bae4f10"
                 }
             }
         },
