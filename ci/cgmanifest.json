@@ -53,6 +53,15 @@
                     "commitHash": "74ebf510a3d73e98767eac26082eabdc84e19d31"
                 }
             }
+        },
+        {
+            "component": {
+                "type": "git",
+                "git": {
+                    "repositoryUrl": "https://github.com/openssl/openssl",
+                    "commitHash": "74f2d9c1ec5f5510e1d3da5a9f03c28df0977762"
+                }
+            }
         }
     ],
     "Version": 1
