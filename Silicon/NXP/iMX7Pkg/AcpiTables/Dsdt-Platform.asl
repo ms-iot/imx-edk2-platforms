@@ -41,7 +41,7 @@ Device (CL0)
   Name (_LPI, Package() {
     0,            // Version
     0x01000000,   // Level ID
-    1,             // Count
+    2,             // Count
 
     // A7 WAIT mode
     Package () {
@@ -58,6 +58,22 @@ Device (CL0)
       ResourceTemplate(){Register(SystemMemory,0,0,0,0)}, // Usage counter register
       "A7 clock gated"      // Name
     },
+
+        // A7 power gate
+        Package ()
+        {
+            800,    // Min residency (us)
+            500,    // Wake latency (us)
+            1,      // Flags, set bit0 to 1 to enable this state.
+            0xD,    // Core context, GIC redistributor, GIC distributor
+            0,      // Residency counter frequency
+            0,      // Enabled parent state
+            0x50,   // Integer entry method
+            ResourceTemplate(){Register(SystemMemory,0,0,0,0)}, // Residency counter register
+            ResourceTemplate(){Register(SystemMemory,0,0,0,0)}, // Usage counter register
+            "A7 power gated"      // Name
+        },
+
   })
 
   Device (CPU0) {
@@ -113,6 +129,23 @@ Device (CL0)
         },
         "A7 clock gated"       // Name
       },
+
+            // Core power gate
+            Package ()
+            {
+                800,  // Min residency (us)
+                500,  // Wake latency (us)
+                1,    // Flags, set bit0 to 1 to enable this state
+                0xD,  // Arch context lost flags. Even though this state 
+                      // doesn't lose context, must set this to 1 so Windows 
+                      // uses always-on timer
+                0,    // Residency counter frequency
+                2,    // Enabled parent state (Enables A7 power gate)
+                ResourceTemplate(){Register(FFixedHW, 0x20, 0,0x0000000040000005,3)},
+                ResourceTemplate(){Register(SystemMemory,0,0,0,0)},  // Residency counter register
+                ResourceTemplate(){Register(SystemMemory,0,0,0,0)},  // Usage counter register
+                "A7 power gated"       // Name
+            },
     })
   }
 
@@ -170,6 +203,24 @@ Device (CL0)
         },
         "A7 clock gated"       // Name
       },
+
+            // Core power gate
+            Package ()
+            {
+                800,  // Min residency (us)
+                500,  // Wake latency (us)
+                1,    // Flags, set bit0 to 1 to enable this state
+                0xD,  // Arch context lost flags. Even though this state 
+                      // doesn't lose context, must set this to 1 so Windows 
+                      // uses always-on timer
+                0,    // Residency counter frequency
+                2,    // Enabled parent state (Enables A7 power gate)
+                ResourceTemplate(){Register(FFixedHW, 0x20, 0,0x0000000040000005,3)},
+                ResourceTemplate(){Register(SystemMemory,0,0,0,0)},  // Residency counter register
+                ResourceTemplate(){Register(SystemMemory,0,0,0,0)},  // Usage counter register
+                "A7 power gated"       // Name
+            },
+
     })
   }
 }
