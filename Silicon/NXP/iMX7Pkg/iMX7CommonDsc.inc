@@ -466,8 +466,8 @@
 
 [PcdsPatchableInModule]
   # Console Resolution
-  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution|1920
-  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoVerticalResolution|1080
+  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution|0
+  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoVerticalResolution|0
 
 ########################
 #
